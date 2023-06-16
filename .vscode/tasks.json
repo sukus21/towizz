@@ -1,0 +1,78 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "detail": "build ROM",
+            "type": "shell",
+            "command": "make",
+            "presentation": {
+                "clear": true,
+                "panel": "dedicated"
+            },
+            "problemMatcher": [
+                "$rgbdserror",
+                "$rgbdslinkerror"
+            ]
+        },
+        {
+            "label": "clean",
+            "detail": "clean build directory",
+            "type": "shell",
+            "command": "make clean",
+            "presentation": {
+                "clear": true,
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "build clean",
+            "detail": "rebuild ROM from scratch",
+            "dependsOrder": "sequence",
+            "dependsOn": ["clean", "build"],
+            "presentation": {
+                "clear": true,
+                "panel": "dedicated",
+                "reveal": "never"
+            },
+        },
+        {
+            "label": "run",
+            "detail": "build, then launch with default emulator",
+            "type": "shell",
+            "command": "build/build.gb",
+            "dependsOn": ["build"],
+            "presentation": {
+                "clear": true,
+                "panel": "dedicated",
+                "reveal": "never"
+            },
+        },
+        {
+            "label": "re-run",
+            "detail": "re-runs default emulator without building",
+            "type": "shell",
+            "command": "build/build.gb",
+            "problemMatcher": [],
+            "presentation": {
+                "clear": true,
+                "panel": "dedicated",
+                "reveal": "never"
+            },
+        },
+        {
+            "label": "run clean",
+            "detail": "do a clean build, open with default emulator",
+            "dependsOrder": "sequence",
+            "dependsOn": ["clean", "build", "run"],
+            "problemMatcher": [],
+            "presentation": {
+                "clear": true,
+                "panel": "dedicated",
+                "reveal": "never"
+            },
+        }
+    ]
+}
