@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros/color.inc"
+INCLUDE "macros/farcall.inc"
 
 SECTION "SETUP", ROM0
 
@@ -43,7 +44,7 @@ setup::
     ldh [h_setup], a
 
     ;Do my intro with the logo
-    call intro
+    farcall_0 intro
     ;falls into .partial
 
 ; Skip GBC detection and RNG reset.

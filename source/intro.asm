@@ -1,7 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros/color.inc"
 
-SECTION "INTRO", ROM0, ALIGN[8]
+SECTION "INTRO", ROMX, ALIGN[8]
 
 ; Raw palette data.
 ; Lives in ROM0.
@@ -37,11 +37,10 @@ _intro_black equ $C0
 
 
 
-; Plays the "Sukus Production screen".
+; Plays the "Sukus Production" splash screen.
 ; Routine will keep running until the animation is over, then return.
 ; Modifies screen data.
 ; Assumes LCD is turned on.
-; Lives in ROM0.
 ;
 ; Destroys: all
 intro::
@@ -216,7 +215,6 @@ intro::
 ; Subroutine for `intro`.
 ; Modifies CGB- and DMG palette(s).
 ; Assumes VRAM access.
-; Lives in ROM0.
 ;
 ; Input:
 ; - `c`: Opacity
