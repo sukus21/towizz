@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros/color.inc"
+INCLUDE "macros/memcpy.inc"
 
 SECTION "INTRO", ROMX, ALIGN[8]
 
@@ -35,6 +36,57 @@ intro_palettes:
     .black  white_fade  0,  0,  0
 ;
 
+; OAM sprite data for GBcompo logo.
+; 
+gbcompo_oam:
+    ;"GB" top
+    db $38, $48, $00, 0
+    db $38, $50, $02, 0
+    db $38, $59, $04, 0
+    db $38, $61, $06, 0
+
+    ;"GB" bottom
+    db $3C, $48, $08, 0
+    db $3C, $50, $0A, 0
+    db $3C, $59, $0C, 0
+    db $3C, $61, $0A, 0
+
+    ;"COMPO" top
+    db $4E, $30, $10, 0
+    db $4E, $38, $12, 0
+    db $4E, $40, $14, 0
+    db $4E, $48, $16, 0
+    db $4E, $50, $18, 0
+    db $4E, $58, $1A, 0
+    db $4E, $60, $1C, 0
+    db $4E, $68, $1E, 0
+    db $4E, $70, $20, 0
+    db $4E, $78, $22, 0
+
+    ;"COMPO" bottom + "2023" top
+    db $5E, $31, $24, 0
+    db $5E, $39, $26, 0
+    db $5E, $41, $28, 0
+    db $5E, $49, $2A, 0
+    db $5E, $51, $2C, 0
+    db $5E, $59, $2E, 0
+    db $5E, $61, $30, 0
+    db $5E, $69, $32, 0
+    db $5E, $72, $24, 0
+    db $5E, $7A, $0E, 0
+
+    ;"2023" bottom
+    db $6E, $3F, $34, 0
+    db $6E, $47, $36, 0
+    db $6E, $4F, $38, 0
+    db $6E, $57, $3A, 0
+    db $6E, $5F, $3C, 0
+    db $6E, $67, $3E, 0
+    db $6E, $6F, $40, 0
+
+    ds $A0 - (@ - gbcompo_oam)
+ASSERT low(gbcompo_oam) == 0
+
 ; Tilemap data for logo. 
 ; Contains a DMG- and CGB version.
 ; Lives in ROM0.
@@ -48,6 +100,21 @@ intro_tilemap:
 intro_tileset:
     INCBIN "intro/intro.tls"
     .end
+;
+
+; Graphics data for GBcompo logo.
+gbcompo:
+    ;Sprite tileset
+    .spr INCBIN "intro/gbcompo23_sprites.tls"
+    .spr_end
+
+    ;Background tilemap
+    .tlm INCBIN "intro/gbcompo23.tlm"
+    .tlm_end
+    
+    ;Background tileset
+    .tls INCBIN "intro/gbcompo23.tls"
+    .tls_end
 ;
 
 
@@ -86,36 +153,15 @@ intro::
 
     ;DMG tilemap?
     ldh a, [h_is_color]
-    cp a, 0
+    or a, a ;cp a, 0
     jr nz, .skip_dmg
-        ld a, %11100100 ;default DMG palette
-        ld [w_buffer], a
         ld bc, intro_tilemap.dmg
     .skip_dmg
-
-    ;Copy tilemap to screen, 20 tiles at a time
-    .mapcopy_loop
-        ;Copy data
-        ld de, 20
-        call memcpy
-
-        ;Increment data pointer
-        ld a, l
-        add a, 32 - 20
-        jr nc, :+
-            inc h
-        :
-
-        ;End of loop
-        ld l, a
-        add a, h
-        cp a, $9A + $40
-        jr nz, .mapcopy_loop
-    ;
+    call mapcopy_screen
 
     ;Check if attributes should be set?
     ldh a, [h_is_color]
-    cp a, 0
+    or a, a ;cp a, 0
     jr z, .attrskip
 
         ;Set tile attributes
@@ -146,18 +192,132 @@ intro::
         ldh [rVBK], a
     .attrskip
 
-    ;Set intro flags
-    xor a
-    ld [w_intro_timer], a
-    ld [w_intro_state], a
-
-    ;Set DMG palette
-    ldh [rBGP], a
-
     ;Reenable LCD
     ld hl, rLCDC
     ld a, LCDCF_ON | LCDCF_BGON
     ld [hl], a
+
+    ;Fade in
+    call intro_fadein
+
+    ;Show the still image for a bit
+    .fadenone
+        ;Wait for Vblank
+        xor a
+        ldh [rIF], a
+        ld a, IEF_VBLANK
+        ldh [rIE], a
+        halt 
+
+        ;Set default palette
+        ld a, %11100100
+        ldh [rBGP], a
+
+        ;Count down
+        ld hl, w_intro_timer
+        dec [hl]
+        ld a, $E0
+        cp a, [hl]
+        jr nz, .fadenone
+    ;
+
+    ;Waiting phase is OVER!
+    ;Fade out
+    call intro_fadeout
+
+    ;Wait for Vblank again
+    xor a
+    ldh [rIF], a
+    ld a, IEF_VBLANK
+    ldh [rIE], a
+    halt
+
+    ;Disable LCD in preparation for GBcompo logo
+    xor a
+    ldh [rLCDC], a
+
+    ;Copy background tiles to VRAM
+    ld hl, _VRAM + $1000
+    ld bc, gbcompo.tls
+    ld de, $0800
+    call memcpy
+    res 4, h ;hl: $9800 => $8800
+    ld de, gbcompo.tls_end - (gbcompo.tls + $0800)
+    call memcpy
+
+    ;Copy sprite tiles to VRAM
+    ld hl, _VRAM
+    ld bc, gbcompo.spr
+    ld de, gbcompo.spr_end - gbcompo.spr
+    call memcpy
+
+    ;Copy tilemap
+    ld hl, _SCRN0
+    ld bc, gbcompo.tlm
+    call mapcopy_screen
+
+    ;DMA
+    ld a, high(gbcompo_oam)
+    call h_dma_sourced
+
+    ;Reenable LCD
+    ld hl, rLCDC
+    ld a, LCDCF_ON | LCDCF_BGON | LCDCF_BLK21 | LCDCF_OBJON | LCDCF_OBJ16
+    ld [hl], a
+
+    ;Fade logo in
+    call intro_fadein
+
+    ;Hold image for a bit
+    .compo_wait
+        ;Wait for Vblank
+        xor a
+        ldh [rIF], a
+        ld a, IEF_VBLANK
+        ldh [rIE], a
+        halt 
+
+        ;Set default palette
+        ld a, %11100100
+        ldh [rBGP], a
+        ld a, %10010000
+        ldh [rOBP0], a
+
+        ;Count down
+        ld hl, w_intro_timer
+        dec [hl]
+        ld a, $E0
+        cp a, [hl]
+        jr nz, .compo_wait
+    ;
+
+    ;Fade logo out
+    call intro_fadeout
+
+    ;Return
+    ret
+;
+
+
+
+; Fades the screen from white.
+; Assumes LCD is on.
+; Modifies palette data.
+;
+; Destroys: all
+intro_fadein:
+    ;Set intro flags
+    xor a
+    ld [w_intro_timer], a
+    ld [w_intro_state], a
+    ldh [rBGP], a
+    ldh [rOBP0], a
+
+    ;Set default DMG palettes
+    ld a, %11100100
+    ld [w_buffer], a
+    ld a, %10010000
+    ld [w_buffer+1], a
 
     ;Fade in
     .fadein
@@ -183,32 +343,23 @@ intro::
         jr nz, .fadein
     ;
 
+    ;Return
+    ret
+;
 
-    ;Show the still image for a bit
-    .fadenone
-        ;Wait for Vblank
-        xor a
-        ldh [rIF], a
-        ld a, IEF_VBLANK
-        ldh [rIE], a
-        halt 
 
-        ;Set default palette
-        ld a, %11100100
-        ldh [rBGP], a
 
-        ;Count down
-        ld hl, w_intro_timer
-        dec [hl]
-        ld a, $E0
-        cp a, [hl]
-        jr nz, .fadenone
-    ;
-
-    ;Waiting phase is OVER!
-    ld a, 1
+; Fades the screen to white.
+; Assumes LCD is on.
+; Modifies palette data.
+;
+; Destroys: all
+intro_fadeout:
+    ;Set flags
+    xor a
+    ld [w_intro_timer], a
+    inc a ;ld a, 1
     ld [w_intro_state], a
-    ld [hl], 0
 
     ;Fade colors out
     .fadeout
@@ -234,15 +385,8 @@ intro::
         jr nz, .fadeout
     ;
 
-    ;Wait for Vblank again
-    xor a
-    ldh [rIF], a
-    ld a, IEF_VBLANK
-    ldh [rIE], a
-    halt
-
-    ;Resume whatever was happening
-    ret 
+    ;Return
+    ret
 ;
 
 
@@ -259,38 +403,59 @@ intro_fading:
 
     ;Check if this is a color machine or not
     ldh a, [h_is_color]
-    cp a, 0
+    or a, a ;cp a, 0
     jr nz, .color_real
 
         ;DMG mode
         ld a, c
         ld e, c
         and a, %00001111
-        cp a, 0
+        or a, a ;cp a, 0
         ret nz
 
         ;Set values
         ldh a, [rBGP]
-        ld b, a
+        ld d, a
+        ldh a, [rOBP0]
+        ld e, a
         ld hl, w_buffer ;stores DMG palette
         ld a, [w_intro_state]
         cp a, 1
         jr z, .fadeout
-            ;Fade in
+            ;Fade in BGP
+            ld a, d
             rr [hl]
-            rr b
+            rra
             rr [hl]
-            rr b
-            ld a, b
+            rra
             ldh [rBGP], a
+
+            ;Fade in OBP0
+            inc l
+            ld a, e
+            rr [hl]
+            rra
+            rr [hl]
+            rra
+            ldh [rOBP0], a
+
+            ;Return
             ret 
 
         .fadeout
-            ;Fade out
-            sla b
-            sla b
-            ld a, b
+            ;Fade out BGP
+            sla d
+            sla d
+            ld a, d
             ldh [rBGP], a
+
+            ;Fade out OBP0
+            sla e
+            sla e
+            ld a, d
+            ldh [rOBP0], a
+
+            ;Return
             ret
         ;
 
@@ -360,6 +525,42 @@ intro_fade_color:
     ld a, [hl]
     ld [de], a
     inc e
+
+    ;Return
+    ret
+;
+
+
+
+; Small custom memory copier.
+; 20*18 (360) bytes, enough to fill the screen.
+; Every 20 copied bytes, 12 bytes are skipped.
+;
+; Input:
+; - `hl`: Destination
+; - `bc`: Source
+;
+; Destroys: `de`
+mapcopy_screen::
+    ld e, 18
+
+    .loop
+        ;Copy tilemap to screen, 20 tiles at a time
+        ld d, 20
+        memcpy_custom hl, bc, d
+
+        ;Skip data pointer ahead
+        ld a, l
+        add a, 32 - 20
+        jr nc, :+
+            inc h
+        :
+        ld l, a
+
+        ;End of loop
+        dec e
+        jr nz, .loop
+    ;
 
     ;Return
     ret
