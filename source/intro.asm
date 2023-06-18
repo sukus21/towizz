@@ -3,21 +3,44 @@ INCLUDE "macros/color.inc"
 
 SECTION "INTRO", ROMX, ALIGN[8]
 
+; Creates 32 colors, fading from white to the given color.
+;
+; Input:
+; - 1: Red (0-31)
+; - 2: Green (0-31)
+; - 3: Blue (0-31)
+MACRO white_fade
+    DEF iteration = 1.0
+    REPT 32
+        DEF red = \1.0 + MUL((31.0 - \1.0), iteration)
+        DEF green = \2.0 + MUL((31.0 - \2.0), iteration)
+        DEF blue = \3.0 + MUL((31.0 - \3.0), iteration)
+        color_t red >> 16, green >> 16, blue >> 16
+        DEF iteration -= DIV(1.0, 31.0)
+    ENDR
+    
+    ;Cleanup
+    PURGE iteration
+    PURGE red
+    PURGE green
+    PURGE blue
+ENDM
+
 ; Raw palette data.
 ; Lives in ROM0.
 intro_palettes:
-    INCBIN "intro/sukus_fade.pal"
-    .end
+    .yellow white_fade 31, 31,  0
+    .red    white_fade 31,  0,  0
+    .gray   white_fade 21, 21, 21
+    .black  white_fade  0,  0,  0
 ;
 
 ; Tilemap data for logo. 
 ; Contains a DMG- and CGB version.
 ; Lives in ROM0.
 intro_tilemap:
-    INCBIN "intro/sukus_cgb.tlm"
-    .dmg
-    INCBIN "intro/sukus_dmg.tlm"
-    .end
+    .cgb INCBIN "intro/sukus_cgb.tlm"
+    .dmg INCBIN "intro/sukus_dmg.tlm"
 ;
 
 ; Tileset for logo and font.
@@ -26,14 +49,6 @@ intro_tileset:
     INCBIN "intro/intro.tls"
     .end
 ;
-
-
-
-;Color pointer offsets
-_intro_yellow equ $00
-_intro_red equ $40
-_intro_gray equ $80
-_intro_black equ $C0
 
 
 
@@ -72,26 +87,31 @@ intro::
     ;DMG tilemap?
     ldh a, [h_is_color]
     cp a, 0
-    jr nz, :+
-        ld a, %11100100
+    jr nz, .skip_dmg
+        ld a, %11100100 ;default DMG palette
         ld [w_buffer], a
         ld bc, intro_tilemap.dmg
-    :
+    .skip_dmg
+
+    ;Copy tilemap to screen, 20 tiles at a time
+    .mapcopy_loop
+        ;Copy data
         ld de, 20
         call memcpy
+
+        ;Increment data pointer
         ld a, l
-        and a, %11100000
-        add a, 32
+        add a, 32 - 20
         jr nc, :+
             inc h
         :
+
+        ;End of loop
         ld l, a
-        ld a, h
-        cp a, $9A
-        jr nz, :--
-        ld a, l
-        cp a, $40
-        jr nz, :--
+        add a, h
+        cp a, $9A + $40
+        jr nz, .mapcopy_loop
+    ;
 
     ;Check if attributes should be set?
     ldh a, [h_is_color]
@@ -111,7 +131,7 @@ intro::
         ld c, 8
         ld a, 0
         ld de, 24
-        :
+        .face_loop
             ;Set data
             REPT 8
                 ld [hl+], a
@@ -120,8 +140,10 @@ intro::
             ;Jump to next line or break
             add hl, de
             dec c
-            jr nz, :-
+            jr nz, .face_loop
         ;
+        xor a
+        ldh [rVBK], a
     .attrskip
 
     ;Set intro flags
@@ -138,66 +160,79 @@ intro::
     ld [hl], a
 
     ;Fade in
-    .fade
-    ld hl, w_intro_timer
-    inc [hl]
-    ld a, [hl]
-    add a, a
-    and a, %00111111
-    ld c, a
-    call intro_faderoutine
-    ld a, e
-    cp a, $3E
-    jr z, .phase2
+    .fadein
+        ;Wait for Vblank
+        xor a
+        ldh [rIF], a
+        ld a, IEF_VBLANK
+        ldh [rIE], a
+        halt 
 
-    ;Wait for Vblank
-    xor a
-    ldh [rIF], a
-    ld a, IEF_VBLANK
-    ldh [rIE], a
-    halt 
-    jr .fade
+        ;Do the fading
+        ld hl, w_intro_timer
+        inc [hl]
+        ld a, [hl]
+        add a, a
+        and a, %00111111
+        ld c, a
+        call intro_fading
+
+        ;Are we done fading in?
+        ld a, e
+        cp a, $3E
+        jr nz, .fadein
+    ;
 
 
-    ;Wait for Vblank again
-    .phase2
-    xor a
-    ldh [rIF], a
-    ld a, IEF_VBLANK
-    ldh [rIE], a
-    halt 
+    ;Show the still image for a bit
+    .fadenone
+        ;Wait for Vblank
+        xor a
+        ldh [rIF], a
+        ld a, IEF_VBLANK
+        ldh [rIE], a
+        halt 
 
-    ;Now in Vblank, count down
-    ld a, %11100100
-    ldh [rBGP], a
-    ld hl, w_intro_timer
-    dec [hl]
-    ld a, $E0
-    cp a, [hl]
-    jr nz, .phase2
+        ;Set default palette
+        ld a, %11100100
+        ldh [rBGP], a
+
+        ;Count down
+        ld hl, w_intro_timer
+        dec [hl]
+        ld a, $E0
+        cp a, [hl]
+        jr nz, .fadenone
+    ;
+
+    ;Waiting phase is OVER!
     ld a, 1
     ld [w_intro_state], a
     ld [hl], 0
 
-    ;Wait for Vblank (again)
+    ;Fade colors out
     .fadeout
-    xor a
-    ldh [rIF], a
-    ld a, IEF_VBLANK
-    ldh [rIE], a
-    halt 
+        ;Wait for Vblank (again)
+        xor a
+        ldh [rIF], a
+        ld a, IEF_VBLANK
+        ldh [rIE], a
+        halt 
 
-    ;Fade out
-    ld hl, w_intro_timer
-    dec [hl]
-    ld a, [hl]
-    add a, a
-    and a, %00111111
-    ld c, a
-    call intro_faderoutine
-    ld a, e
-    cp a, $00
-    jr nz, .fadeout
+        ;Fade out
+        ld hl, w_intro_timer
+        dec [hl]
+        ld a, [hl]
+        add a, a
+        and a, %00111111
+        ld c, a
+        call intro_fading
+
+        ;Are we done yet?
+        ld a, c
+        cp a, $00
+        jr nz, .fadeout
+    ;
 
     ;Wait for Vblank again
     xor a
@@ -213,15 +248,14 @@ intro::
 
 
 ; Subroutine for `intro`.
-; Modifies CGB- and DMG palette(s).
+; Modifies CGB- or DMG palettes (depends on mode).
 ; Assumes VRAM access.
 ;
 ; Input:
 ; - `c`: Opacity
 ;
-; Returns:
-; - `e`: Input opacity
-intro_faderoutine:
+; Saves: `c`
+intro_fading:
 
     ;Check if this is a color machine or not
     ldh a, [h_is_color]
@@ -238,11 +272,10 @@ intro_faderoutine:
         ;Set values
         ldh a, [rBGP]
         ld b, a
-        ld hl, w_buffer
+        ld hl, w_buffer ;stores DMG palette
         ld a, [w_intro_state]
         cp a, 1
-        jr z, :+
-
+        jr z, .fadeout
             ;Fade in
             rr [hl]
             rr b
@@ -251,7 +284,8 @@ intro_faderoutine:
             ld a, b
             ldh [rBGP], a
             ret 
-        :
+
+        .fadeout
             ;Fade out
             sla b
             sla b
@@ -262,50 +296,71 @@ intro_faderoutine:
 
     ;CGB mode
     .color_real
-        ld a, c
         ld de, w_buffer
-        ld hl, intro_palettes + _intro_yellow
-
-        ;Helper macro
-        MACRO _fade_color
-            add a, \1
-            ld l, a
-            ld a, [hl+]
-            ld [de], a
-            inc e
-            ld a, [hl]
-            ld [de], a
-            inc e
-            ld a, c
-        ENDM
 
         ;Palette 1, logo
-        _fade_color l
-        _fade_color low(intro_palettes + _intro_red)
-        _fade_color low(intro_palettes + _intro_gray)
-        _fade_color low(intro_palettes + _intro_black)
+        ld hl, intro_palettes.yellow
+        call intro_fade_color
+        ld hl, intro_palettes.red
+        call intro_fade_color
+        ld hl, intro_palettes.gray
+        call intro_fade_color
+        ld hl, intro_palettes.black
+        call intro_fade_color
 
         ;Palette 2, text
-
         ;White, doesn't need to change
         ld a, $FF
         ld [de], a
         inc e
         ld [de], a
         inc e
-        ld a, c
-        _fade_color low(intro_palettes + _intro_black)
-        _fade_color low(intro_palettes + _intro_gray)
-        _fade_color low(intro_palettes + _intro_black)
-        ld e, c
+
+        ld hl, intro_palettes.black
+        call intro_fade_color
+        ld hl, intro_palettes.gray
+        call intro_fade_color
+        ld hl, intro_palettes.black
+        call intro_fade_color
         
         ;Copy palettes
+        ld e, c ;save this from being clobbered
         ld hl, w_buffer
         xor a
         call palette_copy_bg
         call palette_copy_bg
 
         ;Return
+        ld c, e
         ret 
     ;
+;
+
+
+
+; Helper routine for fading.
+; Only used for CGB colors.
+;
+; Input:
+; - `c`: Opacity
+; - `de`: Color desination
+; - `hl`: Color fade table
+;
+; Saves: `bc`
+intro_fade_color:
+    ;Create proper index
+    ld a, c
+    add a, l
+    ld l, a
+
+    ;Copy data
+    ld a, [hl+]
+    ld [de], a
+    inc e
+    ld a, [hl]
+    ld [de], a
+    inc e
+
+    ;Return
+    ret
 ;
