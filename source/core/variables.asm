@@ -29,10 +29,11 @@ variables_init::
     call memcpy
 
     ;Copy HRAM variables
+    .dma_hram::
     ld hl, h_variables ;Start of variable space
     ld bc, var_h ;Initial variable data
-    ld de, var_h_end - var_h ;Data length
-    call memcpy
+    ld d, var_h_end - var_h ;Data length
+    call memcpy_short
 
     ;Return
     ret
@@ -85,11 +86,25 @@ var_h:
     LOAD "HRAM VARIABLES", HRAM
         h_variables::
 
-        ;OAM DMA routine in HRAM
+        ; OAM DMA routine in HRAM.
+        ; Interrupts should be disabled while this runs.
+        ; Assumes OAM access.
+        ;
+        ; Destroys: `a`
         h_dma_routine::
 
             ;Initialize OAM DMA
             ld a, HIGH(w_oam_mirror)
+
+            ; Run OAM DMA with a pre-specified input.
+            ; Interrupts should be disabled while this runs.
+            ; Assumes OAM access.
+            ;
+            ; Input:
+            ; - `a`: High byte of OAM table
+            ;
+            ; Destroys: `a`
+            h_dma_sourced::
             ldh [rDMA], a
 
             ;Wait until transfer is complete
@@ -113,10 +128,6 @@ var_h:
         h_bank_number:: db $01
         h_sprite_slot:: db $00
         ;
-
-        ;Shadow scrolling registers
-        h_scx:: db $00
-        h_scy:: db $00
 
         ;RNG stuff
         h_rng::

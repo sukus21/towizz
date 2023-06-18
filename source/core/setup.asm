@@ -7,9 +7,10 @@ SECTION "SETUP", ROM0
 ; Supposed to run first thing when the game starts.
 ; Lives in ROM0.
 setup::
+    ld sp, w_stack
 
     ;Is this GBC hardware?
-    ld sp, w_stack
+    farcall_0 variables_init.dma_hram
     call detect_gbc
 
     ;What did we get?
@@ -90,9 +91,7 @@ setup::
     .rngskip
 
     ;Setup ALL variables
-    ld hl, variables_init
-    ld b, bank(variables_init)
-    call bank_call_0
+    farcall_0 variables_init
 
     ;Put RNG seed back maybe
     pop af
