@@ -28,7 +28,6 @@ MACRO white_fade
 ENDM
 
 ; Raw palette data.
-; Lives in ROM0.
 intro_palettes:
     .yellow white_fade 31, 31,  0
     .red    white_fade 31,  0,  0
@@ -37,7 +36,6 @@ intro_palettes:
 ;
 
 ; OAM sprite data for GBcompo logo.
-; 
 gbcompo_oam:
     ;"GB" top
     db $38, $48, $00, 0
@@ -85,18 +83,17 @@ gbcompo_oam:
     db $6E, $6F, $40, 0
 
     ds $A0 - (@ - gbcompo_oam)
+;
 ASSERT low(gbcompo_oam) == 0
 
 ; Tilemap data for logo. 
 ; Contains a DMG- and CGB version.
-; Lives in ROM0.
 intro_tilemap:
     .cgb INCBIN "intro/sukus_cgb.tlm"
     .dmg INCBIN "intro/sukus_dmg.tlm"
 ;
 
 ; Tileset for logo and font.
-; Lives in ROM0.
 intro_tileset:
     INCBIN "intro/intro.tls"
     .end
