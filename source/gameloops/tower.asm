@@ -339,6 +339,57 @@ gameloop_tower::
     ; This is where the gameloop repeats.
     .mainloop
 
+    call input
+    ldh a, [h_input]
+    ld hl, w_platform_ypos
+
+    bit PADB_B, a
+    jr z, :+
+        ld hl, w_tower_height
+    :
+
+    bit PADB_SELECT, a
+    jr z, :+
+        ldh a, [h_input_pressed]
+    :
+    ld b, a
+
+    ;Move platform
+    bit PADB_UP, b
+    jr z, :+
+        dec [hl]
+    :
+    bit PADB_DOWN, b
+    jr z, :+
+        inc [hl]
+    :
+
+    ;Move tower
+    ld hl, w_tower_ypos
+    bit PADB_LEFT, b
+    jr z, :+
+        inc [hl]
+    :
+    bit PADB_RIGHT, b
+    jr z, :+
+        dec [hl]
+    :
+
+    ;Scrolled below the thing?
+    ld a, $FF
+    cp a, [hl]
+    ld a, [w_tower_height]
+    jr nz, :+
+        dec a
+        ld [hl], a
+        inc a
+    :
+    dec a
+    cp a, [hl]
+    jr nc, :+
+        ld [hl], 0
+    :
+
     ;Wait for Vblank
     .halting
         halt 
