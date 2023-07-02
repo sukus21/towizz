@@ -74,6 +74,19 @@ var_w0:
 
         ; First known 4-chunk entity slot.
         w_entsys_first64:: dw w_entsys
+
+        w_tower_xpos:: db $00
+        w_tower_ypos:: db $00
+        w_tower_height:: db $10
+        w_tower_lyc:: db $00
+    
+        w_platform_width:: db $68
+        w_platform_height:: db $10
+        w_platform_xpos:: db $00
+        w_platform_ypos:: db $50
+
+        w_background_xpos:: db $4F
+        w_background_ypos:: db $14
     ENDL
     var_w0_end:
 ;
@@ -138,7 +151,19 @@ var_h:
         h_LYC::
             jp v_error
         ;
+        
+        h_tower_xpos:: db $00
+        h_tower_ypos:: db $00
+        h_tower_height:: db $10
+        h_tower_lyc:: db $00
+    
+        h_platform_width:: db $68
+        h_platform_height:: db $18
+        h_platform_xpos:: db $00
+        h_platform_ypos:: db $50
 
+        h_background_xpos:: db $4F
+        h_background_ypos:: db $14
 
         ; Bitfield of buttons held.
         ; Use with `PADB_*` or `PADF_*` from `hardware.inc`.

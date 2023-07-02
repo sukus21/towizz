@@ -27,10 +27,23 @@ v_vblank::
 ;
 
 
+
+SECTION "STAT INTERRUPT", ROM0[$0048]
+
+; Stat interrupt vector.
+; Always assumed to be triggered by LY=LYC.
+; Jumps to the routine at `h_LYC`.
+; Lives in ROM0.
+v_stat::
+    jp h_LYC
+;
+
+
+
 SECTION "MAIN", ROM0[$0150]
 
 ; Entrypoint of game code, jumped to after setup is complete.
 ; Lives in ROM0.
 main::
-    jp gameloop_test
+    jp gameloop_tower
 ;
