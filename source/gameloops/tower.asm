@@ -85,6 +85,7 @@ tower_hblank_segment::
     ;Platform Y-position -> H
     ldh a, [h_platform_ypos]
     ld h, a
+    dec h
 
     ;Next segment interrupt position
     ldh a, [h_tower_lyc]
@@ -143,6 +144,7 @@ tower_hblank_platform::
     ld h, a
     ldh a, [h_platform_height]
     add a, h
+    dec a
     ldh [rLYC], a
     ld h, a
     LYC_set_jumppoint tower_hblank_segment
@@ -219,43 +221,43 @@ tower_vblank::
     ldh [rLYC], a
 
     ;Set First tower interrupt position
-    ldh a, [h_tower_height]
-    ld e, a
     ldh a, [h_tower_ypos]
-    add a, GUI_HEIGHT-1
+    ld e, a
+    ld a, GUI_HEIGHT-1
     sub a, e
-    inc a
     ldh [h_tower_lyc], a
 
-    ;Load some variables into registers
     ;platform start -> b
-    ld a, [w_platform_ypos]
+    ldh a, [h_platform_ypos]
     ld b, a
+    cp a, SCRN_Y
+    jr nz, :+
+        ;Disable platform, or the LYC interrupt will clash with Vblank
+        .no_platform
+        ld a, PLATFORM_DISABLE
+        ldh [h_platform_ypos], a
+        ret
+    :
+
     ;platform end -> c
     ld a, [w_platform_height]
     add a, b
     ld c, a
 
     ;Skip platform?
-    cp a, SCRN_Y
-    jr z, .has_platform
     cp a, GUI_HEIGHT
-    jr nc, .has_platform
-        .no_platform
-        ld a, PLATFORM_DISABLE
-        ldh [h_platform_ypos], a
-        ret
-    .has_platform
+    jr c, .no_platform
 
     ;Start by drawing platform?
     cp a, b
-    jr c, :+
+    jr c, .yes_platform
+
     ld a, b
     cp a, GUI_HEIGHT
+    jr z, .yes_platform
     ret nc
-    :
     
-    nop ;glorified breakpoint
+    .yes_platform
     LYC_set_jumppoint tower_hblank_platform
 
     ;That's it I guess
