@@ -70,6 +70,9 @@ DEF PLATFORM_HEIGHT EQU $18
 ; Resting position of platform when not in use
 DEF PLATFORM_DISABLE EQU SCRN_Y + 1
 
+; Platform scroll position
+DEF PLATFORM_SCY EQU -$18
+
 
 
 ; H-blank routine for the tower gameloop.
@@ -160,6 +163,13 @@ tower_hblank_platform::
     sub a, l
     ldh [h_tower_lyc], a
 
+    ;Calculate background position
+    ldh a, [h_platform_ypos]
+    ld h, a
+    ld a, PLATFORM_SCY
+    sub a, h
+    ld h, a
+
     ;This will make the section routine faster
     ld a, PLATFORM_DISABLE
     ldh [h_platform_ypos], a
@@ -171,9 +181,8 @@ tower_hblank_platform::
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
     ldh [rLCDC], a
 
-    ;Background position
-    ld a, $FF
-    sub a, h
+    ;Set background position
+    ld a, h
     ldh [rSCY], a
 
     ;Return
@@ -246,6 +255,7 @@ tower_vblank::
 
     ;Skip platform?
     cp a, GUI_HEIGHT
+    jr z, .no_platform
     jr c, .no_platform
 
     ;Start by drawing platform?
