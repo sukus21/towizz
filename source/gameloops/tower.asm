@@ -59,10 +59,10 @@ tower_tiles:
 DEF GUI_HEIGHT EQU $14
 
 ; Coordinate for SCX when displaying GUI.
-DEF GUI_XPOS EQU $00
+DEF GUI_SCX EQU $00
 
 ; Coordniate for SCY when displaying GUI.
-DEF GUI_YPOS EQU -$30
+DEF GUI_SCY EQU -$30
 
 ; Height of the platform.
 DEF PLATFORM_HEIGHT EQU $18
@@ -200,9 +200,9 @@ tower_vblank::
     ENDR
 
     ;Reset background for GUI
-    ld a, GUI_XPOS
+    ld a, GUI_SCX
     ldh [rSCX], a
-    ld a, GUI_YPOS
+    ld a, GUI_SCY
     ldh [rSCY], a
 
     ;Reset window position
