@@ -194,7 +194,7 @@ tower_vblank::
         .no_platform
         ld a, PLATFORM_DISABLE
         ldh [h_platform_ypos], a
-        ret
+        jr .return
     :
 
     ;platform end -> c
@@ -214,12 +214,14 @@ tower_vblank::
     ld a, b
     cp a, HUD_HEIGHT
     jr z, .yes_platform
-    ret nc
+    jr nc, .return
     
     .yes_platform
     LYC_set_jumppoint tower_hblank_platform
 
-    ;That's it I guess
+    ;Do DMA and return
+    .return
+    call h_dma_routine
     ret
 ;
 
@@ -319,21 +321,6 @@ gameloop_tower::
         jr nz, :-
     ;
 
-    ;Clear OAM mirror
-    ld hl, w_oam_mirror
-    ld a, 80
-    ld [hl+], a
-    ld a, 124
-    ld [hl+], a
-    ld a, $A4
-    ld [hl+], a
-    xor a
-    ld [hl+], a
-    ld b, a
-    ld de, $A0
-    call memset
-    call h_dma_routine
-
     ;Set palette
     ld a, $E4
     ldh [rBGP], a
@@ -412,7 +399,38 @@ gameloop_tower::
         ld [hl], 0
     :
 
+    ;Get a couple sprites
+    ld b, 4*12
+    call sprite_get
+    ld h, high(w_oam_mirror)
+    ld l, a
+
+    ;Draw platform positions
+    ld a, [w_platform_xpos]
+    ld bc, $63_30
+    call draw_byte
+    ld a, [w_platform_ypos]
+    ld bc, $76_30
+    call draw_byte
+
+    ;Draw tower positions
+    ld a, [w_tower_ypos]
+    ld bc, $63_43
+    call draw_byte
+    ld a, [w_tower_height]
+    ld bc, $76_43
+    call draw_byte
+
+    ;Draw background positions
+    ld a, [w_background_xpos]
+    ld bc, $63_56
+    call draw_byte
+    ld a, [w_background_ypos]
+    ld bc, $76_56
+    call draw_byte
+
     ;Wait for Vblank
+    call sprite_finish
     .halting
         halt 
         xor a
@@ -432,7 +450,55 @@ gameloop_tower::
     xor a
     ldh [rIF], a
     ei
-    jr .mainloop
+    jp .mainloop
+;
+
+
+
+; Draws a number in hexadecimal using sprites.
+; Lives in ROM0.
+;
+; Input:
+; - `hl`: Sprite data pointer
+; - `a`: Number
+; - `b`: X-position
+; - `c`: Y-position
+;
+; Output:
+; - `hl`: += 8
+;
+; Destroys: `af`, `d`
+draw_byte:
+    ;Upper nybble
+    ld [hl], c
+    inc l
+    ld [hl], b
+    inc l
+    ld d, a
+    swap a
+    and a, %00001111
+    rla
+    set 7, a
+    ld [hl+], a
+    ld [hl], OAMF_PAL0
+    inc l
+
+    ;Lower nybble
+    ld [hl], c
+    inc l
+    ld a, b
+    add a, 8
+    ld [hl+], a
+    ld a, d
+    and a, %00001111
+    rla
+    set 7, a
+    ld [hl+], a
+    ld [hl], OAMF_PAL0
+    inc l
+
+    ;Return
+    ret 
 ;
 
 
