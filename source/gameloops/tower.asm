@@ -424,3 +424,47 @@ gameloop_tower::
     ei
     jr .mainloop
 ;
+
+
+
+SECTION UNION "TOWER VRAM", VRAM[$8000]
+    ;Reserved for future use
+    ds $10 * $80
+
+    ; Location of platform tileset.
+    vt_tower_platform:: ds $10 * $20
+
+    ; Test tiles location.
+    vt_tower_testtiles:: ds $10 * $10
+
+    ;Reserved for future use
+    ds $10 * $50
+
+    ;Location of tower tileset.
+    vt_tower_tower:: ds $10 * $20
+
+    ;Reserved for future use
+    ds $10 * $60
+
+    ; Location of tower tilemap.
+    ; Spans a full background layer, at 32x32 tiles.
+    vm_tower_tower:: ds $20 * $20
+
+    ; Location of background tilemap.
+    ; Drawn using the window layer.
+    ; Most of the right side of this segment is unused.
+    ; (at most) 20 * 26 tiles.
+    vm_tower_background:: ds $20 * 26
+
+
+    ; Location of GUI tilemap.
+    ; GUI elements go here.
+    ; 32 * 3 tiles.
+    vm_tower_gui:: ds $20 * 3
+
+    ; Location of platform tilemap.
+    ; I have not yet decided if I'll need the full 3-tile length.
+    ; Still reserving it, just in case.
+    ; 32 * 3 tiles.
+    vm_tower_platform:: ds $20 * 3
+;
