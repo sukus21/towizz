@@ -95,6 +95,36 @@ memset::
 
 
 
+; Sets a number of bytes at a location to a single value.
+; Lives in ROM0.
+;
+; Input:
+; - `hl`: Destination
+; - `b`: Fill byte
+; - `c`: Byte count
+;
+; Returns:
+; - `hl`: Destination + Byte count
+; - `c`: `$00`
+;
+; Destroys: `af`
+; Saves; `de`
+memset_short::
+
+    ;Fill data
+    ld a, b
+    ld [hl+], a
+    dec c
+
+    ;Check byte count
+    jr nz, memset_short
+
+    ;Return
+    ret
+;
+
+
+
 ; Same as memcpy, but only stops once 0 is seen.
 ; Made specifically to copy text.
 ; Lives in ROM0.
