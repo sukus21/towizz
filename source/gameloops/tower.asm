@@ -54,15 +54,14 @@ tower_tiles:
     dw `11001100
     dw `31001103
 .end
+; Height of the HUD.
+DEF HUD_HEIGHT EQU $14
 
-; Height of the GUI.
-DEF GUI_HEIGHT EQU $14
+; Coordinate for SCX when displaying HUD.
+DEF HUD_SCX EQU $00
 
-; Coordinate for SCX when displaying GUI.
-DEF GUI_SCX EQU $00
-
-; Coordniate for SCY when displaying GUI.
-DEF GUI_SCY EQU -$30
+; Coordniate for SCY when displaying HUD.
+DEF HUD_SCY EQU -$30
 
 ; Height of the platform.
 DEF PLATFORM_HEIGHT EQU $18
@@ -208,10 +207,10 @@ tower_vblank::
         inc c
     ENDR
 
-    ;Reset background for GUI
-    ld a, GUI_SCX
+    ;Reset background for HUD
+    ld a, HUD_SCX
     ldh [rSCX], a
-    ld a, GUI_SCY
+    ld a, HUD_SCY
     ldh [rSCY], a
 
     ;Reset window position
@@ -224,15 +223,15 @@ tower_vblank::
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJ16
     ldh [rLCDC], a
 
-    ;Do interrupt when GUI is drawn
+    ;Do interrupt when HUD is drawn
     LYC_set_jumppoint tower_hblank_segment
-    ld a, GUI_HEIGHT-1
+    ld a, HUD_HEIGHT-1
     ldh [rLYC], a
 
     ;Set First tower interrupt position
     ldh a, [h_tower_ypos]
     ld e, a
-    ld a, GUI_HEIGHT-1
+    ld a, HUD_HEIGHT-1
     sub a, e
     ldh [h_tower_lyc], a
 
@@ -254,7 +253,7 @@ tower_vblank::
     ld c, a
 
     ;Skip platform?
-    cp a, GUI_HEIGHT
+    cp a, HUD_HEIGHT
     jr z, .no_platform
     jr c, .no_platform
 
@@ -263,7 +262,7 @@ tower_vblank::
     jr c, .yes_platform
 
     ld a, b
-    cp a, GUI_HEIGHT
+    cp a, HUD_HEIGHT
     jr z, .yes_platform
     ret nc
     
@@ -302,10 +301,10 @@ gameloop_tower::
     ld b, $80
     ld de, $20 * 26
     call memset
-    ld b, $81 ;gui
     ld de, $20 * 3
     call memset
     ld b, $82 ;platform
+    ld b, $81 ;hud
     ld de, $20 * 3
     call memset
 
@@ -438,7 +437,10 @@ SECTION UNION "TOWER VRAM", VRAM[$8000]
     vt_tower_testtiles:: ds $10 * $10
 
     ;Reserved for future use
-    ds $10 * $50
+    ds $10 * $40
+
+    ; HUD tiles
+    vt_tower_hud:: ds $10 * $10
 
     ;Location of tower tileset.
     vt_tower_tower:: ds $10 * $20
@@ -457,10 +459,10 @@ SECTION UNION "TOWER VRAM", VRAM[$8000]
     vm_tower_background:: ds $20 * 26
 
 
-    ; Location of GUI tilemap.
-    ; GUI elements go here.
+    ; Location of HUD tilemap.
+    ; HUD elements go here.
     ; 32 * 3 tiles.
-    vm_tower_gui:: ds $20 * 3
+    vm_tower_hud:: ds $20 * 3
 
     ; Location of platform tilemap.
     ; I have not yet decided if I'll need the full 3-tile length.

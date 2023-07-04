@@ -17,5 +17,5 @@ Will be filled in more later, when I start getting things into place.
 |---------------------|----------------------|
 | `(32x32)` Tower     | `(32x18)` Background |
 |                     | `(32x04)` Platform   |
-|                     | `(32x03)` GUI        |
+|                     | `(32x03)` HUD        |
 | `(32x32)` **Total** | `(32x25)` **Total**  |
