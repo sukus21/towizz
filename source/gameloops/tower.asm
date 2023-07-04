@@ -2,58 +2,6 @@ INCLUDE "hardware.inc"
 INCLUDE "macros/lyc.inc"
 
 
-SECTION "GAMELOOP TOWER", ROM0
-
-; Some test-tiles.
-; Lives in ROM0.
-; TODO: make a proper tileset.
-; TODO: move to ROMX.
-tower_tiles:
-    dw `30000003
-    dw `00000000
-    dw `00000000
-    dw `00000000
-    dw `00000000
-    dw `00000000
-    dw `00000000
-    dw `30000003
-
-    dw `31111113
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `31111113
-
-    dw `32222223
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `32222223
-
-    dw `23333332
-    dw `33333333
-    dw `33333333
-    dw `33333333
-    dw `33333333
-    dw `33333333
-    dw `33333333
-    dw `23333332
-
-    dw `30110013
-    dw `00110011
-    dw `11001100
-    dw `11001100
-    dw `00110011
-    dw `00110011
-    dw `11001100
-    dw `31001103
-.end
 ; Height of the HUD.
 DEF HUD_HEIGHT EQU $14
 
@@ -73,6 +21,8 @@ DEF PLATFORM_DISABLE EQU SCRN_Y + 1
 DEF PLATFORM_SCY EQU -$18
 
 
+
+SECTION "GAMELOOP TOWER", ROM0
 
 ; H-blank routine for the tower gameloop.
 ; Called when drawing a segment.
@@ -281,32 +231,93 @@ tower_vblank::
 ;
 ; Saves: none
 gameloop_tower::
+
+    ;Switch ROMX bank
+    ld a, bank(tower_asset_tower)
+    ld [rROMB0], a
     
-    ;Copy tiles to VRAM
-    ld hl, $8800
-    ld bc, tower_tiles
-    ld de, tower_tiles.end - tower_tiles
+    ;Copy tower tiles
+    ld hl, vt_tower_tower
+    ld bc, tower_asset_tower
+    ld de, tower_asset_tower.end - tower_asset_tower
     call memcpy
 
-    ;Set tower tiles on background layer
-    ld hl, $9800
-    ld b, $83 ;tower
-    ld de, $20 * 2
-    call memset
-    ld b, $84 ;invisible
-    ld de, $20 * 30
+    ;Copy platform tiles
+    ld hl, vt_tower_platform
+    ld bc, tower_asset_platform
+    ld de, tower_asset_platform.end - tower_asset_platform
+    call memcpy
+
+    ;Copy HUD tiles
+    ld hl, vt_tower_hud
+    ld bc, tower_asset_hud
+    ld de, tower_asset_hud.end - tower_asset_hud
+    call memcpy
+
+    ;Copy test tiles
+    ld hl, vt_tower_testtiles
+    ld bc, tower_asset_testtiles
+    ld de, tower_asset_testtiles.end - tower_asset_testtiles
+    call memcpy
+
+    ;This part of the tilemap is invisible
+    ld hl, vm_tower_tower
+    ld b, $A4
+    ld de, $20 * $20
     call memset
 
+    ;Set tower tiles on background layer
+    ld hl, vm_tower_tower + $0F
+    ld c, 2
+    ld a, $1E
+    :
+        ld [hl-], a
+        sub a, c
+        jr nc, :-
+    ld hl, vm_tower_tower + $2F
+    ld a, $1F
+    :
+        ld [hl-], a
+        sub a, c
+        jr nc, :-
+    ;
+
+    ;Set GUI tiles
+    ld hl, vm_tower_hud
+    ld b, $F0
+    ld d, $20
+    ld c, d
+    call memset_short
+    inc b
+    ld c, d
+    call memset_short
+    inc b
+    ld c, d
+    call memset_short
+
     ;Set backdrop tiles on window layer
-    ld b, $80
+    ld hl, vm_tower_background
+    ld b, $A0
     ld de, $20 * 26
     call memset
-    ld de, $20 * 3
-    call memset
-    ld b, $82 ;platform
-    ld b, $81 ;hud
-    ld de, $20 * 3
-    call memset
+
+    ;Platform tiles
+    ld hl, vm_tower_platform + $0F
+    ld c, 2
+    ld a, $9E
+    :
+        ld [hl-], a
+        sub a, c
+        bit 7, a
+        jr nz, :-
+    ld hl, vm_tower_platform + $2F
+    ld a, $9F
+    :
+        ld [hl-], a
+        sub a, c
+        bit 7, a
+        jr nz, :-
+    ;
 
     ;Clear OAM mirror
     ld hl, w_oam_mirror
@@ -314,7 +325,7 @@ gameloop_tower::
     ld [hl+], a
     ld a, 124
     ld [hl+], a
-    ld a, $84
+    ld a, $A4
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -423,6 +434,83 @@ gameloop_tower::
     ei
     jr .mainloop
 ;
+
+
+
+SECTION "TOWER ASSETS", ROMX
+
+; Platform tileset.
+tower_asset_platform::
+    INCBIN "graphics/platform_test.tls"
+.end
+
+; Tower tileset.
+tower_asset_tower::
+    INCBIN "graphics/tower_test.tls"
+.end
+
+; HUD tileset.
+tower_asset_hud::
+    INCBIN "graphics/hud_test.tls"
+.end
+
+; Some test-tiles.
+; TODO: make a proper tileset.
+tower_asset_testtiles:
+    dw `30000003
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `30000003
+
+    dw `31111113
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `31111113
+
+    dw `32222223
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `32222223
+
+    dw `23333332
+    dw `33333333
+    dw `33333333
+    dw `33333333
+    dw `33333333
+    dw `33333333
+    dw `33333333
+    dw `23333332
+
+    dw `32112213
+    dw `22112211
+    dw `11221122
+    dw `11221122
+    dw `22112211
+    dw `22112211
+    dw `11221122
+    dw `31221123
+
+    dw `32112213
+    dw `22112211
+    dw `11221122
+    dw `11221122
+    dw `22112211
+    dw `22112211
+    dw `11221122
+    dw `31221123
+.end
 
 
 
