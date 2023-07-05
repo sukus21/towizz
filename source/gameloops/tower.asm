@@ -347,23 +347,38 @@ gameloop_tower::
 
     ; This is where the gameloop repeats.
     .mainloop
-
     call input
     ldh a, [h_input]
-    ld hl, w_platform_ypos
 
+    ;Modify tower with the B button
     bit PADB_B, a
     jr z, :+
-        ld hl, w_tower_height
+        ld hl, w_tower_ypos
+        ld de, w_tower_height
+        jr .select
     :
 
+    ;Modify background with the A button
+    bit PADB_A, a
+    jr z, :+
+        ld hl, w_background_ypos
+        ld de, w_background_xpos
+        jr .select
+    :
+
+    ;Modify platform with no button
+    ld hl, w_platform_ypos
+    ld de, w_platform_xpos
+
+    ;Single-step or per-frame?
+    .select
     bit PADB_SELECT, a
     jr z, :+
         ldh a, [h_input_pressed]
     :
     ld b, a
 
-    ;Move platform
+    ;Move vertical
     bit PADB_UP, b
     jr z, :+
         dec [hl]
@@ -373,31 +388,33 @@ gameloop_tower::
         inc [hl]
     :
 
-    ;Move tower
-    ld hl, w_tower_ypos
+    ;Move horizontal
+    ld h, d
+    ld l, e
     bit PADB_LEFT, b
-    jr z, :+
-        inc [hl]
-    :
-    bit PADB_RIGHT, b
     jr z, :+
         dec [hl]
     :
+    bit PADB_RIGHT, b
+    jr z, :+
+        inc [hl]
+    :
 
-    ;Scrolled below the thing?
-    ld a, $FF
-    cp a, [hl]
+    ;Keep tower within cap
     ld a, [w_tower_height]
+    ld hl, w_tower_ypos
+    ld c, a
+    ld a, [hl]
+    cp a, $FF
     jr nz, :+
-        dec a
-        ld [hl], a
-        inc a
+        dec c
+        ld [hl], c
+        jr .tower_adjusted
     :
-    dec a
-    cp a, [hl]
-    jr nc, :+
+    cp a, c
+    jr c, .tower_adjusted
         ld [hl], 0
-    :
+    .tower_adjusted
 
     ;Get a couple sprites
     ld b, 4*12
