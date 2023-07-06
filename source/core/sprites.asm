@@ -87,14 +87,16 @@ sprite_finish::
     ld h, high(w_oam_mirror)
 
     ;Clear out memory
-    ld a, $A0
+    ldh a, [h_sprites_previous]
     :
         ld [hl], 0
         inc l
         cp a, l
-        jr nz, :-
+        jr nc, :-
 
     ;Reset sprite count and return
+    ldh a, [h_sprite_slot]
+    ldh [h_sprites_previous], a
     xor a
     ldh [h_sprite_slot], a
     ret 

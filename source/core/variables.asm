@@ -185,6 +185,9 @@ var_h:
         ; Low-byte of pointer to first empty OAM slot.
         h_sprite_slot:: db $00
 
+        ; How many sprites were allocated last frame.
+        h_sprites_previous:: db $A0
+
         ; RNG variables.
         h_rng::
 
