@@ -20,9 +20,78 @@ DEF PLATFORM_DISABLE EQU SCRN_Y + 1
 ; Platform scroll position
 DEF PLATFORM_SCY EQU -$18
 
+; Background SCX when offscreen
+DEF BACKGROUND_OFFSCREEN_SCX EQU SCRN_X + 5
+
 
 
 SECTION "GAMELOOP TOWER", ROM0
+
+; H-blank routine for the tower gameloop.
+; Called a bit before the end of the GUI.
+; Performs DMA.
+; Lives in ROM0.
+tower_hblank_gui::
+    push af
+    push bc
+
+    ;Do interrupt when HUD is drawn
+    LYC_set_jumppoint tower_hblank_segment
+    ld a, HUD_HEIGHT-1
+    ldh [rLYC], a
+    
+    ;Set First tower interrupt position
+    ldh a, [h_tower_ypos]
+    ld c, a
+    ld a, HUD_HEIGHT-1
+    sub a, c
+    ldh [h_tower_lyc], a
+
+    ;platform start -> b
+    ldh a, [h_platform_ypos]
+    ld b, a
+    cp a, SCRN_Y
+    jr nz, :+
+        ;Disable platform, or the LYC interrupt will clash with Vblank
+        .no_platform
+        ld a, PLATFORM_DISABLE
+        ldh [h_platform_ypos], a
+        jr .return
+    :
+
+    ;platform end -> c
+    ld a, [w_platform_height]
+    add a, b
+    ld c, a
+
+    ;Skip platform?
+    cp a, HUD_HEIGHT
+    jr z, .no_platform
+    jr c, .no_platform
+
+    ;Start by drawing platform?
+    cp a, b
+    jr c, .yes_platform
+
+    ld a, b
+    cp a, HUD_HEIGHT
+    jr z, .yes_platform
+    jr nc, .return
+    
+    .yes_platform
+    LYC_set_jumppoint tower_hblank_platform
+
+    ;Do DMA
+    .return
+    call h_dma_routine
+
+    ;Return
+    pop bc
+    pop af
+    reti
+;
+
+
 
 ; H-blank routine for the tower gameloop.
 ; Called when drawing a segment.
@@ -170,57 +239,14 @@ tower_vblank::
     ldh [rWY], a
 
     ;Set the correct LCDC flags
-    ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJ16
+    ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
     ldh [rLCDC], a
 
-    ;Do interrupt when HUD is drawn
-    LYC_set_jumppoint tower_hblank_segment
-    ld a, HUD_HEIGHT-1
+    ;Set mid-hud interrupt
+    ld a, $0F
     ldh [rLYC], a
 
-    ;Set First tower interrupt position
-    ldh a, [h_tower_ypos]
-    ld e, a
-    ld a, HUD_HEIGHT-1
-    sub a, e
-    ldh [h_tower_lyc], a
-
-    ;platform start -> b
-    ldh a, [h_platform_ypos]
-    ld b, a
-    cp a, SCRN_Y
-    jr nz, :+
-        ;Disable platform, or the LYC interrupt will clash with Vblank
-        .no_platform
-        ld a, PLATFORM_DISABLE
-        ldh [h_platform_ypos], a
-        jr .return
-    :
-
-    ;platform end -> c
-    ld a, [w_platform_height]
-    add a, b
-    ld c, a
-
-    ;Skip platform?
-    cp a, HUD_HEIGHT
-    jr z, .no_platform
-    jr c, .no_platform
-
-    ;Start by drawing platform?
-    cp a, b
-    jr c, .yes_platform
-
-    ld a, b
-    cp a, HUD_HEIGHT
-    jr z, .yes_platform
-    jr nc, .return
-    
-    .yes_platform
-    LYC_set_jumppoint tower_hblank_platform
-
     ;Do DMA and return
-    .return
     call h_dma_routine
     ret
 ;
