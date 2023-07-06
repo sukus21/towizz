@@ -20,7 +20,10 @@ ENDM
 ;
 ; Destroys: `af`
 MACRO LYC_wait_hblank
-    ldh a, [rSTAT]
-    bit 1, a
-    jr nz, @-4
+    ld a, STATF_MODE00
+    ldh [rSTAT], a
+    halt
+    ld a, STATF_LYC
+    ldh [rSTAT], a
+    ldh [rIF], a
 ENDM

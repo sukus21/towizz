@@ -461,7 +461,7 @@ gameloop_tower::
     ld [hl], a
 
     ;Get a couple sprites
-    ld b, 4*12
+    ld b, 4*22
     call sprite_get
     ld h, high(w_oam_mirror)
     ld l, a
@@ -490,12 +490,27 @@ gameloop_tower::
     ld bc, $76_56
     call draw_byte
 
+    ;Draw a bunch of sprites in a line to test lag
+    ld a, 0
+    ld bc, $30_80
+    call draw_byte
+    ld a, 1
+    ld b, $30 + 17*1
+    call draw_byte
+    ld a, 2
+    ld b, $30 + 17*2
+    call draw_byte
+    ld a, 3
+    ld b, $30 + 17*3
+    call draw_byte
+    ld a, 4
+    ld b, $30 + 17*4
+    call draw_byte
+
     ;Wait for Vblank
     call sprite_finish
     .halting
         halt 
-        xor a
-        ldh [rIF], a
 
         ;Ignore if this wasn't V-blank
         ldh a, [rSTAT]
