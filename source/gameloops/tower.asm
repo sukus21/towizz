@@ -83,6 +83,8 @@ tower_hblank_gui::
 
     ;Do DMA
     .return
+    ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINOFF | LCDCF_OBJOFF
+    ldh [rLCDC], a
     call h_dma_routine
 
     ;Return
@@ -136,6 +138,10 @@ tower_hblank_segment::
     ld a, l
     cpl
     ldh [rSCY], a
+
+    ;Move background into view
+    ldh a, [h_background_xpos]
+    ldh [rWX], a
 
     ;Set LCDC flags
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9800 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
@@ -203,6 +209,10 @@ tower_hblank_platform::
     ld a, h
     ldh [rSCY], a
 
+    ;Move background into view
+    ldh a, [h_background_xpos]
+    ldh [rWX], a
+
     ;Return
     pop hl
     pop af
@@ -233,7 +243,7 @@ tower_vblank::
     ldh [rSCY], a
 
     ;Reset window position
-    ldh a, [h_background_xpos]
+    ld a, BACKGROUND_OFFSCREEN_SCX
     ldh [rWX], a
     ldh a, [h_background_ypos]
     ldh [rWY], a
@@ -245,9 +255,11 @@ tower_vblank::
     ;Set mid-hud interrupt
     ld a, $0F
     ldh [rLYC], a
+    LYC_set_jumppoint tower_hblank_gui
 
     ;Do DMA and return
-    call h_dma_routine
+    ld a, high(tower_hud_oam)
+    call h_dma_sourced
     ret
 ;
 
@@ -442,6 +454,12 @@ gameloop_tower::
         ld [hl], 0
     .tower_adjusted
 
+    ;Adjust window position
+    ld hl, w_background_ypos
+    ld a, [hl]
+    and a, %00001111
+    ld [hl], a
+
     ;Get a couple sprites
     ld b, 4*12
     call sprite_get
@@ -620,6 +638,20 @@ tower_asset_testtiles:
     dw `11221122
     dw `31221123
 .end
+
+
+
+SECTION "TOWER OAM MIRROR", ROM0, ALIGN[8]
+
+; An almost empty OAM mirror.
+; Used to cover up a small part of the window layer.
+; This has to be in ROM0, so it can be accessed at any time.
+; Lives in ROM0.
+tower_hud_oam::
+    db $10, $A0, $F0, $00
+    db $20, $A0, $F2, $00
+    ds $A0 - $08, $00
+;
 
 
 

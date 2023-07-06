@@ -86,7 +86,7 @@ var_w0:
         w_platform_ypos:: db $50
 
         w_background_xpos:: db $4F
-        w_background_ypos:: db $14
+        w_background_ypos:: db $00
     ENDL
     var_w0_end:
 ;
