@@ -7,10 +7,10 @@ Will be filled in more later, when I start getting things into place.
 | block 0 `($8000)` | block 1 `($8800)` | block 2 `($9000)`  |
 |-------------------|-------------------|--------------------|
 | `($??)` Player    | `($20)` Platform  | `($??)` Tower      |
-| `($??)` Enemies   | `($??)` Enemies   | `($??)` Background |
-| `($??)` Bullets   |                   | `($??)` HUD        |
+| `($??)` Enemies   | `($08)` HUD       | `($??)` Background |
+| `($??)` Bullets   | `($??)` Enemies   |                    |
 | `($??)` Objects   |                   |                    |
-| `($??)` **Total** | `($??)` **Total** | `($??)` **Total**  |
+| `($??)` **Total** | `($28)` **Total** | `($??)` **Total**  |
 
 ### Tilemaps:
 | screen 0 `($9800)`  | screen 1 `($9C00)`   |
