@@ -88,9 +88,10 @@ tower_hblank_gui::
     call h_dma_routine
 
     ;Return
+    ei
     pop bc
     pop af
-    reti
+    ret
 ;
 
 
@@ -148,9 +149,10 @@ tower_hblank_segment::
     ldh [rLCDC], a
 
     ;Return
+    ei
     pop hl
     pop af
-    reti
+    ret
 ;
 
 
@@ -214,9 +216,10 @@ tower_hblank_platform::
     ldh [rWX], a
 
     ;Return
+    ei
     pop hl
     pop af
-    reti
+    ret
 ;
 
 
