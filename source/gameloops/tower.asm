@@ -47,6 +47,14 @@ tower_hblank_gui::
     sub a, c
     ldh [h_tower_lyc], a
 
+    ;Platform drawn entirely with sprites?
+    ldh a, [h_background_xpos]
+    sub a, 7
+    ld b, a
+    ldh a, [h_platform_xpos]
+    cp a, b
+    jr c, .no_platform
+
     ;platform start -> b
     ldh a, [h_platform_ypos]
     ld b, a
