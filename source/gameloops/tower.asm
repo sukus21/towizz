@@ -83,6 +83,7 @@ tower_hblank_gui::
 
     ;Do DMA
     .return
+    LYC_wait_hblank
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINOFF | LCDCF_OBJOFF
     ldh [rLCDC], a
     call h_dma_routine
@@ -132,6 +133,12 @@ tower_hblank_segment::
         ldh [h_tower_lyc], a
     :
 
+    ;Camera X
+    ldh a, [h_background_xpos]
+    cpl
+    add a, $88
+    ld h, a
+
     ;Wait for H-blank
     LYC_wait_hblank
 
@@ -139,6 +146,8 @@ tower_hblank_segment::
     ld a, l
     cpl
     ldh [rSCY], a
+    ld a, h
+    ldh [rSCX], a
 
     ;Move background into view
     ldh a, [h_background_xpos]
@@ -195,6 +204,10 @@ tower_hblank_platform::
     ld a, PLATFORM_SCY
     sub a, h
     ld h, a
+    ldh a, [h_platform_xpos]
+    cpl
+    add a, $81
+    ld l, a
 
     ;This will make the section routine faster
     ld a, PLATFORM_DISABLE
@@ -210,6 +223,8 @@ tower_hblank_platform::
     ;Set background position
     ld a, h
     ldh [rSCY], a
+    ld a, l
+    ldh [rSCX], a
 
     ;Move background into view
     ldh a, [h_background_xpos]
@@ -238,6 +253,9 @@ tower_vblank::
         ld [bc], a
         inc c
     ENDR
+    ldh a, [h_background_xpos]
+    add a, 7
+    ldh [h_background_xpos], a
 
     ;Reset background for HUD
     ld a, HUD_SCX

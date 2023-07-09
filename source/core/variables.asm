@@ -82,10 +82,10 @@ var_w0:
     
         w_platform_width:: db $68
         w_platform_height:: db $10
-        w_platform_xpos:: db $00
+        w_platform_xpos:: db $48
         w_platform_ypos:: db $50
 
-        w_background_xpos:: db $4F
+        w_background_xpos:: db $48
         w_background_ypos:: db $00
     ENDL
     var_w0_end:
