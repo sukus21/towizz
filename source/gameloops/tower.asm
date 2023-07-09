@@ -549,6 +549,9 @@ gameloop_tower::
     ld b, $30 + 17*4
     call draw_byte
 
+    ;Draw sprite-part of platform
+    call tower_platform_sprites
+
     ;Wait for Vblank
     call sprite_finish
     .halting
@@ -569,6 +572,69 @@ gameloop_tower::
     ldh [rIF], a
     ei
     jp .mainloop
+;
+
+
+
+; Draw sprite-parts of platform.
+; Lives in ROM0.
+;
+; Saves: none
+tower_platform_sprites:
+    ld a, [w_background_xpos]
+    ld b, a
+    ld a, [w_platform_xpos]
+    ld c, a
+
+    ;Quick path
+    sub a, b
+    ret z
+
+    ;Get number of sprites needed
+    jr nc, :+
+        ld a, c
+    :
+    dec a
+    rra
+    rra
+    rra
+    and a, %00011111
+    inc a
+    ld e, a ;iteration count -> E
+    ld b, a
+    sla b
+    sla b
+
+    ;Allocate sprites
+    call sprite_get
+    ld l, a
+    ld h, high(w_oam_mirror)
+
+    ;Prepare sprite data
+    ld a, [w_platform_ypos]
+    add a, 16
+    ld d, a ;sprite Y-position
+    ld a, c ;sprite X-position
+    ld c, $9E ;sprite tile
+
+    ;Write data
+    .loop
+        ld [hl], d
+        inc l
+        ld [hl+], a
+        sub a, 8
+        ld [hl], c
+        dec c
+        dec c
+        inc l
+        ld [hl], OAMF_PAL0
+        inc l
+        dec e
+        jr nz, .loop
+    ;
+
+    ;Return
+    ret
 ;
 
 
