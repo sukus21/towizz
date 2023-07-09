@@ -286,13 +286,13 @@ tower_vblank::
 
 
 
-; Tower gameloop.
-; Does not return, resets stack.
+; Setup routine for tower gameloop.
+; Assumes VRAM access.
+; Enables interrupts and LCD when returning.
 ; Lives in ROM0.
 ;
 ; Saves: none
-gameloop_tower::
-
+gameloop_tower_setup:
     ;Switch ROMX bank
     ld a, bank(tower_asset_tower)
     ld [rROMB0], a
@@ -403,6 +403,19 @@ gameloop_tower::
     ld a, LCDCF_BLK21 | LCDCF_BG9800 | LCDCF_WIN9C00 | LCDCF_BGON | LCDCF_WINON | LCDCF_ON
     ldh [rLCDC], a
 
+    ;Return
+    ret 
+;
+
+
+
+; Tower gameloop.
+; Does not return, resets stack.
+; Lives in ROM0.
+;
+; Saves: none
+gameloop_tower::
+    call gameloop_tower_setup
 
     ; This is where the gameloop repeats.
     .mainloop
