@@ -27,11 +27,21 @@ variables_init::
     ld de, var_w0_end - var_w0 ;Data length
     call memcpy
 
-    ;Copy WRAMX variables
-    ld hl, w_entsys ;Start of variable space
-    ld bc, var_wx ;Initial variable data
-    ld de, var_wx_end - var_wx ;Data length
-    call memcpy
+    ;Initialize entity system
+    ld hl, w_entsys
+    xor a
+    ld b, ENTSYS_CHUNK_COUNT
+    .entsys_loop
+        ld [hl+], a ;entity bank
+        ld [hl], $40 ;slot size
+        ld [hl+], a
+        ld [hl+], a ;step function pointer
+        REPT 12
+            ld [hl+], a ;unassigned data
+        ENDR
+        dec b
+        jr nz, .entsys_loop
+    ;
 
     ;Copy HRAM variables
     .dma_hram::
@@ -91,23 +101,7 @@ var_w0:
     var_w0_end:
 ;
 
-; Contains the initial values of all variables in WRAMX.
-var_wx:
-    LOAD "WRAMX VARIABLES", WRAMX, ALIGN[8]
-        ; Enitity system.\
-        ; Check out `source/entitysystem/entsys.md` for documentation.
-        w_entsys::
-            REPT entsys_entity_count
-                w_entsys_bank_\@: db $00
-                w_entsys_next_\@: db $40
-                w_entsys_step_\@: dw $0000
-                ds 12
-            ENDR
-            w_entsys_end::
-        ;
-    ENDL
-    var_wx_end:
-;
+
 
 ; Contains the initial values for all HRAM variables.
 var_h:
@@ -198,4 +192,20 @@ var_h:
         h_rng_out:: db $00, $00
     ENDL
     var_h_end:
+;
+
+
+
+SECTION "ENTITY STORAGE", WRAMX, ALIGN[8]
+
+; Enitity system.  
+; Check out `source/entitysystem/entsys.md` for documentation.
+w_entsys::
+    REPT ENTSYS_CHUNK_COUNT
+        w_entsys_bank_\@: ds 1
+        w_entsys_next_\@: ds 1
+        w_entsys_step_\@: ds 2
+        w_entsys_vars_\@: ds 12
+    ENDR
+    w_entsys_end::
 ;
