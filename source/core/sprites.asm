@@ -46,17 +46,20 @@ sprite_finish::
     ld l, [hl] ;hl = OAMMIR_COUNT
 
     ;Cap-fiddling, prevents errors
+    cp a, l
+    jr z, .done
     or a ;cp a, 0
     jr nz, :+
         ld a, $A0
     :
 
     ;Clear out memory
-    :
+    .loop
         ld [hl], 0
         inc l
         cp a, l
-        jr nc, :-
+        jr nc, .loop
+    .done
 
     ;Reset sprite count and return
     ld l, OAMMIR_COUNT

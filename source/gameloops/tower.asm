@@ -514,52 +514,8 @@ gameloop_tower::
     and a, %00001111
     ld [hl], a
 
-    ;Get a couple sprites
-    ld b, 4*22
-    ldh a, [h_oam_active]
-    ld h, a
-    call sprite_get
-
-    ;Draw platform positions
-    ld a, [w_platform_xpos]
-    ld bc, $63_30
-    call draw_byte
-    ld a, [w_platform_ypos]
-    ld bc, $76_30
-    call draw_byte
-
-    ;Draw tower positions
-    ld a, [w_tower_ypos]
-    ld bc, $63_43
-    call draw_byte
-    ld a, [w_tower_height]
-    ld bc, $76_43
-    call draw_byte
-
-    ;Draw background positions
-    ld a, [w_background_xpos]
-    ld bc, $63_56
-    call draw_byte
-    ld a, [w_background_ypos]
-    ld bc, $76_56
-    call draw_byte
-
-    ;Draw a bunch of sprites in a line to test lag
-    ld a, 0
-    ld bc, $30_80
-    call draw_byte
-    ld a, 1
-    ld b, $30 + 17*1
-    call draw_byte
-    ld a, 2
-    ld b, $30 + 17*2
-    call draw_byte
-    ld a, 3
-    ld b, $30 + 17*3
-    call draw_byte
-    ld a, 4
-    ld b, $30 + 17*4
-    call draw_byte
+    ;Draw HUD
+    call draw_hud
 
     ;Draw sprite-part of platform
     call tower_platform_sprites
@@ -697,6 +653,59 @@ draw_byte:
 
     ;Return
     ret 
+;
+
+
+
+; Subroutine for the tower gameloop.  
+; Draws a couple sprites on the HUD.
+;
+; Saves: none
+draw_hud:
+    ;Get a couple sprites
+    ld b, 4*8
+    ld h, high(w_oam_hud)
+    call sprite_get
+
+    ;Draw platform positions
+    ld a, [w_platform_xpos]
+    ld bc, $11_10
+    call draw_byte
+    ld a, [w_platform_ypos]
+    ld bc, $22_10
+    call draw_byte
+
+    ;Draw tower positions
+    ;ld a, [w_tower_ypos]
+    ;ld bc, $42_10
+    ;call draw_byte
+    ;ld a, [w_tower_height]
+    ;ld bc, $53_10
+    ;call draw_byte
+
+    ;Draw background positions
+    ld a, [w_background_xpos]
+    ld bc, $73_10
+    call draw_byte
+    ld a, [w_background_ypos]
+    ld bc, $84_10
+    call draw_byte
+
+    ;Cover up window layer on HUD
+    ld h, high(w_oam_hud)
+    ld b, 4
+    call sprite_get
+    ld [hl], $10
+    inc l
+    ld [hl], $A0
+    inc l
+    ld [hl], $F0
+    inc l
+    ld [hl], $00
+
+    ;That's it, we are done drawing the HUD
+    call sprite_finish
+    ret
 ;
 
 
