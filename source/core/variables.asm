@@ -160,6 +160,10 @@ var_h:
         h_LYC::
             jp v_error
         ;
+
+        ; High-pointer to OAMMIR struct.
+        ; Which OAM mirror is currently in use.
+        h_oam_active:: db high(w_oam1)
         
         h_tower_xpos:: db $00
         h_tower_ypos:: db $00

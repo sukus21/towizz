@@ -64,7 +64,7 @@ tower_hblank_gui::
         .no_platform
         ld a, PLATFORM_DISABLE
         ldh [h_platform_ypos], a
-        jr .return
+        jr .lyc_isset
     :
 
     ;platform end -> c
@@ -84,17 +84,22 @@ tower_hblank_gui::
     ld a, b
     cp a, HUD_HEIGHT
     jr z, .yes_platform
-    jr nc, .return
+    jr nc, .lyc_isset
     
     .yes_platform
     LYC_set_jumppoint tower_hblank_platform
+    .lyc_isset
 
-    ;Do DMA
-    .return
+    ;Get OAM mirror for DMA
+    ldh a, [h_oam_active]
+    cpl
+    add a, low(high(w_oam1) + high(w_oam2) + 1)
+    ld b, a
+
     LYC_wait_hblank
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINOFF | LCDCF_OBJOFF
     ldh [rLCDC], a
-    ld a, high(w_oam)
+    ld a, b
     call h_dma
 
     ;Return
@@ -265,6 +270,12 @@ tower_vblank::
     ldh a, [h_background_xpos]
     add a, 7
     ldh [h_background_xpos], a
+
+    ;Flip selected OAM mirror
+    ldh a, [h_oam_active]
+    cpl
+    add a, low(high(w_oam2) + high(w_oam1) + 1)
+    ldh [h_oam_active], a
 
     ;Reset background for HUD
     ld a, HUD_SCX
@@ -505,7 +516,8 @@ gameloop_tower::
 
     ;Get a couple sprites
     ld b, 4*22
-    ld h, high(w_oam)
+    ldh a, [h_oam_active]
+    ld h, a
     call sprite_get
 
     ;Draw platform positions
@@ -553,7 +565,8 @@ gameloop_tower::
     call tower_platform_sprites
 
     ;Wait for Vblank
-    ld h, high(w_oam1)
+    ldh a, [h_oam_active]
+    ld h, a
     call sprite_finish
     .halting
         halt 
@@ -607,7 +620,8 @@ tower_platform_sprites:
     sla b
 
     ;Allocate sprites
-    ld h, high(w_oam)
+    ld a, [h_oam_active]
+    ld h, a
     call sprite_get
 
     ;Prepare sprite data
