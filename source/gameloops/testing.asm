@@ -62,7 +62,8 @@ gameloop_test::
     ld [hl+], a
 
     ;Clear OAM
-    call h_dma_routine
+    ld a, high(w_oam)
+    call h_dma
 
     ;Enable Vblank interrupt
     xor a
@@ -101,9 +102,8 @@ gameloop_test::
 
     ;Get sprite and apply Y-position
     ld b, 4
+    ld h, high(w_oam)
     call sprite_get
-    ld l, a
-    ld h, high(w_oam_mirror)
     ld [hl], c
     inc l
 
@@ -188,9 +188,8 @@ gameloop_test::
 
     ;Get sprite
     ld b, 4
+    ld h, high(w_oam)
     call sprite_get
-    ld l, a
-    ld h, high(w_oam_mirror)
     ld [hl], c
     inc l
 
@@ -313,9 +312,8 @@ gameloop_test::
     ld a, [w_buffer+131]
     num_to_hex a, d, e
     ld b, 8
+    ld h, high(w_oam)
     call sprite_get
-    ld h, high(w_oam_mirror)
-    ld l, a
     ld [hl], 64
     inc l
     ld [hl], 24
@@ -330,6 +328,7 @@ gameloop_test::
     ld [hl], e
 
     ;Wait for Vblank
+    ld h, high(w_oam1)
     call sprite_finish
     xor a
     ldh [rIF], a
@@ -369,6 +368,7 @@ gameloop_test::
     memcpy_custom hl, de, b
 
     ;OAM DMA and repeat loop
-    call h_dma_routine
+    ld a, high(w_oam)
+    call h_dma
     jp .loop
 ;

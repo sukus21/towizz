@@ -1,5 +1,25 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
+INCLUDE "struct/oam_mirror.inc"
+
+
+
+SECTION "DMA INIT", ROM0
+
+; Initializes DMA routine only.
+; Lives in ROM0.
+;
+; Saves: none
+dma_init::
+    ld hl, h_dma
+    ld bc, var_h + (h_dma - h_variables)
+    ld d, h_dma.end - h_dma
+
+    ;Return directly after copying
+    jp memcpy_short
+;
+
+
 
 ;Allocate 256 bytes for the stack, just to be safe
 DEF STACK_SIZE EQU $100
@@ -43,8 +63,16 @@ variables_init::
         jr nz, .entsys_loop
     ;
 
+    ;Initialize OAM mirrors
+    ld hl, w_oam1
+    ld bc, $00_00
+    call memset_short
+    ld hl, w_oam2
+    call memset_short
+    ld hl, w_oam_hud
+    call memset_short
+
     ;Copy HRAM variables
-    .dma_hram::
     ld hl, h_variables ;Start of variable space
     ld bc, var_h ;Initial variable data
     ld d, var_h_end - var_h ;Data length
@@ -63,10 +91,6 @@ var_w0:
 
         ; 256 bytes of memory that can be used for anything.
         w_buffer:: ds 256
-
-        ; OAM mirror, used for the DMA.
-        w_oam_mirror:: ds $A4, $00
-        ASSERT low(w_oam_mirror) == 0
 
         ; Intro state.
         ; Only used in `source/intro.asm`.
@@ -108,25 +132,15 @@ var_h:
     LOAD "HRAM VARIABLES", HRAM
         h_variables::
 
-        ; OAM DMA routine in HRAM.\
-        ; Interrupts should be disabled while this runs.\
+        ; Run OAM DMA with a pre-specified input.  
+        ; Interrupts should be disabled while this runs.  
         ; Assumes OAM access.
         ;
+        ; Input:
+        ; - `a`: High byte of OAM table
+        ;
         ; Destroys: `af`
-        h_dma_routine::
-
-            ;Initialize OAM DMA
-            ld a, HIGH(w_oam_mirror)
-
-            ; Run OAM DMA with a pre-specified input.\
-            ; Interrupts should be disabled while this runs.\
-            ; Assumes OAM access.
-            ;
-            ; Input:
-            ; - `a`: High byte of OAM table
-            ;
-            ; Destroys: `af`
-            h_dma_sourced::
+        h_dma::
             ldh [rDMA], a
 
             ;Wait until transfer is complete
@@ -137,6 +151,7 @@ var_h:
 
             ;Return
             ret
+            .end
         ;
 
         ; LYC interrupt jump-to routine.
@@ -176,12 +191,6 @@ var_h:
         ; Which ROM-bank is currently switched in.
         h_bank_number:: db $01
 
-        ; Low-byte of pointer to first empty OAM slot.
-        h_sprite_slot:: db $00
-
-        ; How many sprites were allocated last frame.
-        h_sprites_previous:: db $A0
-
         ; RNG variables.
         h_rng::
 
@@ -208,4 +217,31 @@ w_entsys::
         w_entsys_vars_\@: ds 12
     ENDR
     w_entsys_end::
+;
+
+
+
+SECTION "OAM MIRRORS", WRAM0, ALIGN[8]
+    ; OAM mirror, used for DMA.
+    ; Use this label to communicate no need for double buffering.
+    ; Overlaps with `w_oam1`.
+    w_oam::
+
+    ; OAM mirror, used for DMA.
+    ; I need 2 main OAM mirrors, because i do DMA midframe.
+    ; That means sprites from the next frame might overwrite sprites on the current frame.
+    ; So I am double-buffering OAM mirrors.
+    w_oam1:: ds OAMMIR
+    ASSERT low(w_oam1) == 0
+
+    ; Check documentation for `w_oam1`.
+    w_oam2:: ds OAMMIR
+    ASSERT low(w_oam2) == 0
+
+    ; HUD OAM.
+    ; Most status things will probably be drawn with sprites.
+    ; Since I need a sprite on the HUD layer anyway,
+    ; I might as well allocate some RAM for it.
+    w_oam_hud:: ds OAMMIR
+    ASSERT low(w_oam_hud) == 0
 ;

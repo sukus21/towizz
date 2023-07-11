@@ -94,7 +94,8 @@ tower_hblank_gui::
     LYC_wait_hblank
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINOFF | LCDCF_OBJOFF
     ldh [rLCDC], a
-    call h_dma_routine
+    ld a, high(w_oam)
+    call h_dma
 
     ;Return
     ei
@@ -287,8 +288,8 @@ tower_vblank::
     LYC_set_jumppoint tower_hblank_gui
 
     ;Do DMA and return
-    ld a, high(tower_hud_oam)
-    call h_dma_sourced
+    ld a, high(w_oam_hud)
+    call h_dma
     ret
 ;
 
@@ -504,9 +505,8 @@ gameloop_tower::
 
     ;Get a couple sprites
     ld b, 4*22
+    ld h, high(w_oam)
     call sprite_get
-    ld h, high(w_oam_mirror)
-    ld l, a
 
     ;Draw platform positions
     ld a, [w_platform_xpos]
@@ -553,6 +553,7 @@ gameloop_tower::
     call tower_platform_sprites
 
     ;Wait for Vblank
+    ld h, high(w_oam1)
     call sprite_finish
     .halting
         halt 
@@ -606,9 +607,8 @@ tower_platform_sprites:
     sla b
 
     ;Allocate sprites
+    ld h, high(w_oam)
     call sprite_get
-    ld l, a
-    ld h, high(w_oam_mirror)
 
     ;Prepare sprite data
     ld a, [w_platform_ypos]
@@ -761,20 +761,6 @@ tower_asset_testtiles:
     dw `11221122
     dw `31221123
 .end
-
-
-
-SECTION "TOWER OAM MIRROR", ROM0, ALIGN[8]
-
-; An almost empty OAM mirror.
-; Used to cover up a small part of the window layer.
-; This has to be in ROM0, so it can be accessed at any time.
-; Lives in ROM0.
-tower_hud_oam::
-    db $10, $A0, $F0, $00
-    db $20, $A0, $F2, $00
-    ds $A0 - $08, $00
-;
 
 
 

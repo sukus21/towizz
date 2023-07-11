@@ -159,7 +159,7 @@ rectangle_draw::
         ld b, 8
         call sprite_get
         ld b, h
-        ld h, high(w_oam_mirror)
+        ld h, high(w_oam)
         ld l, a
 
         ;Top sprite
@@ -198,7 +198,7 @@ rectangle_draw::
     push af
     call sprite_get
     ld b, h
-    ld h, high(w_oam_mirror)
+    ld h, high(w_oam)
     ld l, a
 
     .loop_hor
@@ -259,7 +259,7 @@ rectangle_draw::
         ld b, 8
         call sprite_get
         ld b, h
-        ld h, high(w_oam_mirror)
+        ld h, high(w_oam)
         ld l, a
 
         ;Left sprite
@@ -298,7 +298,7 @@ rectangle_draw::
     push af
     call sprite_get
     ld b, h
-    ld h, high(w_oam_mirror)
+    ld h, high(w_oam)
     ld l, a
 
     .loop_ver

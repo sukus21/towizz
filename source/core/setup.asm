@@ -8,9 +8,9 @@ SECTION "SETUP", ROM0
 ; Lives in ROM0.
 setup::
     ld sp, w_stack
+    call dma_init
 
     ;Is this GBC hardware?
-    farcall_0 variables_init.dma_hram
     call detect_gbc
 
     ;What did we get?

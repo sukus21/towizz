@@ -255,7 +255,7 @@ intro::
 
     ;DMA
     ld a, high(gbcompo_oam)
-    call h_dma_sourced
+    call h_dma
 
     ;Reenable LCD
     ld hl, rLCDC

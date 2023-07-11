@@ -258,7 +258,7 @@ gameloop_error:
     ldh [h_setup], a
 
     ;DMA setup
-    call sprite_setup
+    call dma_init
 
     ;Load face graphics into VRAM
     ld hl, $9000
@@ -327,13 +327,14 @@ gameloop_error:
 
     ;Set sprite data
     ;Saves me time, because I don't want to do it manually
-    ld hl, w_oam_mirror
+    ld hl, w_oam
     ld bc, error_spritedata
     ld de, $A0
     call memcpy
 
     ;Update OAM
-    call h_dma_routine
+    ld a, high(w_oam)
+    call h_dma
 
     ;Prepare
     ld hl, zero+144
@@ -445,7 +446,7 @@ int_stat:
 
     ;Decrease all 40 sprites Y-position
     ld b, 40
-    ld hl, w_oam_mirror
+    ld hl, w_oam
     ld de, $0004
     .loop40
         dec [hl]
@@ -458,7 +459,7 @@ int_stat:
     ldh a, [rLCDC]
     ld c, a
     ld b, 9
-    ld hl, w_oam_mirror+16*4+1
+    ld hl, w_oam+16*4+1
     .loop20w
         bit LCDCB_WINON, a
         set 6, [hl]
@@ -470,7 +471,8 @@ int_stat:
         jr nz, .loop20w
 
     ;Run sprite DMA
-    call h_dma_routine
+    ld a, high(w_oam)
+    call h_dma
 
     ;Retrieve sine pointer from stack
     pop hl
