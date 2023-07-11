@@ -2,16 +2,16 @@ INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
 
 ;Allocate 256 bytes for the stack, just to be safe
-stack_size equ $100
-SECTION "STACK", WRAM0[$D000 - stack_size]
+DEF STACK_SIZE EQU $100
+SECTION "STACK", WRAM0[$D000 - STACK_SIZE]
     ; Top of stack.
-    w_stack_begin:: ds stack_size
+    w_stack_begin:: ds STACK_SIZE
 
     ; Base of stack.
     w_stack:: ds $00
 
     ;Make sure things work out
-    ASSERT w_stack_begin + stack_size == $D000
+    ASSERT w_stack_begin + STACK_SIZE == $D000
 ;
 
 
