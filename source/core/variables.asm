@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
 INCLUDE "struct/oam_mirror.inc"
+INCLUDE "macros/color.inc"
 
 
 
@@ -121,6 +122,16 @@ var_w0:
 
         w_background_xpos:: db $48
         w_background_ypos:: db $00
+
+        ; Color palette for CGB mode.
+        w_cgb_palette::
+            color_dmg_wht
+            color_dmg_ltg
+            color_dmg_dkg
+            color_dmg_blk
+        ;
+        
+        ASSERT high(w_cgb_palette) == high(w_cgb_palette+7)
     ENDL
     var_w0_end:
 ;

@@ -26,7 +26,7 @@ OBJ_DIRS 		:=	$(sort $(addprefix $(OUTPUT_DIR)/obj/, $(dir $(SRC_FILES:source/%$
 # Toolchain flags
 ASSEMBLER_FLAGS	:=	-p 255 -H -i $(INC_DIR)
 LINKER_FLAGS	:=	-p 255 -m "$(OUTPUT).map" -n "$(OUTPUT).sym"
-FIXER_FLAGS		:=  -p 255 -v -t "$(HEADER_NAME)" -j -m MBC5
+FIXER_FLAGS		:=  -p 255 -v -t "$(HEADER_NAME)" -j -c -m MBC5
 
 
 # Reserve task names

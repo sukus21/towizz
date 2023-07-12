@@ -684,3 +684,97 @@ detect_gbc::
     ld a, d
     ret
 ;
+
+
+
+; Set a CGB palette using a DMG value.
+;
+; Input:
+; - `1`: DMG register
+; - `2`: CGB palette specify register
+; - `3`: CGB palette index (0/1)
+MACRO set_palette
+    ldh [\1], a
+    ldh a, [h_is_color]
+    or a, a
+    ldh a, [\1]
+    ret z
+
+    ;CGB time
+    push bc
+    push hl
+
+    ;Prepare data transfer
+    ld b, a
+    ld c, low(\2)
+    ld a, BCPSF_AUTOINC | (\3 * 8)
+    ldh [c], a
+    inc c
+    ld hl, w_cgb_palette
+
+    ;Start
+    REPT 4
+        ld a, b
+        and a, %00000011
+        add a, a
+        add a, low(w_cgb_palette)
+        ld l, a
+
+        ;Copy color
+        ld a, [hl+]
+        ldh [c], a
+        ld a, [hl+]
+        ldh [c], a
+
+        ;End of loop
+        rrc b
+        rrc b
+    ENDR
+
+    ;Return
+    ld a, b
+    pop hl
+    pop bc
+    ret 
+ENDM
+
+
+
+; Set CGB background palette, as if it was DMG.  
+; Assumes palette access.  
+; Lives in ROM0.
+;
+; Input:
+; - `a`: Palette
+;
+; Destroys: `f`
+set_palette_bgp::
+    set_palette rBGP, rBCPS, 0
+;
+
+
+
+; Set CGB object palette 0, as if it was DMG.  
+; Assumes palette access.  
+; Lives in ROM0.
+;
+; Input:
+; - `a`: Palette
+;
+; Destroys: `f`
+set_palette_obp0::
+    set_palette rOBP0, rOCPS, 0
+;
+
+
+; Set CGB object palette 1, as if it was DMG.  
+; Assumes palette access.  
+; Lives in ROM0.
+;
+; Input:
+; - `a`: Palette
+;
+; Destroys: `f`
+set_palette_obp1::
+    set_palette rOBP1, rOCPS, 1
+;

@@ -402,8 +402,8 @@ gameloop_tower_setup:
 
     ;Set palette
     ld a, $E4
-    ldh [rBGP], a
-    ldh [rOBP0], a
+    call set_palette_bgp
+    call set_palette_obp0
 
     ;Call regular V-blank routine
     call tower_vblank
