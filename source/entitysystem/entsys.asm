@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc"
+INCLUDE "entsys.inc"
 
 SECTION "ENTSYS", ROM0
 
@@ -606,4 +607,32 @@ entsys_find_free:
         ld hl, $0000
         ret
     ;
+;
+
+
+
+; Clears the entire entity system.  
+; Lives in ROM0.
+;
+; Saves: `de`
+entsys_clear::
+    ;Initialize entity system
+    ld hl, w_entsys
+    xor a
+    ld b, ENTSYS_CHUNK_COUNT
+    .entsys_loop
+        ld [hl+], a     ;entity bank
+        ld [hl], $40    ;slot size
+        inc l
+        ld [hl+], a     ;step function pointer, high
+        ld [hl+], a     ;step function pointer, high
+        REPT 12
+            ld [hl+], a ;unassigned data
+        ENDR
+        dec b
+        jr nz, .entsys_loop
+    ;
+
+    ;Return
+    ret
 ;

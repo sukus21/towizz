@@ -49,20 +49,7 @@ variables_init::
     call memcpy
 
     ;Initialize entity system
-    ld hl, w_entsys
-    xor a
-    ld b, ENTSYS_CHUNK_COUNT
-    .entsys_loop
-        ld [hl+], a ;entity bank
-        ld [hl], $40 ;slot size
-        ld [hl+], a
-        ld [hl+], a ;step function pointer
-        REPT 12
-            ld [hl+], a ;unassigned data
-        ENDR
-        dec b
-        jr nz, .entsys_loop
-    ;
+    call entsys_clear
 
     ;Initialize OAM mirrors
     ld hl, w_oam1
