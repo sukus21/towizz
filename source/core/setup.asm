@@ -46,11 +46,10 @@ setup::
 
     ;Do my intro with the logo
     ;farcall_0 intro
-    ;falls into .partial
 
-; Skip GBC detection and RNG reset.
-; Lives in ROM0.
-.partial::
+    ; Skip GBC detection and RNG reset.
+    ; Lives in ROM0.
+    .partial::
 
     ;Wait for Vblank
     di

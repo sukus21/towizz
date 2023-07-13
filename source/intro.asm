@@ -27,14 +27,6 @@ MACRO white_fade
     PURGE blue
 ENDM
 
-; Raw palette data.
-intro_palettes:
-    .yellow white_fade 31, 31,  0
-    .red    white_fade 31,  0,  0
-    .gray   white_fade 21, 21, 21
-    .black  white_fade  0,  0,  0
-;
-
 ; OAM sprite data for GBcompo logo.
 gbcompo_oam:
     ;"GB" top
@@ -85,6 +77,15 @@ gbcompo_oam:
     ds $A0 - (@ - gbcompo_oam)
 ;
 ASSERT low(gbcompo_oam) == 0
+
+; Raw palette data.
+intro_palettes:
+    .yellow     white_fade 31, 31,  0
+    .red        white_fade 31,  0,  0
+    .gray       white_fade 18, 18, 18
+    .black      white_fade  0,  0,  0
+    .darkgray   white_fade 10, 10, 10
+;
 
 ; Tilemap data for logo. 
 ; Contains a DMG- and CGB version.
@@ -195,6 +196,7 @@ intro::
     ld [hl], a
 
     ;Fade in
+    ld b, 0
     call intro_fadein
 
     ;Show the still image for a bit
@@ -220,6 +222,7 @@ intro::
 
     ;Waiting phase is OVER!
     ;Fade out
+    ld b, 0
     call intro_fadeout
 
     ;Wait for Vblank again
@@ -253,6 +256,26 @@ intro::
     ld bc, gbcompo.tlm
     call mapcopy_screen
 
+    ;Clear tile attributes
+    ldh a, [h_is_color]
+    or a, a ;cp a, a
+    jr z, :+
+        ;Reset all tilemap attributes
+        ld a, 1
+        ldh [rVBK], a
+        xor a
+        ld b, 64
+        ld hl, _SCRN0
+        .clear_attributes
+            REPT 32
+                ld [hl+], a
+            ENDR
+            dec b
+            jr nz, .clear_attributes
+        ;
+        ldh [rVBK], a
+    :
+
     ;DMA
     ld a, high(gbcompo_oam)
     call h_dma
@@ -263,6 +286,7 @@ intro::
     ld [hl], a
 
     ;Fade logo in
+    ld b, 1
     call intro_fadein
 
     ;Hold image for a bit
@@ -289,6 +313,7 @@ intro::
     ;
 
     ;Fade logo out
+    ld b, 1
     call intro_fadeout
 
     ;Return
@@ -300,6 +325,9 @@ intro::
 ; Fades the screen from white.
 ; Assumes LCD is on.
 ; Modifies palette data.
+;
+; Input:
+; - `b.0`: Is GBcompo (1 = yes)
 ;
 ; Destroys: all
 intro_fadein:
@@ -332,7 +360,9 @@ intro_fadein:
         add a, a
         and a, %00111111
         ld c, a
+        push bc
         call intro_fading
+        pop bc
 
         ;Are we done fading in?
         ld a, e
@@ -349,6 +379,9 @@ intro_fadein:
 ; Fades the screen to white.
 ; Assumes LCD is on.
 ; Modifies palette data.
+;
+; Input:
+; - `b.0`: Is GBcompo (1 = yes)
 ;
 ; Destroys: all
 intro_fadeout:
@@ -374,7 +407,9 @@ intro_fadeout:
         add a, a
         and a, %00111111
         ld c, a
+        push bc
         call intro_fading
+        pop bc
 
         ;Are we done yet?
         ld a, c
@@ -393,6 +428,7 @@ intro_fadeout:
 ; Assumes VRAM access.
 ;
 ; Input:
+; - `b.0`: Is GBcompo (1 = true)
 ; - `c`: Opacity
 ;
 ; Saves: `c`
@@ -458,43 +494,75 @@ intro_fading:
 
     ;CGB mode
     .color_real
+        ld a, c
         ld de, w_buffer
+        bit 0, b
+        jr nz, .gbcompo
 
-        ;Palette 1, logo
-        ld hl, intro_palettes.yellow
-        call intro_fade_color
-        ld hl, intro_palettes.red
-        call intro_fade_color
-        ld hl, intro_palettes.gray
-        call intro_fade_color
-        ld hl, intro_palettes.black
-        call intro_fade_color
+            ;Palette 1, logo
+            ld hl, intro_palettes.yellow
+            call intro_fade_color
+            call intro_fade_color
+            call intro_fade_color
+            call intro_fade_color
 
-        ;Palette 2, text
-        ;White, doesn't need to change
-        ld a, $FF
-        ld [de], a
-        inc e
-        ld [de], a
-        inc e
+            ;Palette 2, text
+            ;White, doesn't need to change
+            ld a, $FF
+            ld [de], a
+            inc e
+            ld [de], a
+            inc e
 
-        ld hl, intro_palettes.black
-        call intro_fade_color
-        ld hl, intro_palettes.gray
-        call intro_fade_color
-        ld hl, intro_palettes.black
-        call intro_fade_color
+            ld hl, intro_palettes.black
+            call intro_fade_color
+            ld hl, intro_palettes.gray
+            call intro_fade_color
+            call intro_fade_color
+            
+            ;Copy palettes
+            ld e, c ;save this from being clobbered
+            ld hl, w_buffer
+            xor a
+            call palette_copy_bg
+            call palette_copy_bg
+            xor a
+            ld hl, w_buffer + $08
+            call palette_copy_spr
+
+            ;Return
+            ld c, e
+            ret 
         
-        ;Copy palettes
-        ld e, c ;save this from being clobbered
-        ld hl, w_buffer
-        xor a
-        call palette_copy_bg
-        call palette_copy_bg
+        .gbcompo
+            ;White, no calcs needed
+            ld a, $FF
+            ld [de], a
+            inc e
+            ld [de], a
+            inc e
 
-        ;Return
-        ld c, e
-        ret 
+            ;The other colors
+            ld hl, intro_palettes.gray
+            call intro_fade_color
+            ld hl, intro_palettes.darkgray
+            call intro_fade_color
+            ld hl, intro_palettes.black
+            call intro_fade_color
+
+            ;Apply palettes
+            ld e, c
+            ld hl, w_buffer
+            xor a
+            call palette_copy_bg
+            xor a
+            ld l, low(w_buffer)
+            call palette_copy_spr
+
+            ;Return
+            ld c, e
+            ret
+        ;
     ;
 ;
 
@@ -514,16 +582,28 @@ intro_fade_color:
     ld a, c
     add a, l
     ld l, a
+    jr nc, :+
+        inc h
+    :
 
     ;Copy data
     ld a, [hl+]
     ld [de], a
     inc e
-    ld a, [hl]
+    ld a, [hl-]
     ld [de], a
     inc e
 
     ;Return
+    ld a, l
+    sub a, c
+    jr nc, :+
+        dec h
+    :
+    add a, $40
+    ld l, a
+    ret nc
+    inc h
     ret
 ;
 
