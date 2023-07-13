@@ -111,12 +111,12 @@ gameloop_tower_setup:
     call entsys_new16
     ld h, b
     ld l, c
-    ld [hl], bank(entity_platform_test)
+    ld [hl], bank(entity_towerdemo)
     inc l
     inc l
-    ld [hl], low(entity_platform_test)
+    ld [hl], low(entity_towerdemo)
     inc l
-    ld [hl], high(entity_platform_test)
+    ld [hl], high(entity_towerdemo)
 
     ;Call regular V-blank routine
     call tower_vblank
@@ -307,6 +307,7 @@ draw_hud:
     ld h, high(w_oam_hud)
     call sprite_get
 
+    /*
     ;Draw platform positions
     ld a, [w_platform_xpos]
     ld bc, $11_10
@@ -316,12 +317,12 @@ draw_hud:
     call draw_byte
 
     ;Draw tower positions
-    ;ld a, [w_tower_ypos]
-    ;ld bc, $42_10
-    ;call draw_byte
-    ;ld a, [w_tower_height]
-    ;ld bc, $53_10
-    ;call draw_byte
+    ld a, [w_tower_ypos]
+    ld bc, $42_10
+    call draw_byte
+    ld a, [w_tower_height]
+    ld bc, $53_10
+    call draw_byte
 
     ;Draw background positions
     ld a, [w_background_xpos]
@@ -330,6 +331,7 @@ draw_hud:
     ld a, [w_background_ypos]
     ld bc, $84_10
     call draw_byte
+    */
 
     ;Cover up window layer on HUD
     ld h, high(w_oam_hud)

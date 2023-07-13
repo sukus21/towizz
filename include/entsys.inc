@@ -1,3 +1,7 @@
+;Include guard
+IF !DEF(ENTSYS_INC)
+DEF ENTSYS_INC EQU 1
+
 ; Number of entity chunks available
 ; Assumed to be a multiple of 16.
 DEF ENTSYS_CHUNK_COUNT EQU 64
@@ -17,3 +21,8 @@ DEF ENTVAR_NEXT RB 1
 ; Pointer to the entity's step function (function that gets run every game frame).
 ; This should be located in the same ROM bank as specified `ENTVAR_BANK`.
 DEF ENTVAR_STEP RB 2
+
+; This is where the entity variable space starts.
+DEF ENTVAR_VAR RB 0
+
+ENDC
