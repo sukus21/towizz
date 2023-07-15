@@ -15,6 +15,16 @@ tower_asset_hud::
     INCBIN "graphics/hud_test.tls"
 .end::
 
+; Tileset of tower made of bricks.
+tower_asset_bricks::
+    INCBIN "graphics/tower_bricks.tls"
+.end::
+
+; Grassy platform tileset.
+tower_asset_platform_grassy::
+    INCBIN "graphics/platform_grass.tls"
+.end::
+
 ; Some test-tiles.
 ; TODO: make a proper tileset.
 tower_asset_testtiles::

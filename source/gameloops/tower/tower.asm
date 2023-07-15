@@ -111,12 +111,12 @@ gameloop_tower_setup:
     call entsys_new16
     ld h, b
     ld l, c
-    ld [hl], bank(entity_towerdemo)
+    ld [hl], bank(entity_platform_test)
     inc l
     inc l
-    ld [hl], low(entity_towerdemo)
+    ld [hl], low(entity_platform_test)
     inc l
-    ld [hl], high(entity_towerdemo)
+    ld [hl], high(entity_platform_test)
 
     ;Call regular V-blank routine
     call tower_vblank
