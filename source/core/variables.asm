@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
 INCLUDE "struct/oam_mirror.inc"
+INCLUDE "struct/vqueue.inc"
 INCLUDE "macros/color.inc"
 
 
@@ -119,6 +120,16 @@ var_w0:
         ;
         
         ASSERT high(w_cgb_palette) == high(w_cgb_palette+7)
+
+        ; Points to the first available vqueue slot.
+        w_vqueue_first:: dw w_vqueue
+
+        ; Array of `VQUEUE`.
+        ; Only first entry is all on the same page.
+        w_vqueue:: ds VQUEUE * 16, VQUEUE_TYPE_NONE
+        .end::
+        ASSERT high(w_vqueue) == high(w_vqueue + VQUEUE)
+
     ENDL
     var_w0_end:
 ;

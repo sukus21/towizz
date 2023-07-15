@@ -665,9 +665,19 @@ error_messages:
     CHARMAP "}", $DD
     CHARMAP "~", $DE
 
+    ; Create error message, with correct signature.
+    ; Expands to a `db` command.
+    ;
+    ; Input:
+    ; - `1`: Error message string
+    MACRO create_message
+        db $FF, $00, \1, $00
+    ENDM
+
     ;Strings containing error messages
     error_strings:
-    error_entityoverflow::  db $FF, $00, "ENTITY OVERFLOW", $00
-    error_color_required::  db $FF, $00, "ONLY PLAYS ON CGB", $00
+    error_entityoverflow::  create_message "ENTITY OVERFLOW"
+    error_color_required::  create_message "ONLY PLAYS ON CGB"
+    error_vqueueoverflow::  create_message "VQUEUE OVERFLOW"
     POPC
 ;

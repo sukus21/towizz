@@ -1,14 +1,54 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
+INCLUDE "struct/vqueue.inc"
 
 SECTION "ENTITY PLATFORM TEST", ROMX
 
-; Entity used exclusively for testing platform behaviour.
+; Entity used exclusively for testing platform behaviour.,
+;
+; Input:
+; - `de`: Entity pointer
+;
+; Destroys: all
 entity_platform_test::
     call input
-    ldh a, [h_input]
+    ldh a, [h_input_pressed]
+    bit PADB_START, a
+    jr z, :+
+
+        ;Transfer tower tiles
+        vqueue_add \
+            VQUEUE_TYPE_BULK, \
+            (tower_asset_bricks.end - tower_asset_bricks) >> 4, \
+            vt_tower_tower, \
+            tower_asset_bricks
+        
+        ;Set writeback pointer
+        ld a, e
+        add a, low(ENTVAR_VAR)
+        ld e, a
+        ld [hl+], a
+        ld [hl], d
+
+        ;Transfer platform tiles
+        vqueue_add \
+            VQUEUE_TYPE_BULK, \
+            (tower_asset_platform_grassy.end - tower_asset_platform_grassy) >> 4, \
+            vt_tower_platform, \
+            tower_asset_platform_grassy
+
+        ;Set writeback pointer
+        ld a, e
+        ld [hl+], a
+        ld [hl], d
+
+        ;Set writeback to 0
+        xor a
+        ld [de], a
+    :
 
     ;Modify tower with the B button
+    ldh a, [h_input]
     bit PADB_B, a
     jr z, :+
         ld hl, w_tower_ypos

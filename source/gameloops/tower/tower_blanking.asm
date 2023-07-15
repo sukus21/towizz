@@ -49,6 +49,9 @@ tower_vblank::
     ldh [rLYC], a
     LYC_set_jumppoint tower_hblank_gui
 
+    ;Execute VRAM transfers
+    call vqueue_execute
+
     ;Do DMA and return
     ld a, high(w_oam_hud)
     call h_dma
