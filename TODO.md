@@ -26,3 +26,9 @@ Not in any particular order
     * Background layer can use both tilemaps
 * Shop gameloop
     * Item preview
+* VRAM transfer queue
+    * Implement SET mode
+    * Implement HALFMAP mode
+    * Implement COLUMN mode
+* Create relative pointer system
+    * Create auto-performance macros

@@ -16,6 +16,13 @@ DEF VQUEUE_TYPE_SET RB 1
 ; One transfer operation = 16 bytes.
 DEF VQUEUE_TYPE_HALFMAP RB 1
 
+; Copies data in "columns".
+; Places one source byte every 32 destination bytes.
+; Makes best sense to use when copying to tilemaps.
+; One transfer operation = 1 column.
+; When one column is done, move onto the next column.
+DEF VQUEUE_TYPE_COLUMN RB 1
+
 RSRESET
 
 ; Type of this vqueue element.
