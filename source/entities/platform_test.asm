@@ -31,11 +31,7 @@ entity_platform_test::
         ld [hl], d
 
         ;Transfer platform tiles
-        vqueue_add \
-            VQUEUE_TYPE_BULK, \
-            (tower_asset_platform_grassy.end - tower_asset_platform_grassy) >> 4, \
-            vt_tower_platform, \
-            tower_asset_platform_grassy
+        vqueue_add_copy VQUEUE_TYPE_BULK, vt_tower_platform, tower_asset_platform_grassy
 
         ;Set writeback pointer
         ld a, e

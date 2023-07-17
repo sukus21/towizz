@@ -73,6 +73,13 @@ vqueue_execute::
         jr .finish
     :
 
+    cp a, VQUEUE_TYPE_SET
+    jr nz, :+
+        call vqueue_execute_set
+        ret z
+        jr .finish
+    :
+
     ;Finish a transfer
     .finish
         ;Set type to none
@@ -198,6 +205,76 @@ vqueue_execute_bulk:
     ld a, e
     ld [hl+], a
     ld [hl], d
+
+    ;Return
+    xor a ;sets Z-flag
+    ret
+;
+
+
+
+; Subroutine for `vqueue_execute`.  
+; \- Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_execute_set:
+    ;Get length remaining
+    ld a, [hl+]
+    ld d, a ;length total -> D
+    ld a, [hl+]
+    ld e, a ;progress -> E
+
+    ;Get destination -> BC
+    ld a, [hl+]
+    ld c, a
+    ld a, [hl+]
+    ld b, a
+
+    ;Get source -> A, move destination to HL
+    ld a, [hl]
+    ld h, b
+    ld l, c
+
+    .loop
+        ;Do the copying
+        REPT 16
+            ld [hl+], a
+        ENDR
+
+        ;Is it over?
+        ld b, a
+        inc e
+        ld a, e
+        sub a, d ;set A to 0 if Z flag
+        jr nz, :+
+            inc a ;reset Z-flag
+            ret
+        :
+
+        ;Time for another iteration?
+        ldh a, [rLY]
+        cp a, $98
+        ld a, b
+        jr c, .loop
+    ;
+
+    ;Time is up
+    ;Save transfer completion count
+    ld a, e
+    ld d, h
+    ld e, l
+    ld hl, w_vqueue + VQUEUE_PROGRESS
+    ld [hl+], a
+
+    ;Save destination
+    ld a, c
+    ld [hl+], a
+    ld a, b
+    ld [hl+], a
 
     ;Return
     xor a ;sets Z-flag

@@ -59,7 +59,7 @@ DEF VQUEUE RB 0
 ;
 ; Input:
 ; - `1`: Transfer type (`VQUEUE_TYPE_*`)
-; - `2`: Transfer operation count
+; - `2`: Transfer operation count (n8)
 ; - `3`: Destination (address/label)
 ; - `4`: Source (label)
 ;
@@ -92,4 +92,88 @@ MACRO vqueue_add
     ld [hl+], a
     ld a, high(\4)
     ld [hl+], a
+ENDM
+
+
+
+; Macro that adds a copying-type transfer to the VRAM transfer queue.
+; Assumes the source label has an exported `.end` sublabel.
+; Throws errors if data length is not divisible by 16.
+; Does not set writeback pointer.
+;
+; Input:
+; - `1`: Transfer type (`VQUEUE_TYPE_*`)
+; - `2`: Destination (address/label)
+; - `3`: Source (label)
+;
+; Returns:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_WRITEBACK`
+;
+; Destroys: `af`  
+; Saves: `bc`, `de`
+MACRO vqueue_add_copy
+    ASSERT (\3.end - \3) & $0F == 0
+    call vqueue_get
+
+    ;Write type and length
+    ld a, \1
+    ld [hl+], a ;type
+    ld a, (\3.end - \3) >> 4
+    ld [hl+], a ;length
+    xor a
+    ld [hl+], a ;progress
+
+    ;Write destination
+    ld a, low(\2)
+    ld [hl+], a ;destination (low)
+    ld a, high(\2)
+    ld [hl+], a ;destination (high)
+    
+    ;Write source
+    ld a, bank(\3)
+    ld [hl+], a
+    ld a, low(\3)
+    ld [hl+], a
+    ld a, high(\3)
+    ld [hl+], a
+ENDM
+
+
+
+; Macro that adds a set-type transfer to the VRAM transfer queue.
+; Does not set writeback pointer.
+;
+; Input:
+; - `1`: Transfer type (`VQUEUE_TYPE_*`)
+; - `2`: Transfer operation count (n8)
+; - `3`: Destination (address/label)
+; - `4`: Set value (n8)
+;
+; Returns:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_WRITEBACK`
+;
+; Destroys: `af`  
+; Saves: `bc`, `de`
+MACRO vqueue_add_set
+    call vqueue_get
+
+    ;Write type and length
+    ld a, \1
+    ld [hl+], a ;type
+    ld a, \2
+    ld [hl+], a ;length
+    xor a
+    ld [hl+], a ;progress
+
+    ;Write destination
+    ld a, low(\3)
+    ld [hl+], a ;destination (low)
+    ld a, high(\3)
+    ld [hl+], a ;destination (high)
+    
+    ;Write fill byte
+    ld a, bank(\4)
+    ld [hl+], a
+    inc l
+    inc l
 ENDM

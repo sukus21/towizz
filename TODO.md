@@ -2,33 +2,35 @@
 Not in any particular order
 
 * Base player control
-* Player back-item modification
-* Player movement
-    * Jump
-    * Jetpack
-    * Bounce
-    * Teleport
-    * Tornado
+* [ ]  Player back-item modification
+* [ ] Player movement
+    * [ ] Jump
+    * [ ] Jetpack
+    * [ ] Bounce
+    * [ ] Teleport
+    * [ ] Tornado
     * ...
-* Player weapons
-    * Flaming cough
-    * Uppercuters headband
-    * Plumbing boots
-    * Spelunkers whip
-    * Adventurous boomerang
+* [ ] Player weapons
+    * [ ] Flaming cough
+    * [ ] Uppercuters headband
+    * [ ] Plumbing boots
+    * [ ] Spelunkers whip
+    * [ ] Adventurous boomerang
     * ...
-* Enemies
-* Wave system
-* Tower gameloop
-    * Non-repeat mode (get rid of non-platform interrupts)
-    * Window layer update system
-    * Window layer can use both tilemaps
-    * Background layer can use both tilemaps
-* Shop gameloop
-    * Item preview
-* VRAM transfer queue
-    * Implement SET mode
-    * Implement HALFMAP mode
-    * Implement COLUMN mode
-* Create relative pointer system
-    * Create auto-performance macros
+* [ ] Enemies
+* [ ] Wave system
+* [ ] Tower gameloop
+    * [ ] Non-repeat mode (get rid of non-platform interrupts)
+    * [ ] Window layer update system
+    * [ ] Window layer can use both tilemaps
+    * [ ] Background layer can use both tilemaps
+* [ ] Shop gameloop
+    * [ ] VRAM layout
+    * [ ] LYC interrupts
+    * [ ] Item preview
+* [ ] VRAM transfer queue
+    * [x] Implement SET mode
+    * [ ] Implement HALFMAP mode
+    * [ ] Implement COLUMN mode
+* [ ] Create relative pointer system
+    * [ ] Create auto-performance macros
