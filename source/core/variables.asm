@@ -136,6 +136,8 @@ var_w0:
 
 
 
+SECTION "HRAM INITIALIZATION", ROM0
+
 ; Contains the initial values for all HRAM variables.
 var_h:
     LOAD "HRAM VARIABLES", HRAM
