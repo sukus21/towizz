@@ -107,17 +107,28 @@ SECTION UNION "TOWER VRAM", VRAM[$8000]
     ;Reserved for future use
     ds $10 * $60
 
-    ; Location of tower tilemap.
-    ; Spans a full background layer, at 32x32 tiles.
-    vm_tower_tower:: ds $20 * $20
 
-    ; Location of background tilemap.
-    ; Drawn using the window layer.
-    ; Most of the right side of this segment is unused.
-    ; (at most) 20 * 26 tiles.
-    vm_tower_background:: ds $20 * 26
+    ; Location of background tilemap, used by the window layer.  
+    ; Spans 16x18 tiles.  
+    ; Located on `SCRN0`.
+    vm_tower_background0:: ds $10
 
+    ; Location of tower tilemap.  
+    ; Spans 16x32 tiles.  
+    ; Located on `SCRN0`.
+    vm_tower_tower0:: ds $10 + $1F * $20
 
+    ; Location of background tilemap, used by the window layer.
+    ; Spans 16x18 tiles.  
+    ; Located on `SCRN1`.
+    vm_tower_background1:: ds $10
+
+    ; Location of tower tilemap.  
+    ; Spans 16x26 tiles.  
+    ; Located on `SCRN1`.
+    vm_tower_tower1:: ds $10
+    ds $20 * 25
+    
     ; Location of HUD tilemap.
     ; HUD elements go here.
     ; 32 * 3 tiles.

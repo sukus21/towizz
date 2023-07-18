@@ -183,7 +183,7 @@ tower_hblank_segment::
     ;Camera X
     ldh a, [h_background_xpos]
     cpl
-    add a, $88
+    add a, $08
     ld h, a
 
     ;Wait for H-blank

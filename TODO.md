@@ -2,7 +2,7 @@
 Not in any particular order
 
 * Base player control
-* [ ]  Player back-item modification
+* [ ] Player back-item modification
 * [ ] Player movement
     * [ ] Jump
     * [ ] Jetpack

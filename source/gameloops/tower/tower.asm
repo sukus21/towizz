@@ -41,20 +41,20 @@ gameloop_tower_setup:
     call memcpy
 
     ;This part of the tilemap is invisible
-    ld hl, vm_tower_tower
+    ld hl, vm_tower_tower0
     ld b, $A4
     ld de, $20 * $20
     call memset
 
     ;Set tower tiles on background layer
-    ld hl, vm_tower_tower + $0F
+    ld hl, vm_tower_tower0 + $0F
     ld c, 2
     ld a, $1E
     :
         ld [hl-], a
         sub a, c
         jr nc, :-
-    ld hl, vm_tower_tower + $2F
+    ld hl, vm_tower_tower0 + $2F
     ld a, $1F
     :
         ld [hl-], a
@@ -76,7 +76,7 @@ gameloop_tower_setup:
     call memset_short
 
     ;Set backdrop tiles on window layer
-    ld hl, vm_tower_background
+    ld hl, vm_tower_background1
     ld b, $A0
     ld de, $20 * 26
     call memset
