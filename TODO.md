@@ -28,9 +28,8 @@ Not in any particular order
     * [ ] VRAM layout
     * [ ] LYC interrupts
     * [ ] Item preview
-* [ ] VRAM transfer queue
-    * [x] Implement SET mode
-    * [ ] Implement HALFMAP mode
-    * [ ] Implement COLUMN mode
+* [x] VRAM transfer queue
+    * [x] Implement HALFMAP mode
+    * [x] Implement COLUMN mode
 * [ ] Create relative pointer system
     * [ ] Create auto-performance macros

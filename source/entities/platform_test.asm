@@ -17,11 +17,7 @@ entity_platform_test::
     jr z, :+
 
         ;Transfer tower tiles
-        vqueue_add \
-            VQUEUE_TYPE_BULK, \
-            (tower_asset_bricks.end - tower_asset_bricks) >> 4, \
-            vt_tower_tower, \
-            tower_asset_bricks
+        vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_tower, tower_asset_bricks
         
         ;Set writeback pointer
         ld a, e
@@ -31,7 +27,7 @@ entity_platform_test::
         ld [hl], d
 
         ;Transfer platform tiles
-        vqueue_add_copy VQUEUE_TYPE_BULK, vt_tower_platform, tower_asset_platform_grassy
+        vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_platform, tower_asset_platform_grassy
 
         ;Set writeback pointer
         ld a, e

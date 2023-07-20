@@ -1,25 +1,40 @@
+; Determines if set mode is enabled or not.
+; Used on `VQUEUE_TYPE`.
+DEF VQUEUEB_MODEFLAG EQU 7
+DEF VQUEUEF_MODEFLAG EQU %10000000
+
+; Enables set-mode.
+; Data is not copied, but set to a single value.
+; The value to set is stored at `VQUEUE_SOURCE_BANK`.
+DEF VQUEUE_MODEFLAG_SETMODE EQU %10000000
+
+; Enables copy-mode.
+; In copy-mode, data is copied from source to destination.
+; Source is a 3-byte pointer, the first reserved for ROM bank number.
+DEF VQUEUE_MODEFLAG_COPYMODE EQU 0
+
 RSRESET
+
+; The number of slots in the VRAM transfer queue.
+DEF VQUEUE_QUEUE_SIZE EQU 16
 
 ; Vqueue element not currently used.
 DEF VQUEUE_TYPE_NONE RB 1
 
-; Copies data directly from source to destination.
+; Data transfer is direct, 1-to-1.
+; Ideal for copying tiles.
 ; One transfer operation = 16 bytes.
-DEF VQUEUE_TYPE_BULK RB 1
+DEF VQUEUE_TYPE_DIRECT RB 1
 
-; Sets data at the destination to a given byte.
+; Works with half a row at a time.
+; Every 16 processed bytes, the destination pointer is moved 16 bytes forward.
 ; One transfer operation = 16 bytes.
-DEF VQUEUE_TYPE_SET RB 1
+DEF VQUEUE_TYPE_HALFROW RB 1
 
-; Copies data from source to destination.
-; Every 16 copied bytes, the destination pointer is moved 16 bytes forward.
-; One transfer operation = 16 bytes.
-DEF VQUEUE_TYPE_HALFMAP RB 1
-
-; Copies data in "columns".
+; Sets destination data in "columns".
 ; Places one source byte every 32 destination bytes.
-; Makes best sense to use when copying to tilemaps.
-; One transfer operation = 1 column.
+; Makes best sense to use when copying vertical strips to tilemaps.
+; One transfer operation = 1 column (32 bytes).
 ; When one column is done, move onto the next column.
 DEF VQUEUE_TYPE_COLUMN RB 1
 
@@ -27,6 +42,7 @@ RSRESET
 
 ; Type of this vqueue element.
 ; Check `VQUEUE_TYPE_*` to see available types.
+; If the highest bit is set, "set" mode is enabled.
 DEF VQUEUE_TYPE RB 1
 
 ; Number of transfer operations to perform.
@@ -96,7 +112,7 @@ ENDM
 
 
 
-; Macro that adds a copying-type transfer to the VRAM transfer queue.
+; Macro that adds a copy-mode transfer to the VRAM transfer queue.
 ; Assumes the source label has an exported `.end` sublabel.
 ; Throws errors if data length is not divisible by 16.
 ; Does not set writeback pointer.
@@ -116,7 +132,7 @@ MACRO vqueue_add_copy
     call vqueue_get
 
     ;Write type and length
-    ld a, \1
+    ld a, \1 | VQUEUE_MODEFLAG_COPYMODE
     ld [hl+], a ;type
     ld a, (\3.end - \3) >> 4
     ld [hl+], a ;length
@@ -140,7 +156,7 @@ ENDM
 
 
 
-; Macro that adds a set-type transfer to the VRAM transfer queue.
+; Macro that adds a set-mode transfer to the VRAM transfer queue.
 ; Does not set writeback pointer.
 ;
 ; Input:
@@ -158,7 +174,7 @@ MACRO vqueue_add_set
     call vqueue_get
 
     ;Write type and length
-    ld a, \1
+    ld a, \1 | VQUEUE_MODEFLAG_SETMODE
     ld [hl+], a ;type
     ld a, \2
     ld [hl+], a ;length
@@ -172,7 +188,7 @@ MACRO vqueue_add_set
     ld [hl+], a ;destination (high)
     
     ;Write fill byte
-    ld a, bank(\4)
+    ld a, \4
     ld [hl+], a
     inc l
     inc l

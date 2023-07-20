@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
-INCLUDE "macros/lyc.inc"
 INCLUDE "tower.inc"
+INCLUDE "macros/lyc.inc"
+INCLUDE "struct/vqueue.inc"
 
 
 SECTION "GAMELOOP TOWER", ROM0
@@ -12,33 +13,6 @@ SECTION "GAMELOOP TOWER", ROM0
 ;
 ; Saves: none
 gameloop_tower_setup:
-    ;Switch ROMX bank
-    ld a, bank(tower_asset_tower)
-    ld [rROMB0], a
-    
-    ;Copy tower tiles
-    ld hl, vt_tower_tower
-    ld bc, tower_asset_tower
-    ld de, tower_asset_tower.end - tower_asset_tower
-    call memcpy
-
-    ;Copy platform tiles
-    ld hl, vt_tower_platform
-    ld bc, tower_asset_platform
-    ld de, tower_asset_platform.end - tower_asset_platform
-    call memcpy
-
-    ;Copy HUD tiles
-    ld hl, vt_tower_hud
-    ld bc, tower_asset_hud
-    ld de, tower_asset_hud.end - tower_asset_hud
-    call memcpy
-
-    ;Copy test tiles
-    ld hl, vt_tower_testtiles
-    ld bc, tower_asset_testtiles
-    ld de, tower_asset_testtiles.end - tower_asset_testtiles
-    call memcpy
 
     ;This part of the tilemap is invisible
     ld hl, vm_tower_tower0
@@ -62,25 +36,6 @@ gameloop_tower_setup:
         jr nc, :-
     ;
 
-    ;Set GUI tiles
-    ld hl, vm_tower_hud
-    ld b, $F0
-    ld d, $20
-    ld c, d
-    call memset_short
-    inc b
-    ld c, d
-    call memset_short
-    inc b
-    ld c, d
-    call memset_short
-
-    ;Set backdrop tiles on window layer
-    ld hl, vm_tower_background1
-    ld b, $A0
-    ld de, $20 * 26
-    call memset
-
     ;Platform tiles
     ld hl, vm_tower_platform + $0F
     ld c, 2
@@ -103,6 +58,24 @@ gameloop_tower_setup:
     ld a, $E4
     call set_palette_bgp
     call set_palette_obp0
+
+    ;Copy tiles
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_testtiles, tower_asset_testtiles
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_tower, tower_asset_tower
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_platform, tower_asset_platform
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_hud, tower_asset_hud
+
+    ;Set GUI tilemap
+    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, vm_tower_hud+$00, $F0
+    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, vm_tower_hud+$20, $F1
+    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, vm_tower_hud+$40, $F2
+
+    ;Place background on both tilemaps
+    vqueue_add_set VQUEUE_TYPE_HALFROW, 18, vm_tower_background0, $A0
+    vqueue_add_set VQUEUE_TYPE_HALFROW, 18, vm_tower_background1, $A0
+
+    ;Perform transfers
+    call vqueue_execute
 
     ;Clear entity system
     call entsys_clear

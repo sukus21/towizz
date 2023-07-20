@@ -1,6 +1,9 @@
 INCLUDE "hardware.inc"
 INCLUDE "struct/vqueue.inc"
 
+; If this scanline has been reached, do not perform any more transfer operations.
+DEF VQUEUE_ITERATION_TIME EQU $97
+
 SECTION "VRAM QUEUE", ROM0
 
 ; Get a vqueue slot pointer.
@@ -66,19 +69,61 @@ vqueue_execute::
     cp a, VQUEUE_TYPE_NONE
     ret z
 
-    cp a, VQUEUE_TYPE_BULK
-    jr nz, :+
-        call vqueue_execute_bulk
-        ret z
-        jr .finish
-    :
+    ;Set-mode?
+    bit VQUEUEB_MODEFLAG, a
+    jr z, .copymode
+        res VQUEUEB_MODEFLAG, a
+        cp a, VQUEUE_TYPE_DIRECT
+        jr nz, :+
+            call vqueue_set_direct
+            ret z
+            jr .finish
+        :
 
-    cp a, VQUEUE_TYPE_SET
-    jr nz, :+
-        call vqueue_execute_set
-        ret z
+        cp a, VQUEUE_TYPE_HALFROW
+        jr nz, :+
+            call vqueue_set_halfrow
+            ret z
+            jr .finish
+        :
+
+        cp a, VQUEUE_TYPE_COLUMN
+        jr nz, :+
+            call vqueue_set_column
+            ret z
+            jr .finish
+        :
+
+        ;Transfer type not found
         jr .finish
-    :
+    ;
+
+    ;Copy-mode
+    .copymode
+        cp a, VQUEUE_TYPE_DIRECT
+        jr nz, :+
+            call vqueue_copy_direct
+            ret z
+            jr .finish
+        :
+
+        cp a, VQUEUE_TYPE_HALFROW
+        jr nz, :+
+            call vqueue_copy_halfrow
+            ret z
+            jr .finish
+        :
+
+        cp a, VQUEUE_TYPE_COLUMN
+        jr nz, :+
+            call vqueue_copy_column
+            ret z
+            jr .finish
+        :
+
+        ;Type not found
+        jr .finish
+    ;
 
     ;Finish a transfer
     .finish
@@ -89,9 +134,14 @@ vqueue_execute::
         ;Perform writeback
         ld l, low(w_vqueue) + VQUEUE_WRITEBACK
         ld a, [hl+]
-        ld h, [hl]
+        ld c, [hl]
+        ld [hl], 0
+        ld h, c
         ld l, a
-        inc [hl]
+        bit 7, h
+        jr z, :+
+            inc [hl]
+        :
 
         ;Move to last queued transfer
         ld hl, w_vqueue_first
@@ -125,8 +175,8 @@ vqueue_execute::
 
         ;Do we have time to start this transfer?
         ldh a, [rLY]
-        cp a, $97
-        jr nc, vqueue_execute
+        cp a, VQUEUE_ITERATION_TIME
+        jp c, vqueue_execute
     ;
 
     ;Return
@@ -135,15 +185,7 @@ vqueue_execute::
 
 
 
-; Subroutine for `vqueue_execute`.  
-; \- Same notes as `vqueue_execute`.
-;
-; Input:
-; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
-;
-; Returns:
-; - `fZ`: Transfer ended early
-vqueue_execute_bulk:
+MACRO vqueue_copy_start
     ;Get length remaining
     ld a, [hl+]
     ld d, a ;length total -> D
@@ -164,27 +206,26 @@ vqueue_execute_bulk:
     ld l, a
 
     .loop
-        ;Do the copying
-        REPT 16
-            ld a, [hl+]
-            ld [bc], a
-            inc bc
-        ENDR
+ENDM
 
-        ;Is it over?
-        inc e
-        ld a, e
-        sub a, d
-        jr nz, :+
-            inc a ;reset Z-flag
-            ret
-        :
+MACRO vqueue_copy_end
+    ;Is it over?
+    inc e
+    ld a, e
+    sub a, d
+    jr nz, :+
+        inc a ;reset Z-flag
+        ret
+    :
 
-        ;Time for another iteration?
-        ldh a, [rLY]
-        cp a, $98
+    ;Time for another iteration?
+    ldh a, [rLY]
+    cp a, VQUEUE_ITERATION_TIME
+    IF @ - .loop > 127
+        jp c, .loop
+    ELSE
         jr c, .loop
-    ;
+    ENDC
 
     ;Time is up
     ;Save transfer completion count
@@ -209,19 +250,9 @@ vqueue_execute_bulk:
     ;Return
     xor a ;sets Z-flag
     ret
-;
+ENDM
 
-
-
-; Subroutine for `vqueue_execute`.  
-; \- Same notes as `vqueue_execute`.
-;
-; Input:
-; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
-;
-; Returns:
-; - `fZ`: Transfer ended early
-vqueue_execute_set:
+MACRO vqueue_set_start
     ;Get length remaining
     ld a, [hl+]
     ld d, a ;length total -> D
@@ -238,36 +269,37 @@ vqueue_execute_set:
     ld a, [hl]
     ld h, b
     ld l, c
+    ld b, a
 
     .loop
-        ;Do the copying
-        REPT 16
-            ld [hl+], a
-        ENDR
+    ld a, b
+ENDM
 
-        ;Is it over?
-        ld b, a
-        inc e
-        ld a, e
-        sub a, d ;set A to 0 if Z flag
-        jr nz, :+
-            inc a ;reset Z-flag
-            ret
-        :
+MACRO vqueue_set_end
+    ;Is it over?
+    inc e
+    ld a, e
+    sub a, d ;set A to 0 if Z flag
+    jr nz, :+
+        inc a ;reset Z-flag
+        ret
+    :
 
-        ;Time for another iteration?
-        ldh a, [rLY]
-        cp a, $98
-        ld a, b
+    ;Time for another iteration?
+    ldh a, [rLY]
+    cp a, VQUEUE_ITERATION_TIME
+    IF @ - .loop > 127
+        jp c, .loop
+    ELSE
         jr c, .loop
-    ;
+    ENDC
 
     ;Time is up
     ;Save transfer completion count
-    ld a, e
-    ld d, h
-    ld e, l
+    ld b, h
+    ld c, l
     ld hl, w_vqueue + VQUEUE_PROGRESS
+    ld a, e
     ld [hl+], a
 
     ;Save destination
@@ -279,4 +311,159 @@ vqueue_execute_set:
     ;Return
     xor a ;sets Z-flag
     ret
+ENDM
+
+
+
+; Subroutine for `vqueue_execute`.  
+; \- Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_copy_direct:
+    vqueue_copy_start
+    REPT 16
+        ld a, [hl+]
+        ld [bc], a
+        inc bc
+    ENDR
+    vqueue_copy_end
+;
+
+
+
+; Subroutine for `vqueue_execute`.  
+; \- Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_set_direct:
+    vqueue_set_start
+    REPT 16
+        ld [hl+], a
+    ENDR
+    vqueue_set_end
+;
+
+
+
+; Subroutine for `vqueue_execute`.  
+; \- Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_copy_halfrow:
+    vqueue_copy_start
+    REPT 16
+        ld a, [hl+]
+        ld [bc], a
+        inc bc
+    ENDR
+
+    ;Move destination pointer
+    ld a, c
+    add a, 16
+    ld c, a
+    jr nc, :+
+        inc b
+    :
+    
+    vqueue_copy_end
+;
+
+
+
+; Subroutine for `vqueue_execute`.  
+; \- Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_set_halfrow:
+    vqueue_set_start
+    REPT 16
+        ld [hl+], a
+    ENDR
+
+    ;Move destination pointer
+    ld a, l
+    add a, 16
+    ld l, a
+    jr nc, :+
+        inc h
+    :
+    
+    vqueue_set_end
+;
+
+
+
+; Subroutine for `vqueue_execute`.  
+; \- Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_copy_column:
+    vqueue_copy_start
+    push bc
+    REPT 32
+        ld a, [hl+]
+        ld [bc], a
+        ld a, c
+        add a, 32
+        ld c, a
+        jr nc, :+
+            inc b
+        :
+    ENDR
+
+    ;Move destination pointer
+    pop bc
+    inc bc
+    
+    vqueue_copy_end
+;
+
+
+
+; Subroutine for `vqueue_execute`.  
+; \- Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_set_column:
+    vqueue_set_start
+    push bc
+    REPT 32
+        ld [hl+], a
+        ld a, l
+        add a, 32
+        ld l, a
+        jr nc, :+
+            inc h
+        :
+    ENDR
+
+    ;Move destination pointer
+    pop hl
+    inc hl
+    
+    vqueue_set_end
 ;

@@ -126,7 +126,7 @@ var_w0:
 
         ; Array of `VQUEUE`.
         ; Only first entry is all on the same page.
-        w_vqueue:: ds VQUEUE * 16, VQUEUE_TYPE_NONE
+        w_vqueue:: ds VQUEUE * VQUEUE_QUEUE_SIZE, VQUEUE_TYPE_NONE
         .end::
         ASSERT high(w_vqueue) == high(w_vqueue + VQUEUE)
 
