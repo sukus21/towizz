@@ -14,7 +14,7 @@ SECTION "GAMELOOP TOWER", ROM0
 ; Saves: none
 gameloop_tower_setup:
     ;Set tower flags
-    ld a, TOWERMODEF_TOWER_REPEAT | TOWERMODEF_TOWER_TILEMAP | TOWERMODEF_WINDOW_TILEMAP
+    ld a, TOWERMODEF_TOWER_REPEAT
     ld [w_tower_flags], a
 
     ;Set tower tiles on background layer

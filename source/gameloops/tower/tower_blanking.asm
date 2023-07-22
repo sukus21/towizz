@@ -11,9 +11,9 @@ SECTION "TOWER VBLANK+HBLANK", ROM0
 ; Saves: none
 tower_vblank::
     ;Copy buffered scroll positions
-    ld hl, w_tower_xpos
-    ld bc, h_tower_xpos
-    REPT 10
+    ld hl, w_tower_flags
+    ld bc, h_tower_flags
+    REPT 11
         ld a, [hl+]
         ld [bc], a
         inc c
@@ -86,7 +86,14 @@ tower_hblank_gui::
     push bc
 
     ;Do interrupt when HUD is drawn
-    LYC_set_jumppoint tower_hblank_segment
+    ldh a, [h_tower_flags]
+    bit TOWERMODEB_TOWER_REPEAT, a
+    jr z, :+
+        LYC_set_jumppoint tower_hblank_segment
+        jr :++
+    :
+        LYC_set_jumppoint tower_hblank_tower
+    :
     ld a, HUD_HEIGHT-1
     ldh [rLYC], a
     
@@ -249,7 +256,14 @@ tower_hblank_platform::
     dec a
     ldh [rLYC], a
     ld h, a
-    LYC_set_jumppoint tower_hblank_segment
+    ldh a, [h_tower_flags]
+    bit TOWERMODEB_TOWER_REPEAT, a
+    jr z, :+
+        LYC_set_jumppoint tower_hblank_segment
+        jr :++
+    :
+        LYC_set_jumppoint tower_hblank_tower
+    :
 
     ;Set next segment interrupt
     ldh a, [h_tower_lyc]
@@ -293,6 +307,59 @@ tower_hblank_platform::
     ;Move background into view
     ldh a, [h_background_xpos]
     ldh [rWX], a
+
+    ;Return
+    ei
+    pop hl
+    pop af
+    ret
+;
+
+
+
+; H-blank routine for the tower gameloop.
+; Called when drawing a non-repeating tower.
+; Switches to drawing platform when the time comes.
+; Lives in ROM0.
+;
+; Saves: all
+tower_hblank_tower::
+    push af
+    push hl
+
+    ;Next thing that should happen is platform interrupt
+    ld a, [h_platform_ypos]
+    dec a
+    ldh [rLYC], a
+    LYC_set_jumppoint tower_hblank_platform
+
+    ;Camera X
+    ldh a, [h_background_xpos]
+    cpl
+    add a, $08
+    ld h, a
+
+    ;Camera Y
+    ldh a, [h_tower_ypos]
+    ld l, a
+
+    ;Wait for H-blank
+    LYC_wait_hblank
+
+    ;Move background
+    ld a, l
+    cpl
+    ldh [rSCY], a
+    ld a, h
+    ldh [rSCX], a
+
+    ;Move background into view
+    ldh a, [h_background_xpos]
+    ldh [rWX], a
+
+    ;Set LCDC flags
+    ldh a, [h_lcdc_tower]
+    ldh [rLCDC], a
 
     ;Return
     ei

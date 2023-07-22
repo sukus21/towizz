@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
+INCLUDE "tower.inc"
 INCLUDE "struct/vqueue.inc"
 
 SECTION "ENTITY PLATFORM TEST", ROMX
@@ -91,6 +92,9 @@ entity_platform_test::
     :
 
     ;Keep tower within cap
+    ld a, [w_tower_flags]
+    bit TOWERMODEB_TOWER_REPEAT, a
+    jr z, .tower_adjusted
     ld a, [w_tower_height]
     or a, a ;cp a, 0
     jr z, .tower_adjusted

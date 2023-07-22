@@ -20,7 +20,7 @@ Not in any particular order
 * [ ] Enemies
 * [ ] Wave system
 * [ ] Tower gameloop
-    * [ ] Non-repeat mode (get rid of non-platform interrupts)
+    * [x] Non-repeat mode (get rid of non-platform interrupts)
     * [ ] Window layer update system
     * [x] Window layer can use both tilemaps
     * [x] Background layer can use both tilemaps
