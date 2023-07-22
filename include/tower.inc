@@ -18,3 +18,17 @@ DEF PLATFORM_SCY EQU -$18
 
 ; Background SCX when offscreen
 DEF BACKGROUND_OFFSCREEN_SCX EQU SCRN_X + 5
+
+RSRESET
+
+; Dictates what tilemap the window layer should use.  
+; 0 = SCRN0.  
+; 1 = SCRN1.
+DEF TOWERMODEF_WINDOW_TILEMAP EQU 1 << _RS
+DEF TOWERMODEB_WINDOW_TILEMAP RB 1
+
+; Dictates what tilemap the tower "layer" should use.  
+; 0 = SCRN0.  
+; 1 = SCRN1.
+DEF TOWERMODEF_TOWER_TILEMAP EQU 1 << _RS
+DEF TOWERMODEB_TOWER_TILEMAP RB 1

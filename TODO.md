@@ -1,7 +1,7 @@
 ## General todo list
 Not in any particular order
 
-* Base player control
+* [ ] Base player control
 * [ ] Player back-item modification
 * [ ] Player movement
     * [ ] Jump
@@ -22,8 +22,8 @@ Not in any particular order
 * [ ] Tower gameloop
     * [ ] Non-repeat mode (get rid of non-platform interrupts)
     * [ ] Window layer update system
-    * [ ] Window layer can use both tilemaps
-    * [ ] Background layer can use both tilemaps
+    * [x] Window layer can use both tilemaps
+    * [x] Background layer can use both tilemaps
 * [ ] Shop gameloop
     * [ ] VRAM layout
     * [ ] LYC interrupts

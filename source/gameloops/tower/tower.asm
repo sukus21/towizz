@@ -13,12 +13,9 @@ SECTION "GAMELOOP TOWER", ROM0
 ;
 ; Saves: none
 gameloop_tower_setup:
-
-    ;This part of the tilemap is invisible
-    ld hl, vm_tower_tower0
-    ld b, $A4
-    ld de, $20 * $20
-    call memset
+    ;Set tower flags
+    ld a, TOWERMODEF_TOWER_REPEAT | TOWERMODEF_TOWER_TILEMAP | TOWERMODEF_WINDOW_TILEMAP
+    ld [w_tower_flags], a
 
     ;Set tower tiles on background layer
     ld hl, vm_tower_tower0 + $0F

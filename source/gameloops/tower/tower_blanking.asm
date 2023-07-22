@@ -52,9 +52,26 @@ tower_vblank::
     ;Execute VRAM transfers
     call vqueue_execute
 
-    ;Do DMA and return
+    ;Do DMA
     ld a, high(w_oam_hud)
     call h_dma
+
+    ;Create LCDC values
+    ld a, [w_tower_flags]
+    ld b, a
+    ld a, LCDCF_ON | LCDCF_BGON | LCDCF_WINON | LCDCF_OBJON | LCDCF_BLK21 | LCDCF_OBJ16 | LCDCF_BG9C00
+    bit TOWERMODEB_WINDOW_TILEMAP, b
+    jr z, :+
+        set LCDCB_WIN9C00, a
+    :
+    ldh [h_lcdc_platform], a
+    bit TOWERMODEB_TOWER_TILEMAP, b
+    jr nz, :+
+        res LCDCB_BG9C00, a
+    :
+    ldh [h_lcdc_tower], a
+
+    ;Return
     ret
 ;
 
@@ -201,7 +218,7 @@ tower_hblank_segment::
     ldh [rWX], a
 
     ;Set LCDC flags
-    ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9800 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
+    ldh a, [h_lcdc_tower]
     ldh [rLCDC], a
 
     ;Return
@@ -264,7 +281,7 @@ tower_hblank_platform::
     LYC_wait_hblank
 
     ;Set LCDC mode
-    ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
+    ldh a, [h_lcdc_platform]
     ldh [rLCDC], a
 
     ;Set background position

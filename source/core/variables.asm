@@ -98,6 +98,10 @@ var_w0:
         ; First known 4-chunk entity slot.
         w_entsys_first64:: dw w_entsys
 
+        ; Tower visuals mode.
+        ; Possible flags located in `tower.inc`.
+        w_tower_flags:: db $00
+
         w_tower_xpos:: db $00
         w_tower_ypos:: db $00
         w_tower_height:: db $10
@@ -188,6 +192,9 @@ var_h:
 
         h_background_xpos:: db $4F
         h_background_ypos:: db $14
+
+        h_lcdc_tower:: db $00
+        h_lcdc_platform:: db $00
 
         ; Bitfield of buttons held.
         ; Use with `PADB_*` or `PADF_*` from `hardware.inc`.
