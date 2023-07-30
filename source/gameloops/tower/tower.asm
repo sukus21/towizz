@@ -272,12 +272,12 @@ draw_byte:
 ;
 ; Saves: none
 draw_hud:
+    /*
     ;Get a couple sprites
     ld b, 4*8
     ld h, high(w_oam_hud)
     call sprite_get
 
-    /*
     ;Draw platform positions
     ld a, [w_platform_xpos]
     ld bc, $11_10

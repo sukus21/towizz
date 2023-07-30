@@ -45,7 +45,7 @@ tower_vblank::
     ldh [rLCDC], a
 
     ;Set mid-hud interrupt
-    ld a, $0F
+    ld a, $0C
     ldh [rLYC], a
     LYC_set_jumppoint tower_hblank_gui
 
@@ -125,7 +125,7 @@ tower_hblank_gui::
     :
 
     ;platform end -> c
-    ld a, [w_platform_height]
+    ldh a, [h_platform_height]
     add a, b
     ld c, a
 
@@ -153,7 +153,17 @@ tower_hblank_gui::
     add a, low(high(w_oam1) + high(w_oam2) + 1)
     ld b, a
 
-    LYC_wait_hblank
+    ;Wait for appropriate scanline
+    :
+    ldh a, [rLY]
+    cp a, $10
+    jr c, :-
+    :
+    ldh a, [rSTAT]
+    bit 0, a
+    jr nz, :-
+
+    ;Disable window layer
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINOFF | LCDCF_OBJOFF
     ldh [rLCDC], a
     ld a, b

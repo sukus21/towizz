@@ -7,9 +7,6 @@ DEF HUD_SCX EQU $00
 ; Coordniate for SCY when displaying HUD.
 DEF HUD_SCY EQU -$30
 
-; Height of the platform.
-DEF PLATFORM_HEIGHT EQU $18
-
 ; Resting position of platform when not in use
 DEF PLATFORM_DISABLE EQU SCRN_Y + 1
 
