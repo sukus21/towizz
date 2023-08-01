@@ -10,6 +10,8 @@
 | Section declarations/names | UPPERCASE |
 | Hexadecimal | UPPERCASE |
 
+Symbols that are only used by a macro and shouldn't be tampered with outside of it, should have a double underscore (`__`) prefix (example: `DEF __ITERATION_COUNT = 0`). 
+
 Labels are by default assumed to be in ROM. Any non-ROM labels must have a prefix, pointing out where they are located:
 
 | Location | Prefix |
@@ -84,5 +86,5 @@ clear_buffer::
 ## Other one-off rules
 * Files in the `source` directory should all be `.asm` files.
 * The only files allowed in `INCLUDE` and `INCBIN` statements are those in the `include` durectory.
-* Included files should only contain constant definitions and/or macros
-* Included files must not contain "raw raw" (code/data added to ROM by just including the file). We have `RGBLINK` for cross-file code sharing, use it.
+* Included files should only contain constant definitions and/or macros.
+* Included files must not contain "raw data" (code/data added to ROM by just including the file). We have `RGBLINK` for cross-file code sharing, use it.
