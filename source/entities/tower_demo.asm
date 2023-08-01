@@ -15,15 +15,53 @@ towerdemo_sinewave:
 
 
 
+; Creates a tower demo entity.
+entity_towerdemo_create::
+    call entsys_new16
+    ld h, b
+    ld l, c
+
+    ;Set bank and step pointer
+    ld a, bank(@)
+    ld [hl+], a
+    inc l
+    ld a, low(entity_towerdemo)
+    ld [hl+], a
+    ld [hl], high(entity_towerdemo)
+
+    ;Return
+    ret 
+;
+
+
+
 ; Entity used exclusively for testing platform behaviour.
 ;
 ; Input:
 ; - `de`: Entity pointer
 entity_towerdemo::
     ld a, e
-    or a, ENTVAR_TOWERDEMO_PLATFORM_X
+    or a, ENTVAR_TOWERDEMO_RUNNING
     ld l, a
     ld h, d
+
+    ;Toggle action
+    ldh a, [h_input_pressed]
+    ld b, a
+    bit PADB_START, b
+    jr z, :+
+        ld a, 1
+        sub a, [hl]
+        ld [hl], a
+    :
+
+    ;Do anything?
+    ld a, [hl+]
+    bit PADB_SELECT, b
+    jr nz, :+
+    cp a, 0
+    ret z
+    :
 
     ;Prepare sine pointer
     ld b, high(towerdemo_sinewave)

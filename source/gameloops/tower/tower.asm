@@ -80,6 +80,7 @@ gameloop_tower_setup:
     call entsys_clear
 
     ;Create player
+    farcall_0 entity_towerdemo_create
     farcall_0 entity_player_create
 
     ;Call regular V-blank routine
