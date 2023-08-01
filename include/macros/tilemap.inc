@@ -7,16 +7,16 @@ DEF tlmv_addr = 0
 ; Finishes allocation of a tilemap.
 ; Invoking this is required to define multiple tilemaps in one file.
 MACRO tilemap_alloc_finish
-    DEF __tlmv_x = 0
+    DEF /*internal*/ __tlmv_x = 0
     REPT 32
-        DEF __tlmv_y = 0
+        DEF /*internal*/ __tlmv_y = 0
         REPT 32
             IF DEF(__tlmv_{d:__tlmv_x}_{d:__tlmv_y})
                 PURGE __tlmv_{d:__tlmv_x}_{d:__tlmv_y}
             ENDC
-            DEF __tlmv_y = __tlmv_y + 1
+            DEF /*internal*/ __tlmv_y = __tlmv_y + 1
         ENDR
-        DEF __tlmv_x = __tlmv_x + 1
+        DEF /*internal*/ __tlmv_x = __tlmv_x + 1
     ENDR
 ENDM
 
@@ -41,21 +41,20 @@ MACRO tilemap_alloc
     ASSERT _NARG == 6, "tilemap_alloc requires 6 parameters for \2"
 
     ;Make sure all spots are valid
-    DEF __tlmv_x = \3
+    DEF /*internal*/ __tlmv_x = \3
     REPT \5
-        DEF __tlmv_y = \4
+        DEF /*internal*/ __tlmv_y = \4
         REPT \6
             ASSERT !DEF(__tlmv_{d:__tlmv_x}_{d:__tlmv_y}), STRFMT("tilemap position (%d,%d) occupied for %s", __tlmv_x, __tlmv_y, \2)
-            DEF __tlmv_{d:__tlmv_x}_{d:__tlmv_y} = 1
-            DEF __tlmv_y = __tlmv_y + 1
+            DEF /*internal*/ __tlmv_{d:__tlmv_x}_{d:__tlmv_y} = 1
+            DEF /*internal*/ __tlmv_y = __tlmv_y + 1
         ENDR
-        DEF __tlmv_x = __tlmv_x + 1
+        DEF /*internal*/ __tlmv_x = __tlmv_x + 1
     ENDR
 
     ;Define parameters
-    DEF tlmv_addr = \1 + \3 + (\4 * 32)
+    DEF /*internal*/ tlmv_addr = \1 + \3 + (\4 * 32)
     PURGE __tlmv_x, __tlmv_y
-    PRINTLN tlmv_addr
 ENDM
 
     ENDC

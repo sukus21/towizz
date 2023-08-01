@@ -78,7 +78,6 @@ gameloop_tower_setup:
     ;Clear entity system
     call entsys_clear
 
-    ;Allocate platform tester
     call entsys_new16
     ld h, b
     ld l, c
