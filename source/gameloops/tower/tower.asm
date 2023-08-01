@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "tower.inc"
+INCLUDE "macros/farcall.inc"
 INCLUDE "macros/lyc.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/vram/tower.inc"
@@ -78,15 +79,8 @@ gameloop_tower_setup:
     ;Clear entity system
     call entsys_clear
 
-    call entsys_new16
-    ld h, b
-    ld l, c
-    ld [hl], bank(entity_platform_test)
-    inc l
-    inc l
-    ld [hl], low(entity_platform_test)
-    inc l
-    ld [hl], high(entity_platform_test)
+    ;Create player
+    farcall_0 entity_player_create
 
     ;Call regular V-blank routine
     call tower_vblank
@@ -122,6 +116,7 @@ gameloop_tower::
 
     ; This is where the gameloop repeats.
     .mainloop
+    call input
     call entsys_step
 
     ;Draw HUD

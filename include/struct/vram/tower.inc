@@ -3,6 +3,10 @@ INCLUDE "macros/tilemap.inc"
 
 ;Block 0 (sprites only)
 RSSET $00
+
+    ; Player tileset.
+    DEF VT_TOWER_PLAYER EQU $8000 + $10 * _RS
+    DEF VTI_TOWER_PLAYER RB $30
 ASSERT _RS <= $80
 
 ;Block 1 (sprites + backgrounds)
