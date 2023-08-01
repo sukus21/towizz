@@ -46,6 +46,17 @@ ENDM
 
 
 
+; Does not move the actual pointer.
+; Just updates the interla relpointer logic.
+;
+; Input:
+; - `1`: Where to move the relative pointer
+MACRO relpointer_set
+    DEF __RELPOINTER_POSITION = \1
+ENDM
+
+
+
 ; Purge all relpointer symbols.
 ; Required call if you want multiple relpointers in one file.
 MACRO relpointer_destroy

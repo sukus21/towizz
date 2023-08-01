@@ -679,5 +679,6 @@ error_messages:
     error_entityoverflow::  create_message "ENTITY OVERFLOW"
     error_color_required::  create_message "ONLY PLAYS ON CGB"
     error_vqueueoverflow::  create_message "VQUEUE OVERFLOW"
+    error_invplayerstate::  create_message "INVLD PLAYER STATE"
     POPC
 ;
