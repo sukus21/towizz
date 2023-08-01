@@ -31,5 +31,5 @@ Not in any particular order
 * [x] VRAM transfer queue
     * [x] Implement HALFMAP mode
     * [x] Implement COLUMN mode
-* [ ] Create relative pointer system
-    * [ ] Create auto-performance macros
+* [x] Create relative pointer system
+    * [x] Create auto-performance macros
