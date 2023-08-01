@@ -2,13 +2,14 @@ INCLUDE "hardware.inc"
 INCLUDE "tower.inc"
 INCLUDE "macros/lyc.inc"
 INCLUDE "struct/vqueue.inc"
+INCLUDE "struct/vram/tower.inc"
 
 
 SECTION "GAMELOOP TOWER", ROM0
 
-; Setup routine for tower gameloop.
-; Assumes VRAM access.
-; Enables interrupts and LCD when returning.
+; Setup routine for tower gameloop.  
+; Assumes VRAM access.  
+; Enables interrupts and LCD when returning.  
 ; Lives in ROM0.
 ;
 ; Saves: none
@@ -18,15 +19,15 @@ gameloop_tower_setup:
     ld [w_tower_flags], a
 
     ;Set tower tiles on background layer
-    ld hl, vm_tower_tower0 + $0F
+    ld hl, VM_TOWER_TOWER0 + $0F
     ld c, 2
-    ld a, $1E
+    ld a, VTI_TOWER_TOWER + $1E
     :
         ld [hl-], a
         sub a, c
         jr nc, :-
-    ld hl, vm_tower_tower0 + $2F
-    ld a, $1F
+    ld hl, VM_TOWER_TOWER0 + $2F
+    ld a, VTI_TOWER_TOWER + $1F
     :
         ld [hl-], a
         sub a, c
@@ -34,16 +35,16 @@ gameloop_tower_setup:
     ;
 
     ;Platform tiles
-    ld hl, vm_tower_platform + $0F
+    ld hl, VM_TOWER_PLATFORM + $0F
     ld c, 2
-    ld a, $9E
+    ld a, VTI_TOWER_PLATFORM + $1E
     :
         ld [hl-], a
         sub a, c
         bit 7, a
         jr nz, :-
-    ld hl, vm_tower_platform + $2F
-    ld a, $9F
+    ld hl, VM_TOWER_PLATFORM + $2F
+    ld a, VTI_TOWER_PLATFORM + $1F
     :
         ld [hl-], a
         sub a, c
@@ -57,19 +58,19 @@ gameloop_tower_setup:
     call set_palette_obp0
 
     ;Copy tiles
-    vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_testtiles, tower_asset_testtiles
-    vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_tower, tower_asset_tower
-    vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_platform, tower_asset_platform
-    vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_hud, tower_asset_hud
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_TESTTILES, tower_asset_testtiles
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_TOWER, tower_asset_tower
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_PLATFORM, tower_asset_platform
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_HUD, tower_asset_hud
 
-    ;Set GUI tilemap
-    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, vm_tower_hud+$00, $F0
-    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, vm_tower_hud+$20, $F1
-    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, vm_tower_hud+$40, $F2
+    ;Set HUD tilemap
+    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, VM_TOWER_HUD+$00, VTI_TOWER_HUD + $00
+    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, VM_TOWER_HUD+$20, VTI_TOWER_HUD + $01
+    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, VM_TOWER_HUD+$40, VTI_TOWER_HUD + $02
 
     ;Place background on both tilemaps
-    vqueue_add_set VQUEUE_TYPE_HALFROW, 18, vm_tower_background0, $A0
-    vqueue_add_set VQUEUE_TYPE_HALFROW, 18, vm_tower_background1, $A0
+    vqueue_add_set VQUEUE_TYPE_HALFROW, 18, VM_TOWER_BACKGROUND0, VTI_TOWER_TESTTILES
+    vqueue_add_set VQUEUE_TYPE_HALFROW, 18, VM_TOWER_BACKGROUND1, VTI_TOWER_TESTTILES
 
     ;Perform transfers
     call vqueue_execute
@@ -112,8 +113,8 @@ gameloop_tower_setup:
 
 
 
-; Tower gameloop.
-; Does not return, resets stack.
+; Tower gameloop.  
+; Does not return, resets stack.  
 ; Lives in ROM0.
 ;
 ; Saves: none
@@ -156,7 +157,7 @@ gameloop_tower::
 
 
 
-; Draw sprite-parts of platform.
+; Draw sprite-parts of platform.  
 ; Lives in ROM0.
 ;
 ; Saves: none
@@ -219,7 +220,7 @@ tower_platform_sprites:
 
 
 
-; Draws a number in hexadecimal using sprites.
+; Draws a number in hexadecimal using sprites.  
 ; Lives in ROM0.
 ;
 ; Input:
@@ -311,7 +312,7 @@ draw_hud:
     inc l
     ld [hl], $A0
     inc l
-    ld [hl], $F0
+    ld [hl], VTI_TOWER_HUD
     inc l
     ld [hl], $00
 

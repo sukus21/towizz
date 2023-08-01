@@ -2,6 +2,7 @@ INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
 INCLUDE "tower.inc"
 INCLUDE "struct/vqueue.inc"
+INCLUDE "struct/vram/tower.inc"
 
 SECTION "ENTITY PLATFORM TEST", ROMX
 
@@ -18,7 +19,7 @@ entity_platform_test::
     jr z, :+
 
         ;Transfer tower tiles
-        vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_tower, tower_asset_bricks
+        vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_TOWER, tower_asset_bricks
         
         ;Set writeback pointer
         ld a, e
@@ -28,7 +29,7 @@ entity_platform_test::
         ld [hl], d
 
         ;Transfer platform tiles
-        vqueue_add_copy VQUEUE_TYPE_DIRECT, vt_tower_platform, tower_asset_platform_grassy
+        vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_PLATFORM, tower_asset_platform_grassy
 
         ;Set writeback pointer
         ld a, e
