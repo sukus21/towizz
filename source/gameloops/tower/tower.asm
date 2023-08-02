@@ -215,6 +215,7 @@ tower_platform_sprites:
 
 
 
+; VRAM values are only properly mapped when in the tower gameloop.
 ; Draws a number in hexadecimal using sprites.  
 ; Lives in ROM0.
 ;
@@ -228,7 +229,7 @@ tower_platform_sprites:
 ; - `hl`: += 8
 ;
 ; Destroys: `af`, `d`
-draw_byte:
+tower_draw_byte::
     ;Upper nybble
     ld [hl], c
     inc l
@@ -238,7 +239,7 @@ draw_byte:
     swap a
     and a, %00001111
     rla
-    set 7, a
+    add a, VTI_TOWER_PLATFORM
     ld [hl+], a
     ld [hl], OAMF_PAL0
     inc l
@@ -252,7 +253,7 @@ draw_byte:
     ld a, d
     and a, %00001111
     rla
-    set 7, a
+    add a, VTI_TOWER_PLATFORM
     ld [hl+], a
     ld [hl], OAMF_PAL0
     inc l
