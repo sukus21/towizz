@@ -93,26 +93,22 @@ player_state_grounded::
     jr nz, .speed_sub
         ld a, e
         add a, c
+        ld e, a
         ld [hl+], a
         ld a, d
         adc a, b
+        ld d, a
         ld [hl-], a
         jr .speed_save
     .speed_sub
         ld a, e
         sub a, c
+        ld e, a
         ld [hl+], a
         ld a, d
         sbc a, b
+        ld d, a
         ld [hl-], a
-        jr nc, .speed_save
-
-        ;We cannot move into the wall, set everything to 0
-        xor a
-        ld [hl+], a
-        ld [hl-], a
-        ld b, a
-        ld c, a
         ;jr .speed_save
     ;
     
@@ -124,7 +120,23 @@ player_state_grounded::
     ld a, b
     ld [hl-], a
 
+    ;Stay within screen bounds
+    call player_boundscheck
+
+    ;Are we now not on the platform anymore?
+    ld a, d
+    sub a, $80
+    ld d, a
+    ld a, [w_platform_xpos]
+    cp a, d
+    jr nc, .return
+
+    ;Change state
+    relpointer_move ENTVAR_PLAYER_STATE
+    ;ld [hl], PLAYER_STATE_AIRBORNE
+
     ;Return
+    .return
     relpointer_destroy
     ret
 ;

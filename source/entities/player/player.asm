@@ -127,8 +127,9 @@ entity_player_draw:
 
     ;Get X and Y position -> DE
     relpointer_init l, ENTVAR_PLAYER_XPOS+1
-    ld a, [hl]
-    add a, 8
+    ld a, [w_background_xpos]
+    add a, [hl]
+    add a, $88
     ld d, a
     relpointer_move ENTVAR_PLAYER_YPOS+1
     ld e, [hl]
@@ -314,5 +315,67 @@ player_speed_slow::
     ld c, a
 
     ;Return
+    ret
+;
+
+
+
+; Makes sure the player stays within the screen bounds.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Returns:
+; - `de`: New X-position
+;
+; Saves: `bc`, `hl`
+player_boundscheck::
+    push hl
+    ld a, l
+    and a, %11100000
+    or a, ENTVAR_PLAYER_XPOS+1
+    ld l, a
+    relpointer_init l, ENTVAR_PLAYER_XPOS+1
+
+    ;Get X-position -> DE
+    ld a, [hl-]
+    ld d, a
+    ld a, [hl+]
+    ld e, a
+
+    ;Get lowest possible screen position
+    ld a, [w_background_xpos]
+    add a, -$80
+    cpl
+    inc a
+    cp a, [hl]
+    jr z, .above_min
+    jr c, .above_min
+        ld e, $00
+        jr .bounds
+    ;
+
+    .above_min
+    add a, SCRN_X - PLAYER_WIDTH
+    cp a, [hl]
+    jr nc, .return
+        ld e, $FF
+
+        ;Stay inside screen bounds
+        .bounds
+        ld [hl-], a
+        ld d, a
+        ld a, e
+        ld [hl+], a
+        relpointer_move ENTVAR_PLAYER_XSPEED
+        xor a
+        ld [hl+], a
+        ld [hl-], a
+    ;
+
+    ;Return
+    .return
+    relpointer_destroy
+    pop hl
     ret
 ;
