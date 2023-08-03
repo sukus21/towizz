@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
-INCLUDE "macros/lyc.inc"
 INCLUDE "tower.inc"
+INCLUDE "struct/tower_buffer.inc"
+INCLUDE "macros/lyc.inc"
 
 SECTION "TOWER VBLANK+HBLANK", ROM0
 
@@ -10,24 +11,6 @@ SECTION "TOWER VBLANK+HBLANK", ROM0
 ;
 ; Saves: none
 tower_vblank::
-    ;Copy buffered scroll positions
-    ld hl, w_tower_flags
-    ld bc, h_tower_flags
-    REPT 11
-        ld a, [hl+]
-        ld [bc], a
-        inc c
-    ENDR
-    ldh a, [h_background_xpos]
-    add a, 7
-    ldh [h_background_xpos], a
-
-    ;Flip selected OAM mirror
-    ldh a, [h_oam_active]
-    cpl
-    add a, low(high(w_oam2) + high(w_oam1) + 1)
-    ldh [h_oam_active], a
-
     ;Reset background for HUD
     ld a, HUD_SCX
     ldh [rSCX], a
@@ -37,17 +20,12 @@ tower_vblank::
     ;Reset window position
     ld a, BACKGROUND_OFFSCREEN_SCX
     ldh [rWX], a
-    ldh a, [h_background_ypos]
+    ld a, [w_background_ypos+1]
     ldh [rWY], a
 
     ;Set the correct LCDC flags
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
     ldh [rLCDC], a
-
-    ;Set mid-hud interrupt
-    ld a, $0C
-    ldh [rLYC], a
-    LYC_set_jumppoint tower_hblank_gui
 
     ;Execute VRAM transfers
     call vqueue_execute
@@ -56,20 +34,25 @@ tower_vblank::
     ld a, high(w_oam_hud)
     call h_dma
 
-    ;Create LCDC values
-    ld a, [w_tower_flags]
-    ld b, a
-    ld a, LCDCF_ON | LCDCF_BGON | LCDCF_WINON | LCDCF_OBJON | LCDCF_BLK21 | LCDCF_OBJ16 | LCDCF_BG9C00
-    bit TOWERMODEB_WINDOW_TILEMAP, b
-    jr z, :+
-        set LCDCB_WIN9C00, a
-    :
-    ldh [h_lcdc_platform], a
-    bit TOWERMODEB_TOWER_TILEMAP, b
-    jr nz, :+
-        res LCDCB_BG9C00, a
-    :
-    ldh [h_lcdc_tower], a
+    ;Set mid-hud interrupt
+    ld a, HUD_LYC
+    ldh [rLYC], a
+    LYC_set_jumppoint tower_hblank_gui
+    
+    ;Copy buffered scroll positions
+    ld hl, w_tower_buffer
+    ld c, low(h_tower_buffer)
+    REPT TOWER_BUFFER
+        ld a, [hl+]
+        ldh [c], a
+        inc c
+    ENDR
+
+    ;Flip selected OAM mirror
+    ldh a, [h_oam_active]
+    cpl
+    add a, low(high(w_oam2) + high(w_oam1) + 1)
+    ldh [h_oam_active], a
 
     ;Return
     ret
@@ -86,7 +69,7 @@ tower_hblank_gui::
     push bc
 
     ;Do interrupt when HUD is drawn
-    ldh a, [h_tower_flags]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_FLAGS]
     bit TOWERMODEB_TOWER_REPEAT, a
     jr z, :+
         LYC_set_jumppoint tower_hblank_segment
@@ -96,36 +79,29 @@ tower_hblank_gui::
     :
     ld a, HUD_HEIGHT-1
     ldh [rLYC], a
-    
-    ;Set First tower interrupt position
-    ldh a, [h_tower_ypos]
-    ld c, a
-    ld a, HUD_HEIGHT-1
-    sub a, c
-    ldh [h_tower_lyc], a
 
     ;Platform drawn entirely with sprites?
-    ldh a, [h_background_xpos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_BXPOS]
     sub a, 7
     ld b, a
-    ldh a, [h_platform_xpos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PXPOS]
     cp a, b
     jr c, .no_platform
 
     ;platform start -> b
-    ldh a, [h_platform_ypos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
     ld b, a
     cp a, SCRN_Y
     jr nz, :+
         ;Disable platform, or the LYC interrupt will clash with Vblank
         .no_platform
         ld a, PLATFORM_DISABLE
-        ldh [h_platform_ypos], a
+        ldh [h_tower_buffer + TOWER_BUFFER_PYPOS], a
         jr .lyc_isset
     :
 
     ;platform end -> c
-    ldh a, [h_platform_height]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PHEIGHT]
     add a, b
     ld c, a
 
@@ -156,7 +132,7 @@ tower_hblank_gui::
     ;Wait for appropriate scanline
     :
     ldh a, [rLY]
-    cp a, $10
+    cp a, HUD_DMA_LYC
     jr c, :-
     :
     ldh a, [rSTAT]
@@ -189,14 +165,14 @@ tower_hblank_segment::
     push hl
 
     ;Platform Y-position -> H
-    ldh a, [h_platform_ypos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
     ld h, a
     dec h
 
     ;Next segment interrupt position
-    ldh a, [h_tower_lyc]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_LYC]
     ld l, a
-    ldh a, [h_tower_height]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_THEIGHT]
     add a, l
 
     ;Compare with platform position
@@ -211,11 +187,11 @@ tower_hblank_segment::
     .tower
         ;Save LYC position
         ldh [rLYC], a
-        ldh [h_tower_lyc], a
+        ldh [h_tower_buffer + TOWER_BUFFER_LYC], a
     :
 
     ;Camera X
-    ldh a, [h_background_xpos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_BXPOS]
     cpl
     add a, $08
     ld h, a
@@ -231,11 +207,11 @@ tower_hblank_segment::
     ldh [rSCX], a
 
     ;Move background into view
-    ldh a, [h_background_xpos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_BXPOS]
     ldh [rWX], a
 
     ;Set LCDC flags
-    ldh a, [h_lcdc_tower]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_TLCDC]
     ldh [rLCDC], a
 
     ;Return
@@ -257,16 +233,16 @@ tower_hblank_platform::
     push hl
     
     ;Set next interrupt
-    ldh a, [h_tower_height]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_THEIGHT]
     ld l, a
-    ldh a, [h_platform_ypos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
     ld h, a
-    ldh a, [h_platform_height]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PHEIGHT]
     add a, h
     dec a
     ldh [rLYC], a
     ld h, a
-    ldh a, [h_tower_flags]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_FLAGS]
     bit TOWERMODEB_TOWER_REPEAT, a
     jr z, :+
         LYC_set_jumppoint tower_hblank_segment
@@ -276,7 +252,7 @@ tower_hblank_platform::
     :
 
     ;Set next segment interrupt
-    ldh a, [h_tower_lyc]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_LYC]
     .loop
         add a, l
         cp a, h
@@ -284,28 +260,28 @@ tower_hblank_platform::
         jr c, .loop
     :
     sub a, l
-    ldh [h_tower_lyc], a
+    ldh [h_tower_buffer + TOWER_BUFFER_LYC], a
 
     ;Calculate background position
-    ldh a, [h_platform_ypos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
     ld h, a
     ld a, PLATFORM_SCY
     sub a, h
     ld h, a
-    ldh a, [h_platform_xpos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PXPOS]
     cpl
     add a, $81
     ld l, a
 
     ;This will make the section routine faster
     ld a, PLATFORM_DISABLE
-    ldh [h_platform_ypos], a
+    ldh [h_tower_buffer + TOWER_BUFFER_PYPOS], a
 
     ;Wait for H-blank
     LYC_wait_hblank
 
     ;Set LCDC mode
-    ldh a, [h_lcdc_platform]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_PLCDC]
     ldh [rLCDC], a
 
     ;Set background position
@@ -315,7 +291,7 @@ tower_hblank_platform::
     ldh [rSCX], a
 
     ;Move background into view
-    ldh a, [h_background_xpos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_BXPOS]
     ldh [rWX], a
 
     ;Return
@@ -338,19 +314,19 @@ tower_hblank_tower::
     push hl
 
     ;Next thing that should happen is platform interrupt
-    ld a, [h_platform_ypos]
+    ld a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
     dec a
     ldh [rLYC], a
     LYC_set_jumppoint tower_hblank_platform
 
     ;Camera X
-    ldh a, [h_background_xpos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_BXPOS]
     cpl
     add a, $08
     ld h, a
 
     ;Camera Y
-    ldh a, [h_tower_ypos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_TYPOS]
     ld l, a
 
     ;Wait for H-blank
@@ -364,11 +340,11 @@ tower_hblank_tower::
     ldh [rSCX], a
 
     ;Move background into view
-    ldh a, [h_background_xpos]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_BXPOS]
     ldh [rWX], a
 
     ;Set LCDC flags
-    ldh a, [h_lcdc_tower]
+    ldh a, [h_tower_buffer + TOWER_BUFFER_TLCDC]
     ldh [rLCDC], a
 
     ;Return

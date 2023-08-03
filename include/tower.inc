@@ -1,3 +1,9 @@
+; LYC value for mid-hud interrupt.
+DEF HUD_LYC EQU $0D
+
+; Scanline to perform midframe DMA on.
+DEF HUD_DMA_LYC EQU $10
+
 ; Height of the HUD.
 DEF HUD_HEIGHT EQU $14
 

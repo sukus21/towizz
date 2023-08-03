@@ -6,17 +6,49 @@ SECTION "TOWER DEMO", ROMX, ALIGN[8]
 
 ; Some of that FRESH sine curve.
 towerdemo_sinewave:
-    DEF SINE = 0
+    DEF SINE = $4000
     REPT $100
-        DEF SINE += DIV(1.0, 256.0)
-        db MUL(40.0, SIN(SINE)) >> 16
+        db (MUL($7F_0000, SIN(SINE)) + $8000) >> 16
+        DEF SINE += $100
     ENDR
 ;
 
 
 
 ; Creates a tower demo entity.
+;
+; Returns:
+; - `hl`: Towerdemo entity
 entity_towerdemo_create::
+    ;Sine curve checksum
+    ld hl, towerdemo_sinewave
+    xor a
+    ld b, a
+    ld c, a
+    :
+        ld a, c
+        add a, [hl]
+        ld c, a
+        ld a, l
+        add a, 4
+        ld l, a
+        jr nc, :-
+    nop
+
+    ;Another type of curve checksum
+    ld hl, towerdemo_sinewave
+    ld bc, w_buffer
+    .loop
+        ld a, [hl]
+        set 7, l
+        add a, [hl]
+        inc l
+        res 7, l
+        ld c, l
+        ld [bc], a
+        jr nz, .loop
+    nop
+
     call entsys_new16
     ld h, b
     ld l, c
@@ -72,9 +104,20 @@ entity_towerdemo::
     ld [hl+], a
     ld c, a
     ld a, [bc]
-    sra a
-    add a, 9*8
-    ld [w_platform_xpos], a
+    or a, a ;reset carry flag
+    ld d, 0
+    bit 7, a
+    jr z, :+
+        dec d
+    :
+    rla
+    rl d
+    sla a
+    rl d
+    ld e, a
+    ld [w_platform_xspeed], a
+    ld a, d
+    ld [w_platform_xspeed+1], a
 
     ;Platform Y-position
     ld a, [hl]
@@ -82,8 +125,22 @@ entity_towerdemo::
     ld [hl+], a
     ld c, a
     ld a, [bc]
-    add a, $60
-    ld [w_platform_ypos], a
+    rlca
+    rlca
+    ld e, a
+    and a, %00000011
+    bit 1, a
+    jr z, :+
+        or a, %11111100
+    :
+    ld d, a
+    ld a, e
+    and a, %11111100
+    ld [w_platform_yspeed], a
+    ld a, d
+    ld [w_platform_yspeed+1], a
+
+    ;ld [w_platform_ypos], a
 
     ;Background X-position
     inc [hl]
@@ -92,8 +149,10 @@ entity_towerdemo::
     ld a, [bc]
     sra a
     sra a
+    sra a
+    sra a
     add a, 9*8
-    ld [w_background_xpos], a
+    ld [w_background_xpos+1], a
 
     ;Background Y-position
     ld a, [hl]
@@ -101,15 +160,27 @@ entity_towerdemo::
     ld [hl+], a
     ld c, a
     ld a, [bc]
-    sra a
-    sra a
-    sra a
-    sra a
-    ld c, a
-    ld a, [w_background_ypos]
-    add a, c
-    and a, %00001111
-    ld [w_background_ypos], a
+    ld d, a
+    xor a
+    bit 7, d
+    jr z, :+
+        dec a
+    :
+    sla d
+    rla
+    sla d
+    rla
+    dec a
+    ld e, a
+    ld bc, w_background_ypos
+    ld a, [bc]
+    add a, d
+    ld [bc], a
+    inc bc
+    ld a, [bc]
+    adc a, e
+    ld [bc], a
+    ld b, high(towerdemo_sinewave)
 
     ;Tower height
     ld a, [hl]
@@ -117,22 +188,25 @@ entity_towerdemo::
     ld [hl+], a
     ld c, a
     ld a, [bc]
-    sra a
-    sra a
-    sra a
-    add a, 16
+    ld c, a
+    swap a
+    and a, %00001111
+    bit 7, c
+    jr z, :+
+        or a, %11110000
+    :
+    add a, 18
     ld [w_tower_height], a
     ld d, a
+    call tower_truncate
 
     ;Tower Y-position
-    inc [hl]
-    ld a, [hl]
-    cp a, d
-    jr c, :+
-        xor a
-    :
-    ld [hl+], a
-    ld [w_tower_ypos], a
+    ld a, 1
+    ld [w_tower_yspeed+1], a
+    call tower_truncate
+
+    ;Apply speed changes
+    call tower_update
 
     ;Return
     ret 

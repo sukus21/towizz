@@ -19,7 +19,7 @@ player_state_grounded::
     relpointer_move ENTVAR_PLAYER_YPOS
     ld a, $FF
     ld [hl+], a
-    ld a, [w_platform_ypos]
+    ld a, [w_platform_ypos+1]
     dec a
     ld [hl-], a
 
@@ -127,7 +127,7 @@ player_state_grounded::
     ld a, d
     sub a, $80
     ld d, a
-    ld a, [w_platform_xpos]
+    ld a, [w_platform_xpos+1]
     cp a, d
     jr nc, .return
 

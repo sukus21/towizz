@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
 INCLUDE "struct/oam_mirror.inc"
+INCLUDE "struct/tower_buffer.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "macros/color.inc"
 
@@ -102,18 +103,39 @@ var_w0:
         ; Possible flags located in `tower.inc`.
         w_tower_flags:: db $00
 
-        w_tower_xpos:: db $00
-        w_tower_ypos:: db $00
-        w_tower_height:: db $10
-        w_tower_lyc:: db $00
-    
-        w_platform_width:: db $68
-        w_platform_height:: db $10
-        w_platform_xpos:: db $48
-        w_platform_ypos:: db $50
+        ; Added to tower Y-position every frame.
+        w_tower_yspeed:: dw $0000
 
-        w_background_xpos:: db $48
-        w_background_ypos:: db $00
+        ; Tower scroll position.
+        ; Call `tower_ypos_truncate` after modifying.
+        w_tower_ypos:: dw $0000
+
+        ; Tower segment height in pixels.
+        ; Call `tower_ypos_truncate` after modifying.
+        w_tower_height:: db $10
+
+        ; Platform Y-position changes by this volume every frame.
+        w_platform_yspeed:: dw $0000
+        w_platform_ypos:: dw $5000
+
+        ; Platform X-position changes by this volume every frame.
+        w_platform_xspeed:: dw $0000
+        w_platform_xpos:: dw $4800
+
+        ; Height of platform in pixels.
+        w_platform_height:: db $10
+
+        ; Background Y-position changes by this value every frame.
+        w_background_yspeed:: dw $0000
+        w_background_ypos:: dw $0000
+
+        ; Added to background X-position every frame.
+        w_background_xspeed:: dw $0000
+
+        ; Background offset in pixels.
+        w_background_xpos:: dw $4800
+
+        w_tower_buffer:: ds TOWER_BUFFER, $00
 
         ; Color palette for CGB mode.
         w_cgb_palette::
@@ -180,23 +202,9 @@ var_h:
         ; Which OAM mirror is currently in use.
         h_oam_active:: db high(w_oam1)
 
-        h_tower_flags:: db $00
-        
-        h_tower_xpos:: db $00
-        h_tower_ypos:: db $00
-        h_tower_height:: db $10
-        h_tower_lyc:: db $00
-    
-        h_platform_width:: db $68
-        h_platform_height:: db $18
-        h_platform_xpos:: db $00
-        h_platform_ypos:: db $50
-
-        h_background_xpos:: db $4F
-        h_background_ypos:: db $14
-
-        h_lcdc_tower:: db $00
-        h_lcdc_platform:: db $00
+        ; Used during interrupts as a faster lookup.
+        ; Refreshed during/right after V-blank.
+        h_tower_buffer:: ds TOWER_BUFFER
 
         ; Bitfield of buttons held.
         ; Use with `PADB_*` or `PADF_*` from `hardware.inc`.

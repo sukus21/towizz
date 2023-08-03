@@ -127,7 +127,7 @@ entity_player_draw:
 
     ;Get X and Y position -> DE
     relpointer_init l, ENTVAR_PLAYER_XPOS+1
-    ld a, [w_background_xpos]
+    ld a, [w_background_xpos+1]
     add a, [hl]
     add a, $88
     ld d, a
@@ -344,7 +344,7 @@ player_boundscheck::
     ld e, a
 
     ;Get lowest possible screen position
-    ld a, [w_background_xpos]
+    ld a, [w_background_xpos+1]
     add a, -$80
     cpl
     inc a

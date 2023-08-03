@@ -84,6 +84,7 @@ gameloop_tower_setup:
     farcall_0 entity_player_create
 
     ;Call regular V-blank routine
+    call tower_buffer_prepare
     call tower_vblank
 
     ;Set STAT mode
@@ -119,6 +120,7 @@ gameloop_tower::
     .mainloop
     call input
     call entsys_step
+    call tower_buffer_prepare
 
     ;Draw HUD
     call draw_hud
@@ -157,9 +159,9 @@ gameloop_tower::
 ;
 ; Saves: none
 tower_platform_sprites:
-    ld a, [w_background_xpos]
+    ld a, [w_background_xpos+1]
     ld b, a
-    ld a, [w_platform_xpos]
+    ld a, [w_platform_xpos+1]
     ld c, a
 
     ;Quick path
@@ -187,7 +189,7 @@ tower_platform_sprites:
     call sprite_get
 
     ;Prepare sprite data
-    ld a, [w_platform_ypos]
+    ld a, [w_platform_ypos+1]
     add a, 16
     ld d, a ;sprite Y-position
     ld a, c ;sprite X-position
@@ -208,6 +210,162 @@ tower_platform_sprites:
         dec e
         jr nz, .loop
     ;
+
+    ;Return
+    ret
+;
+
+
+
+; Truncates tower Y-position automatically.  
+; Skipped if repeat-mode is disabled.  
+; Lives in ROM0.
+;
+; Destroys: `af`, `b`
+tower_truncate::
+    ld a, [w_tower_flags]
+    bit TOWERMODEB_TOWER_REPEAT, a
+    ret z
+
+    ;Compare sizes
+    push hl
+    ld a, [w_tower_height]
+    ld b, a
+    ld hl, w_tower_ypos+1
+    ld a, [hl]
+    cp a, b
+    jr c, .return
+
+    ;Subtract height a couple times
+    bit 7, a
+    jr z, .adjust_sub
+    .adjust_add
+        add a, b
+        jr nc, .adjust_add
+        ld [hl], a
+        jr .return
+    .adjust_sub
+        sub a, b
+        jr nc, .adjust_sub
+        add a, b
+        ld [hl], a
+    ;
+
+    ;Return
+    .return
+    pop hl
+    ret
+;
+
+
+
+; Updates positions of tower elements based on speeds.  
+; Lives in ROM0.
+;
+; Saves: `de`
+tower_update::
+    ;Do tower first
+    ld hl, w_tower_yspeed
+    call .increment
+
+    ;Now do platform position
+    ld hl, w_platform_yspeed
+    call .increment
+    call .increment
+
+    ;Lastly do background
+    ld hl, w_background_yspeed
+    call .increment
+    call .increment
+
+    ;Clamp background scroll position
+    ld hl, w_background_ypos+1
+    ld a, [hl]
+    and a, %00001111
+    ld [hl], a
+
+    ;Clamp tower position.
+    call tower_truncate
+
+    ;Return
+    ret
+
+    ; Input:
+    ; - `hl`: Y-speed
+    .increment
+        ;Read speed1
+        ld a, [hl+]
+        ld c, a
+        ld a, [hl+]
+        ld b, a
+
+        ;Add speed to position
+        ld a, c
+        add a, [hl]
+        ld [hl+], a
+        ld a, b
+        adc a, [hl]
+        ld [hl+], a
+
+        ;Return
+        ret
+    ;
+;
+
+
+
+; Prepare the tower buffer.
+; This saves me from doing it in the middle of V-blank.
+;
+; Destroys: all
+tower_buffer_prepare:
+    ld hl, w_tower_buffer
+
+    ;Flags
+    ld a, [w_tower_flags]
+    ld b, a
+    ld [hl+], a
+
+    ;LYC
+    ld a, [w_tower_ypos+1]
+    ld c, a
+    ld a, HUD_HEIGHT-1
+    sub a, c
+    ld [hl+], a
+
+    ;Tower variables
+    ld a, c
+    ld [hl+], a
+    ld a, [w_tower_height]
+    ld [hl+], a
+    ld a, LCDCF_ON | LCDCF_BGON | LCDCF_WINON | LCDCF_OBJON | LCDCF_BLK21 | LCDCF_OBJ16 | LCDCF_BG9C00
+    bit TOWERMODEB_WINDOW_TILEMAP, b
+    jr z, :+
+        set LCDCB_WIN9C00, a
+    :
+    ld c, a ;save for later
+    bit TOWERMODEB_TOWER_TILEMAP, b
+    jr nz, :+
+        res LCDCB_BG9C00, a
+    :
+    ld [hl+], a
+
+    ;Platform variables
+    ld a, [w_platform_ypos+1]
+    ld [hl+], a
+    ld a, [w_platform_xpos+1]
+    ld [hl+], a
+    ld a, [w_platform_height]
+    ld [hl+], a
+    ld a, c ;saved from earlier
+    ld [hl+], a
+
+    ;Background variables
+    ld a, [w_background_ypos+1]
+    ld [hl+], a
+    ld a, [w_background_xpos+1]
+    add a, 7
+    ld [hl+], a
 
     ;Return
     ret
