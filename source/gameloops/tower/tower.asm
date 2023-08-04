@@ -121,12 +121,7 @@ gameloop_tower::
     call input
     call entsys_step
     call tower_buffer_prepare
-
-    ;Draw HUD
     call draw_hud
-
-    ;Draw sprite-part of platform
-    call tower_platform_sprites
 
     ;Wait for Vblank
     ldh a, [h_oam_active]
@@ -150,72 +145,6 @@ gameloop_tower::
     ldh [rIF], a
     ei
     jp .mainloop
-;
-
-
-
-; Draw sprite-parts of platform.  
-; Lives in ROM0.
-;
-; Saves: none
-tower_platform_sprites:
-    ld a, [w_camera_xpos+1]
-    ld b, a
-    ld a, $80
-    sub a, b
-    ld b, a
-    ld a, [w_platform_xpos+1]
-    ld c, a
-
-    ;Quick path
-    sub a, b
-    ret z
-
-    ;Get number of sprites needed
-    jr nc, :+
-        ld a, c
-    :
-    dec a
-    rra
-    rra
-    rra
-    and a, %00011111
-    inc a
-    ld e, a ;iteration count -> E
-    ld b, a
-    sla b
-    sla b
-
-    ;Allocate sprites
-    ld a, [h_oam_active]
-    ld h, a
-    call sprite_get
-
-    ;Prepare sprite data
-    ld a, [w_platform_ypos+1]
-    add a, 16
-    ld d, a ;sprite Y-position
-    ld a, c ;sprite X-position
-    ld c, $9E ;sprite tile
-
-    ;Write data
-    .loop
-        ld [hl], d
-        inc l
-        ld [hl+], a
-        sub a, 8
-        ld [hl], c
-        dec c
-        dec c
-        inc l
-        ld [hl], OAMF_PAL0
-        inc l
-        dec e
-        jr nz, .loop
-    ;
-
-    ;Return
-    ret
 ;
 
 
@@ -340,6 +269,7 @@ tower_buffer_prepare:
     ld a, c
     ld [hl+], a
     ld a, [w_camera_xpos+1]
+    ld d, a
     add a, $80
     ld [hl+], a
     ld a, [w_tower_height]
@@ -360,6 +290,8 @@ tower_buffer_prepare:
     ld a, [w_platform_ypos+1]
     ld [hl+], a
     ld a, [w_platform_xpos+1]
+    sub a, d
+    ld d, a
     ld [hl+], a
     ld a, [w_platform_height]
     ld [hl+], a
@@ -370,10 +302,61 @@ tower_buffer_prepare:
     ld a, [w_background_ypos+1]
     ld [hl+], a
     ld a, [w_camera_xpos+1]
-    ld c, a
+    ld e, a
     ld a, $87
-    sub a, c
+    sub a, e
     ld [hl+], a
+
+    ;Do platform sprites
+    sub a, 7
+    ld e, a
+    ld a, d
+    sub a, e
+    ret z
+    jr nc, :+
+        ld a, d
+    :
+
+    ;Get number of required sprites
+    dec a
+    rra
+    rra
+    rra
+    and a, %00011111
+    inc a
+    add a, a
+    add a, a
+    ld b, a
+
+    ;Allocate sprites
+    ld a, [h_oam_active]
+    ld h, a
+    call sprite_get
+    srl b
+    srl b
+
+    ;Prepare sprite data
+    ld a, [w_platform_ypos+1]
+    add a, 16
+    ld c, a ;sprite Y-position
+    ld a, d ;sprite X-position
+    ld e, $9E ;sprite tile
+
+    ;Write data
+    .loop
+        ld [hl], c
+        inc l
+        ld [hl+], a
+        sub a, 8
+        ld [hl], e
+        dec e
+        dec e
+        inc l
+        ld [hl], OAMF_PAL0
+        inc l
+        dec b
+        jr nz, .loop
+    ;
 
     ;Return
     ret

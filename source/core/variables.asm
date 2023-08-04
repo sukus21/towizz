@@ -120,7 +120,7 @@ var_w0:
 
         ; Platform X-position changes by this volume every frame.
         w_platform_xspeed:: dw $0000
-        w_platform_xpos:: dw $4800
+        w_platform_xpos:: dw $8000
 
         ; Height of platform in pixels.
         w_platform_height:: db $10
@@ -133,7 +133,7 @@ var_w0:
         w_camera_xspeed:: dw $0000
 
         ; Camera offset in pixels.
-        w_camera_xpos:: dw $0000
+        w_camera_xpos:: dw $3800
 
         w_tower_buffer:: ds TOWER_BUFFER, $00
 

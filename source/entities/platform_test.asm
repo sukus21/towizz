@@ -45,7 +45,7 @@ entity_platform_test::
     ldh a, [h_input]
     bit PADB_B, a
     jr z, :+
-        ld hl, w_tower_ypos
+        ld hl, w_tower_ypos+1
         ld de, w_tower_height
         jr .select
     :
@@ -53,14 +53,14 @@ entity_platform_test::
     ;Modify background with the A button
     bit PADB_A, a
     jr z, :+
-        ld hl, w_background_ypos
-        ld de, w_camera_xpos
+        ld hl, w_background_ypos+1
+        ld de, w_camera_xpos+1
         jr .select
     :
 
     ;Modify platform with no button
-    ld hl, w_platform_ypos
-    ld de, w_platform_xpos
+    ld hl, w_platform_ypos+1
+    ld de, w_platform_xpos+1
 
     ;Single-step or per-frame?
     .select
@@ -79,6 +79,9 @@ entity_platform_test::
     jr z, :+
         inc [hl]
     :
+    push bc
+    call tower_truncate
+    pop bc
 
     ;Move horizontal
     ld h, d
@@ -91,33 +94,7 @@ entity_platform_test::
     jr z, :+
         inc [hl]
     :
-
-    ;Keep tower within cap
-    ld a, [w_tower_flags]
-    bit TOWERMODEB_TOWER_REPEAT, a
-    jr z, .tower_adjusted
-    ld a, [w_tower_height]
-    or a, a ;cp a, 0
-    jr z, .tower_adjusted
-    ld hl, w_tower_ypos
-    ld c, a
-    ld a, [hl]
-    cp a, $FF
-    jr nz, :+
-        dec c
-        ld [hl], c
-        jr .tower_adjusted
-    :
-    cp a, c
-    jr c, .tower_adjusted
-        ld [hl], 0
-    .tower_adjusted
-
-    ;Adjust window position
-    ld hl, w_background_ypos
-    ld a, [hl]
-    and a, %00001111
-    ld [hl], a
+    call tower_truncate
 
     ;Return
     ret
