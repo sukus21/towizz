@@ -99,7 +99,11 @@ player_state_grounded::
         adc a, b
         ld d, a
         ld [hl-], a
-        jr .speed_save
+        jr nc, .speed_save
+
+        ;Do not wrap
+        ld a, $FF
+        jr .nowrap
     .speed_sub
         ld a, e
         sub a, c
@@ -109,7 +113,18 @@ player_state_grounded::
         sbc a, b
         ld d, a
         ld [hl-], a
-        ;jr .speed_save
+        jr nc, .speed_save
+
+        ;Do not wrap
+        xor a
+        ;jr .nowrap
+    ;Do not wrap
+    .nowrap
+        ld d, a
+        ld e, a
+        ld [hl+], a
+        ld [hl-], a
+        ld bc, $0000
     ;
     
     ;Save X-speed

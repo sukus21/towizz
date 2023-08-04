@@ -191,15 +191,13 @@ tower_hblank_segment::
     :
 
     ;Camera X
-    ldh a, [h_tower_buffer + TOWER_BUFFER_BXPOS]
-    cpl
-    add a, $08
+    ldh a, [h_tower_buffer + TOWER_BUFFER_TXPOS]
     ld h, a
 
     ;Wait for H-blank
     LYC_wait_hblank
 
-    ;Move background
+    ;Move tower
     ld a, l
     cpl
     ldh [rSCY], a

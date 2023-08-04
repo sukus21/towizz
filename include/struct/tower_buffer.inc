@@ -9,6 +9,9 @@ DEF TOWER_BUFFER_LYC RB 1
 ; Mirror of high byte of `w_tower_ypos`.
 DEF TOWER_BUFFER_TYPOS RB 1
 
+; Tower-layer SCX position.
+DEF TOWER_BUFFER_TXPOS RB 1
+
 ; Mirror of `w_tower_height`.
 DEF TOWER_BUFFER_THEIGHT RB 1
 

@@ -129,11 +129,11 @@ var_w0:
         w_background_yspeed:: dw $0000
         w_background_ypos:: dw $0000
 
-        ; Added to background X-position every frame.
-        w_background_xspeed:: dw $0000
+        ; Added to camera X-position every frame.
+        w_camera_xspeed:: dw $0000
 
-        ; Background offset in pixels.
-        w_background_xpos:: dw $4800
+        ; Camera offset in pixels.
+        w_camera_xpos:: dw $0000
 
         w_tower_buffer:: ds TOWER_BUFFER, $00
 

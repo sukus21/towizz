@@ -54,7 +54,7 @@ entity_platform_test::
     bit PADB_A, a
     jr z, :+
         ld hl, w_background_ypos
-        ld de, w_background_xpos
+        ld de, w_camera_xpos
         jr .select
     :
 

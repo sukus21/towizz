@@ -159,7 +159,10 @@ gameloop_tower::
 ;
 ; Saves: none
 tower_platform_sprites:
-    ld a, [w_background_xpos+1]
+    ld a, [w_camera_xpos+1]
+    ld b, a
+    ld a, $80
+    sub a, b
     ld b, a
     ld a, [w_platform_xpos+1]
     ld c, a
@@ -336,6 +339,9 @@ tower_buffer_prepare:
     ;Tower variables
     ld a, c
     ld [hl+], a
+    ld a, [w_camera_xpos+1]
+    add a, $80
+    ld [hl+], a
     ld a, [w_tower_height]
     ld [hl+], a
     ld a, LCDCF_ON | LCDCF_BGON | LCDCF_WINON | LCDCF_OBJON | LCDCF_BLK21 | LCDCF_OBJ16 | LCDCF_BG9C00
@@ -363,8 +369,10 @@ tower_buffer_prepare:
     ;Background variables
     ld a, [w_background_ypos+1]
     ld [hl+], a
-    ld a, [w_background_xpos+1]
-    add a, 7
+    ld a, [w_camera_xpos+1]
+    ld c, a
+    ld a, $87
+    sub a, c
     ld [hl+], a
 
     ;Return

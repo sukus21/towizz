@@ -152,7 +152,7 @@ entity_towerdemo::
     sra a
     sra a
     add a, 9*8
-    ld [w_background_xpos+1], a
+    ld [w_camera_xpos+1], a
 
     ;Background Y-position
     ld a, [hl]
