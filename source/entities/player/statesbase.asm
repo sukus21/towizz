@@ -29,14 +29,6 @@ player_state_grounded::
     ld [hl+], a
     ld [hl-], a
 
-    ;Get X-position -> stack
-    relpointer_move ENTVAR_PLAYER_XPOS
-    ld a, [hl+]
-    ld c, a
-    ld a, [hl-]
-    ld b, a
-    push bc
-
     ;Get X-speed in BC
     relpointer_move ENTVAR_PLAYER_XSPEED
     ld a, [hl+]
@@ -87,19 +79,23 @@ player_state_grounded::
     ld [hl], d
 
     ;Apply speed to X-position
+    ;Get X-position -> DE
     relpointer_move ENTVAR_PLAYER_XPOS
     bit PLAYER_FLAGB_DIRX, d
-    pop de
+    ld a, [hl+]
+    ld e, a
+    ld a, [hl-]
+    ld d, a
+
+    ;Add or subtract speed?
     jr nz, .speed_sub
         ld a, e
         add a, c
         ld e, a
-        ld [hl+], a
         ld a, d
         adc a, b
         ld d, a
-        ld [hl-], a
-        jr nc, .speed_save
+        jr nc, .platform_speed
 
         ;Do not wrap
         ld a, $FF
@@ -108,12 +104,10 @@ player_state_grounded::
         ld a, e
         sub a, c
         ld e, a
-        ld [hl+], a
         ld a, d
         sbc a, b
         ld d, a
-        ld [hl-], a
-        jr nc, .speed_save
+        jr nc, .platform_speed
 
         ;Do not wrap
         xor a
@@ -122,11 +116,38 @@ player_state_grounded::
     .nowrap
         ld d, a
         ld e, a
-        ld [hl+], a
-        ld [hl-], a
         ld bc, $0000
     ;
-    
+
+    ;Add platform speed
+    .platform_speed
+    ld a, [w_platform_xspeed]
+    add a, e
+    ld e, a
+    ld a, [w_platform_xspeed+1]
+    adc a, d
+    ld d, a
+    ld a, [w_platform_xspeed+1]
+    jr c, .carried
+        bit 7, a
+        jr z, .platform_added
+        ld d, $FF
+        ld e, d
+        jr .platform_added
+    .carried
+        bit 7, a
+        jr nz, .platform_added
+        xor a
+        ld d, a
+        ld e, a
+    .platform_added
+
+    ;Save X-position
+    ld a, e
+    ld [hl+], a
+    ld a, d
+    ld [hl-], a
+
     ;Save X-speed
     .speed_save
     relpointer_move ENTVAR_PLAYER_XSPEED
@@ -137,18 +158,6 @@ player_state_grounded::
 
     ;Stay within screen bounds
     call player_boundscheck
-
-    ;Are we now not on the platform anymore?
-    ld a, d
-    sub a, $80
-    ld d, a
-    ld a, [w_platform_xpos+1]
-    cp a, d
-    jr nc, .return
-
-    ;Change state
-    relpointer_move ENTVAR_PLAYER_STATE
-    ;ld [hl], PLAYER_STATE_AIRBORNE
 
     ;Return
     .return
