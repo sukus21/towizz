@@ -60,3 +60,21 @@ player_state_grounded::
     relpointer_destroy
     ret
 ;
+
+
+
+; Airborne state for the player entity.
+;
+; Input:
+; - `hl`: `ENTVAR_PLAYER_STATE`
+;
+; Destroys: all
+player_state_airborne::
+    relpointer_init l, ENTVAR_PLAYER_STATE
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    ld a, [hl]
+    xor a, PLAYER_FLAGF_FACING
+    ld [hl], a
+    relpointer_destroy
+    ret
+;

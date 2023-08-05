@@ -97,6 +97,8 @@ entity_player_update:
     push bc
     cp a, PLAYER_STATE_GROUNDED
     jp z, player_state_grounded
+    cp a, PLAYER_STATE_AIRBORNE
+    jp z, player_state_airborne
 
     ;Unknown state, oops
     ld hl, error_invplayerstate
