@@ -24,9 +24,25 @@ RSRESET
 DEF PLAYER_STATE_GROUNDED RB 1
 
 DEF PLAYER_WIDTH EQU $10
+DEF PLAYER_BITMASK EQU %11100000
 
 DEF PLAYER_XSPEED_MAX EQU $0180
 DEF PLAYER_XSPEED_ACCEL_GROUND EQU $30
 DEF PLAYER_XSPEED_FRICTION_GROUND EQU $40
 DEF PLAYER_XSPEED_ACCEL_AIR EQU $10
 DEF PLAYER_XSPEED_FRICTION_AIR EQU $10
+
+; Initializes relative pointer.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+; - `1`: Start position
+;
+; Destroys: `af`, `l`
+MACRO player_relpointer_init
+    ld a, l
+    and a, PLAYER_BITMASK
+    or a, \1
+    ld l, a
+    relpointer_init l, \1
+ENDM

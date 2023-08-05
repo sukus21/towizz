@@ -9,7 +9,8 @@ SECTION FRAGMENT "PLAYER", ROMX
 ; No vertical collision shenanigans here.
 ;
 ; Input:
-; - `hl`: `ENTVAR_PLAYER_STATE`
+; - `hl`: Player entity pointer (`ENTVAR_PLAYER_STATE`)
+; - `d`: Player flags (`ENTVAR_PLAYER_FLAGS`)
 ;
 ; Destroys: all
 player_state_grounded::
@@ -29,135 +30,30 @@ player_state_grounded::
     ld [hl+], a
     ld [hl-], a
 
-    ;Get X-speed in BC
-    relpointer_move ENTVAR_PLAYER_XSPEED
-    ld a, [hl+]
-    ld c, a
-    ld a, [hl-]
-    ld b, a
-
-    ;Not moving?
-    ldh a, [h_input]
-    and a, PADF_LEFT | PADF_RIGHT
-    jr nz, :+
-        ld e, PLAYER_XSPEED_FRICTION_GROUND
-        call player_speed_slow
-        jr .moved_horizontal
-    :
-
-    ;Add or subtract speed?
-    ld e, 0
-    bit PADB_RIGHT, a
-    jr z, :+
-        res PLAYER_FLAGB_FACING, d
-    :
-    bit PADB_LEFT, a
-    jr z, :+
-        set PLAYER_FLAGB_FACING, d
-        inc e
-    :
-    xor a
-    bit PLAYER_FLAGB_DIRX, d
-    jr z, :+
-        inc a
-    :
-    xor a, e
-
-    ;Do some schmoovement
+    ;Modify speed
     ld e, PLAYER_XSPEED_ACCEL_GROUND
-    jr nz, .hsub
-        call player_speed_add
-        jr .moved_horizontal
-    .hsub
-        call player_speed_sub
-        ;jr .moved_horizontal
-    ;
-
-    ;Save flags
-    .moved_horizontal
-    relpointer_move ENTVAR_PLAYER_FLAGS
-    ld [hl], d
+    ld a, PLAYER_XSPEED_FRICTION_GROUND
+    call player_xspeed_movement
 
     ;Apply speed to X-position
-    ;Get X-position -> DE
-    relpointer_move ENTVAR_PLAYER_XPOS
-    bit PLAYER_FLAGB_DIRX, d
-    ld a, [hl+]
-    ld e, a
-    ld a, [hl-]
-    ld d, a
-
-    ;Add or subtract speed?
-    jr nz, .speed_sub
-        ld a, e
-        add a, c
-        ld e, a
-        ld a, d
-        adc a, b
-        ld d, a
-        jr nc, .platform_speed
-
-        ;Do not wrap
-        ld a, $FF
-        jr .nowrap
-    .speed_sub
-        ld a, e
-        sub a, c
-        ld e, a
-        ld a, d
-        sbc a, b
-        ld d, a
-        jr nc, .platform_speed
-
-        ;Do not wrap
-        xor a
-        ;jr .nowrap
-    ;Do not wrap
-    .nowrap
-        ld d, a
-        ld e, a
-        ld bc, $0000
-    ;
+    call player_xspeed_apply
 
     ;Add platform speed
-    .platform_speed
-    ld a, [w_platform_xspeed]
-    add a, e
-    ld e, a
-    ld a, [w_platform_xspeed+1]
-    adc a, d
-    ld d, a
-    ld a, [w_platform_xspeed+1]
-    jr c, .carried
-        bit 7, a
-        jr z, .platform_added
-        ld d, $FF
-        ld e, d
-        jr .platform_added
-    .carried
-        bit 7, a
-        jr nz, .platform_added
-        xor a
-        ld d, a
-        ld e, a
-    .platform_added
+    call player_xspeed_platform
 
-    ;Save X-position
-    ld a, e
-    ld [hl+], a
+    ;Save speed and position
+    call player_xspeed_commit
+
+    ;Are we not on the platform anymore?
+    ld a, [w_platform_xpos+1]
+    ld b, a
     ld a, d
-    ld [hl-], a
+    cp a, b
+    jr c, .return
 
-    ;Save X-speed
-    .speed_save
-    relpointer_move ENTVAR_PLAYER_XSPEED
-    ld a, c
-    ld [hl+], a
-    ld a, b
-    ld [hl-], a
-
-    ;Stay within screen bounds
-    call player_boundscheck
+    ;We are not on the platform anymore.
+    relpointer_move ENTVAR_PLAYER_STATE
+    ld [hl], PLAYER_STATE_AIRBORNE
 
     ;Return
     .return

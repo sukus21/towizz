@@ -1,3 +1,6 @@
+    IF !DEF(RELPOINTER_INC)
+    DEF RELPOINTER_INC EQU 1
+
 ; Initializes a relative pointer.
 ; The relative pointer is a single 8-bit register, and cannot cross pages.
 ; Assumes the input register is already set to the starting value.
@@ -64,3 +67,5 @@ MACRO relpointer_destroy
     PURGE __RELPOINTER_POSITION
     PURGE __RELPOINTER_REGISTER
 ENDM
+
+    ENDC

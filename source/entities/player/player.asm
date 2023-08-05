@@ -332,13 +332,9 @@ player_speed_slow::
 ; Saves: `bc`, `hl`
 player_boundscheck::
     push hl
-    ld a, l
-    and a, %11100000
-    or a, ENTVAR_PLAYER_XPOS+1
-    ld l, a
-    relpointer_init l, ENTVAR_PLAYER_XPOS+1
 
     ;Get X-position -> DE
+    player_relpointer_init ENTVAR_PLAYER_XPOS+1
     ld a, [hl-]
     ld d, a
     ld a, [hl+]
