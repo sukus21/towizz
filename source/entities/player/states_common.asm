@@ -10,18 +10,15 @@ SECTION FRAGMENT "PLAYER", ROMX
 ;
 ; Input:
 ; - `hl`: Player entity pointer (anywhere)
-; - `d`: Player flags (`ENTVAR_PLAYER_FLAGS`)
-; - `e`: Acceleration speed
-; - `a`: Friction speed
+; - `d`: Acceleration speed
+; - `e`: Friction speed
 ;
 ; Returns:
 ; - `bc`: New X-speed
-; - `d`: New flags value
 ;
 ; Saves: `hl`
 player_xspeed_movement::
     push hl
-    push af
 
     ;Get X-speed in BC
     player_relpointer_init ENTVAR_PLAYER_XSPEED
@@ -34,54 +31,28 @@ player_xspeed_movement::
     ldh a, [h_input]
     and a, PADF_LEFT | PADF_RIGHT
     jr nz, :+
-        pop af
-        ld e, a
-        call player_speed_slow
-        jr .return
+        ld d, 0
+        pop hl
+        jp player_speed_slow
     :
 
-    ;Add or subtract speed?
-    pop af
-    ld a, e
-    push af
+    ;Update facing direction
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    ld e, d
+    ld d, 0
     ldh a, [h_input]
-    ld e, 0
     bit PADB_RIGHT, a
     jr z, :+
-        res PLAYER_FLAGB_FACING, d
+        res PLAYER_FLAGB_FACING, [hl]
+        pop hl
+        jp player_speed_add
     :
-    bit PADB_LEFT, a
-    jr z, :+
-        set PLAYER_FLAGB_FACING, d
-        inc e
-    :
-    xor a
-    bit PLAYER_FLAGB_DIRX, d
-    jr z, :+
-        inc a
-    :
-    xor a, e
-
-    ;Do some schmoovement
-    jr nz, .hsub
-        pop af
-        ld e, a
-        call player_speed_add
-        jr .return
-    .hsub
-        pop af
-        ld e, a
-        call player_speed_sub
-        ;jr .return
+        set PLAYER_FLAGB_FACING, [hl]
+        pop hl
+        jp player_speed_sub
     ;
 
-    ;Save flags and return
-    .return
-    relpointer_move ENTVAR_PLAYER_FLAGS
-    ld [hl], d
     relpointer_destroy
-    pop hl
-    ret
 ;
 
 
@@ -92,7 +63,6 @@ player_xspeed_movement::
 ;
 ; Input:
 ; - `hl`: Player entity pointer (anywhere)
-; - `d`: Player flags (`ENTVAR_PLAYER_FLAGS`)
 ; - `bc`: X-speed to add
 ;
 ; Returns:
@@ -105,37 +75,35 @@ player_xspeed_apply::
 
     ;Get X-position -> DE
     player_relpointer_init ENTVAR_PLAYER_XPOS
-    bit PLAYER_FLAGB_DIRX, d
     ld a, [hl+]
     ld e, a
     ld a, [hl-]
     ld d, a
 
-    ;Add or subtract speed?
-    jr nz, .speed_sub
-        ld a, e
-        add a, c
-        ld e, a
-        ld a, d
-        adc a, b
-        ld d, a
-        jr nc, .return
+    ;Add speed
+    ld a, e
+    add a, c
+    ld e, a
+    ld a, d
+    adc a, b
+    ld d, a
 
-        ;Do not wrap
+    ;How to handle carry?
+    bit 7, b
+    jr c, .carried
+        jr z, .return
+
+        ;Beyond right side
         ld a, $FF
         jr .nowrap
-    .speed_sub
-        ld a, e
-        sub a, c
-        ld e, a
-        ld a, d
-        sbc a, b
-        ld d, a
-        jr nc, .return
+    .carried
+        jr nz, .return
 
-        ;Do not wrap
+        ;Beyond left side
         xor a
         ;jr .nowrap
+    ;
+
     ;Do not wrap
     .nowrap
         ld d, a

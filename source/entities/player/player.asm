@@ -202,44 +202,51 @@ entity_player_draw:
 ; Speed subroutine.
 ;
 ; Input:
-; - `bc`: `ENTVAR_PLAYER_XSPEED`
-; - `d`: `ENTVAR_PLAYER_FLAGS`
-; - `e`: Change
+; - `bc`: Current speed
+; - `de`:  Change
 ;
 ; Returns:
-; - `bc`: new X-speed
+; - `bc`: new speed
 ;
-; Saves: `e`, `hl`
+; Saves: `de`, `hl`
 player_speed_add::
+    bit 7, b
+    jr nz, .valid
+    
     ld a, b
     cp a, high(PLAYER_XSPEED_MAX)
-    ld a, c
     jr c, .valid
     ret nz
 
     ;Do more testing
+    ld a, c
     cp a, low(PLAYER_XSPEED_MAX)
-    jr c, .valid
-    ret nz
+    ret nc
 
     ;Speed is below cap, Add onto it
     .valid
+    ld a, c
     add a, e
     ld c, a
-    ret nc
+    ld a, b
+    adc a, d
+    ld b, a
 
     ;Check high bounds
-    inc b
-    ld a, b
-    cp a, high(PLAYER_XSPEED_MAX)
+    bit 7, b
     ret nz
+    cp a, high(PLAYER_XSPEED_MAX)
+    ret c
+    jr nz, .adjust
 
     ;Check low bounds
     ld a, c
     cp a, low(PLAYER_XSPEED_MAX)
     ret c
+    ret z
 
     ;Set bounds and return
+    .adjust
     ld bc, PLAYER_XSPEED_MAX
     ret
 ;
@@ -249,76 +256,102 @@ player_speed_add::
 ; Speed subroutine.
 ;
 ; Input:
-; - `bc`: `ENTVAR_PLAYER_XSPEED`
-; - `d`: `ENTVAR_PLAYER_FLAGS`
-; - `e`: Change
+; - `bc`: Current speed
+; - `de`: Change
 ;
 ; Returns:
-; - `bc`: new X-speed
+; - `bc`: new speed
 ;
-; Saves: `e`, `hl`
+; Saves: `de`, `hl`
 player_speed_sub::
-    ;Decrease speed
+    bit 7, b
+    jr z, .valid
+    
+    ld a, b
+    cp a, high(-PLAYER_XSPEED_MAX)
+    jr nc, .valid
+    ret nz
+
+    ;Do more testing
+    ld a, c
+    cp a, low(-PLAYER_XSPEED_MAX)
+    ret c
+
+    ;Speed is below cap, Add onto it
+    .valid
     ld a, c
     sub a, e
     ld c, a
-    ret nc
-
-    ;Funny thing happen
     ld a, b
-    sbc a, 0
+    sbc a, d
     ld b, a
+
+    ;Check high bounds
+    bit 7, b
+    ret z
+    cp a, high(-PLAYER_XSPEED_MAX)
+    jr c, .adjust
+    ret nz
+
+    ;Check low bounds
+    ld a, c
+    cp a, low(-PLAYER_XSPEED_MAX)
     ret nc
 
-    ;Roll over to positive side
-    cpl
-    ld b, a
-    ld a, c
-    cpl
-    inc a
-    ld c, a
-    ld a, d
-    xor a, PLAYER_FLAGF_DIRX
-    ld d, a
-
-    ;Return
+    ;Set bounds and return
+    .adjust
+    ld bc, -PLAYER_XSPEED_MAX
     ret
 ;
 
 
 
 ; Speed subroutine.
-; Same as the sub variant, but sets speed to 0 when crossing.
+; Moves speed towards 0.
+; If 0 is passed, it is set to 0.
 ;
 ; Input:
-; - `bc`: `ENTVAR_PLAYER_XSPEED`
-; - `d`: `ENTVAR_PLAYER_FLAGS`
-; - `e`: Change
+; - `bc`: `ENTVAR_PLAYER_XSPEED` | `ENTVAR_PLAYER_YSPEED`
+; - `de`: Change
 ;
 ; Returns:
-; - `bc`: new X-speed
+; - `bc`: new speed
 ;
-; Saves: `e`, `hl`
+; Saves: `de`, `hl`
 player_speed_slow::
-    ;Decrease speed
-    ld a, c
-    sub a, e
-    ld c, a
-    ret nc
+    bit 7, b
+    jr nz, .increase
+        ;Decrease speed, lower byte
+        ld a, c
+        sub a, e
+        ld c, a
 
-    ;Funny thing happen
-    ld a, b
-    sbc a, 0
-    ld b, a
-    ret nc
+        ;Higher byte
+        ld a, b
+        sbc a, d
+        ld b, a
+        ret nc
 
-    ;Set to 0
-    xor a
-    ld b, a
-    ld c, a
+        ;Set to 0
+        ld bc, $0000
+        ret
+    
+    .increase
+        ;Increase speed, lower byte
+        ld a, c
+        add a, e
+        ld c, a
 
-    ;Return
-    ret
+        ;Higher byte
+        ld a, b
+        adc a, d
+        ld b, a
+        ret nc
+
+        ;Set to 0
+        ld bc, $0000
+        ret
+    ;
 ;
 
 

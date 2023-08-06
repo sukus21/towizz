@@ -31,8 +31,8 @@ player_state_grounded::
     ld [hl-], a
 
     ;Modify speed
-    ld e, PLAYER_XSPEED_ACCEL_GROUND
-    ld a, PLAYER_XSPEED_FRICTION_GROUND
+    ld d, PLAYER_XSPEED_ACCEL_GROUND
+    ld e, PLAYER_XSPEED_FRICTION_GROUND
     call player_xspeed_movement
 
     ;Apply speed to X-position
