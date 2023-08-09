@@ -16,18 +16,7 @@ player_state_grounded::
     relpointer_init l, ENTVAR_PLAYER_STATE
     
     ;Stand on top of platform
-    relpointer_move ENTVAR_PLAYER_YPOS
-    ld a, $FF
-    ld [hl+], a
-    ld a, [w_platform_ypos+1]
-    dec a
-    ld [hl-], a
-
-    ;Set Y-speed to 0
-    relpointer_move ENTVAR_PLAYER_YSPEED
-    xor a
-    ld [hl+], a
-    ld [hl-], a
+    call player_yspeed_stand
 
     ;Modify speed
     ld d, PLAYER_XSPEED_ACCEL_GROUND
@@ -43,19 +32,23 @@ player_state_grounded::
     ;Save speed and position
     call player_xspeed_commit
 
-    ;Are we not on the platform anymore?
-    ld a, [w_platform_xpos+1]
-    ld b, a
-    ld a, d
-    cp a, b
-    jr c, .return
+    ;Fall off platform?
+    ld c, PLAYER_STATE_AIRBORNE
+    call player_left_platform
+    ret nz
 
-    ;We are not on the platform anymore.
+    ;Jump?
+    ldh a, [h_input_pressed]
+    bit PADB_A, a
+    ret z
+
+    ;Jump
     relpointer_move ENTVAR_PLAYER_STATE
-    ld [hl], PLAYER_STATE_AIRBORNE
+    ld [hl], PLAYER_STATE_JUMPSQUAT
+    relpointer_move ENTVAR_PLAYER_TIMER
+    ld [hl], PLAYER_JUMPSQUAT_TIME
 
     ;Return
-    .return
     relpointer_destroy
     ret
 ;
@@ -77,11 +70,6 @@ player_state_airborne::
     push af
 
     ;Horizontal movement
-    relpointer_move ENTVAR_PLAYER_XSPEED
-    ld a, [hl+]
-    ld c, a
-    ld a, [hl-]
-    ld b, a
     ld d, PLAYER_XSPEED_ACCEL_AIR
     ld e, PLAYER_XSPEED_FRICTION_AIR
     call player_xspeed_movement
@@ -221,6 +209,82 @@ player_state_airborne::
     ld [hl-], a
 
     .return
+    relpointer_destroy
+    ret
+;
+
+
+
+; Jumpsquat for the player entity.
+; Wait for timer to tick down, then jump.
+;
+; Input:
+; - `hl`: `ENTVAR_PLAYER_STATE`
+;
+; Destroys: all
+player_state_jumpsquat::
+    relpointer_init l, ENTVAR_PLAYER_STATE
+
+    ;Stand on platform
+    call player_yspeed_stand
+
+    ;Horizontal movement
+    xor a
+    ld b, a
+    ld c, a
+    call player_xspeed_apply
+    call player_xspeed_platform
+    call player_xspeed_commit
+    
+    ;Fall off platform?
+    ld c, PLAYER_STATE_AIRBORNE
+    call player_left_platform
+    ret nz
+
+    ;Decrement timer
+    relpointer_move ENTVAR_PLAYER_TIMER
+    dec [hl]
+    ret nz
+
+    ;Move on to next state
+    relpointer_move ENTVAR_PLAYER_STATE
+    ld [hl], PLAYER_STATE_AIRBORNE
+
+    ;Set Y-speed
+    relpointer_move ENTVAR_PLAYER_YSPEED
+    ld a, [w_platform_yspeed+1]
+    sra a
+    ld b, a
+    ld a, [w_platform_yspeed]
+    rra
+    add a, low(-PLAYER_JUMP_STRENGTH)
+    ld [hl+], a
+    ld a, b
+    adc a, high(-PLAYER_JUMP_STRENGTH)
+    ld [hl-], a
+    
+    ;Set X-speed according to direction
+    ldh a, [h_input]
+    and a, PADF_LEFT | PADF_RIGHT
+    jr nz, :+
+        ld b, a
+        ld c, a
+        jr .apply_xspeed
+    :
+    ld bc, MUL(PLAYER_XSPEED_MAX << 16, 0.85) >> 16
+    bit PADB_LEFT, a
+    jr z, .apply_xspeed
+        ld bc, MUL(PLAYER_XSPEED_MAX << 16, -0.85) >> 16
+    ;
+
+    .apply_xspeed
+    relpointer_move ENTVAR_PLAYER_XSPEED
+    ld a, c
+    ld [hl+], a
+    ld a, b
+    ld [hl+], a
+
+    ;Return
     relpointer_destroy
     ret
 ;

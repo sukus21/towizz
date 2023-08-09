@@ -101,6 +101,8 @@ entity_player_update:
     jp z, player_state_grounded
     cp a, PLAYER_STATE_AIRBORNE
     jp z, player_state_airborne
+    cp a, PLAYER_STATE_JUMPSQUAT
+    jp z, player_state_jumpsquat
 
     ;Unknown state, oops
     ld hl, error_invplayerstate

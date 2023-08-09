@@ -198,3 +198,70 @@ player_xspeed_commit::
     pop hl
     ret
 ;
+
+
+
+; Make player stand on top of platform.
+; Sets Y-speed to 0.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+;
+; Destroys: `af`
+player_yspeed_stand::
+    push hl
+    player_relpointer_init ENTVAR_PLAYER_YPOS
+    ld a, $FF
+    ld [hl+], a
+    ld a, [w_platform_ypos+1]
+    dec a
+    ld [hl-], a
+
+    ;Set Y-speed to 0
+    relpointer_move ENTVAR_PLAYER_YSPEED
+    xor a
+    ld [hl+], a
+    ld [hl-], a
+
+    ;Return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Are we standing on the platform anymore?
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+; - `de`: Player X-position
+; - `c`: New state if on platform
+;
+; Returns:
+; - `fZ`: State changed (1 = no)
+;
+; Saves: `hl`, `c`, `de`
+player_left_platform::
+    
+    ;Are we not on the platform anymore?
+    ld a, [w_platform_xpos+1]
+    ld b, a
+    ld a, d
+    cp a, b
+    jr nc, :+
+        xor a ;set Z flag
+        ret
+    :
+
+    ;We are not on the platform anymore.
+    ld b, l
+    player_relpointer_init ENTVAR_PLAYER_STATE
+    ld [hl], c
+
+    ;Return
+    relpointer_destroy
+    ld l, b
+    or a, h ;reset Z flag
+    ret
+;
