@@ -78,15 +78,17 @@ entity_player::
 entity_player_update:
     push hl
 
-    ;Initialize pointer
-    ld a, l
-    and a, %11100000
-    or a, ENTVAR_PLAYER_FLAGS
-    ld l, a
-    relpointer_init l, ENTVAR_PLAYER_FLAGS
-
-    ;Read flags -> D
-    ld d, [hl]
+    ;Handle invincibility
+    player_relpointer_init ENTVAR_PLAYER_INVINCIBLE
+    ld a, [hl]
+    or a, a
+    jr z, :+
+        dec [hl]
+        jr nz, :+
+        relpointer_move ENTVAR_PLAYER_FLAGS
+        res PLAYER_FLAGB_INVINCIBLE, [hl]
+        relpointer_move ENTVAR_PLAYER_INVINCIBLE
+    :
 
     ;Read state -> E
     relpointer_move ENTVAR_PLAYER_STATE
@@ -122,13 +124,22 @@ entity_player_update:
 entity_player_draw:
     push hl
 
-    ld a, l
-    and a, %11100000
-    or a, ENTVAR_PLAYER_XPOS+1
-    ld l, a
+    ;Check invincibility
+    player_relpointer_init ENTVAR_PLAYER_INVINCIBLE
+    ld a, [hl]
+    or a, a
+    jr z, :+
+        and a, %00000111
+        cp a, 8
+        jr c, :+
+
+        ;Alrighty, ignore
+        pop hl
+        ret
+    :
 
     ;Get X and Y position -> DE
-    relpointer_init l, ENTVAR_PLAYER_XPOS+1
+    relpointer_move ENTVAR_PLAYER_XPOS+1
     ld a, [w_camera_xpos+1]
     cpl
     add a, [hl]
@@ -406,5 +417,77 @@ player_boundscheck::
     .return
     relpointer_destroy
     pop hl
+    ret
+;
+
+
+
+; Respawns player at the start.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+;
+; Saves: `hl`  
+; Destroys: `af`, `bc`, `de`
+player_respawn::
+    push hl
+
+    ;Reset speeds
+    player_relpointer_init ENTVAR_PLAYER_XSPEED
+    xor a
+    ld [hl+], a
+    ld [hl-], a
+    relpointer_move ENTVAR_PLAYER_YSPEED
+    xor a
+    ld [hl+], a
+    ld [hl-], a
+
+    ;Reset X-position
+    relpointer_move ENTVAR_PLAYER_XPOS+1
+    ld a, [w_platform_xpos+1]
+    ld b, a
+    res 0, b
+    ld a, [w_camera_xpos+1]
+    res 0, a
+    add a, b
+    adc a, 0
+    rrca
+    ld [hl], a
+
+    ;Reset Y-position
+    relpointer_move ENTVAR_PLAYER_YPOS+1
+    ld a, [w_platform_ypos+1]
+    sub a, $17
+    ld [hl], a
+
+    ;Reset state
+    relpointer_move ENTVAR_PLAYER_STATE
+    ld [hl], PLAYER_STATE_AIRBORNE ;TODO: respawn state
+
+    ;Return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Deal damage to player.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+;
+; Destroys: `af`, `b`
+player_hurt::
+    ld b, l
+    player_relpointer_init ENTVAR_PLAYER_FLAGS
+    set PLAYER_FLAGB_INVINCIBLE, [hl]
+    relpointer_move ENTVAR_PLAYER_INVINCIBLE
+    ld [hl], PLAYER_INVINCIBLE_TIME
+    
+    ;TODO: health
+
+    ;Return
+    ld l, b
     ret
 ;

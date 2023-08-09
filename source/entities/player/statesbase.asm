@@ -10,7 +10,6 @@ SECTION FRAGMENT "PLAYER", ROMX
 ;
 ; Input:
 ; - `hl`: Player entity pointer (`ENTVAR_PLAYER_STATE`)
-; - `d`: Player flags (`ENTVAR_PLAYER_FLAGS`)
 ;
 ; Destroys: all
 player_state_grounded::

@@ -194,6 +194,7 @@ player_xspeed_commit::
     call player_boundscheck
 
     ;Return
+    relpointer_destroy
     pop hl
     ret
 ;
