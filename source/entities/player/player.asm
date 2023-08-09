@@ -130,7 +130,7 @@ entity_player_draw:
     or a, a
     jr z, :+
         and a, %00000111
-        cp a, 8
+        cp a, 6
         jr c, :+
 
         ;Alrighty, ignore
