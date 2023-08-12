@@ -102,3 +102,30 @@ player_sprite_grounded::
     pop hl
     ret
 ;
+
+
+
+; Set player sprite when airborne.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+player_sprite_airborne::
+    ld c, a
+    
+    ;Get sprite based on Y-speed
+    ld b, PLAYER_SPRITE_AIRBORNE_DOWN
+    player_relpointer_init ENTVAR_PLAYER_YSPEED+1
+    bit 7, [hl]
+    jr z, :+
+        ld b, PLAYER_SPRITE_AIRBORNE_UP
+    :
+
+    ;Apply sprite
+    relpointer_move ENTVAR_PLAYER_SPRITE
+    ld [hl], b
+
+    ;Return
+    relpointer_destroy
+    ld l, c
+    ret
+;

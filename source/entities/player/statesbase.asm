@@ -119,7 +119,8 @@ player_state_airborne::
     jr c, .not_fallen
         add sp, 4
         call player_hurt
-        jp player_respawn
+        call player_respawn
+        jr .return
     .not_fallen
 
     ;Do we need to react to the platform?
@@ -183,7 +184,7 @@ player_state_airborne::
             dec a
             ld [hl-], a
             relpointer_pop
-            ret
+            jr .return
         ;
 
         ;Bonk tiny little head on bottom of platform
@@ -210,6 +211,7 @@ player_state_airborne::
     ld [hl-], a
 
     .return
+    call player_sprite_airborne
     relpointer_destroy
     ret
 ;
