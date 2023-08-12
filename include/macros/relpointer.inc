@@ -85,7 +85,7 @@ ENDM
 
 
 ; Does not move the actual pointer.
-; Just updates the interla relpointer logic.
+; Just updates the internal relpointer logic.
 ;
 ; Input:
 ; - `1`: Where to move the relative pointer
