@@ -5,12 +5,37 @@ INCLUDE "struct/vram/tower.inc"
 
 SECTION FRAGMENT "PLAYER", ROMX
 
+; Set player sprite to a specific sprite.
+;
+; Input:
+; - `b`: Sprite (`PLAYER_SPRITE_*`)
+; - `hl`: Player entity pointer (anywhere)
+;
+; Destroys: `af`, `bc`  
+; Saves: `hl`, `de`
+player_sprite_set::
+    ld c, l
+
+    ;Apply
+    player_relpointer_init ENTVAR_PLAYER_SPRITE
+    ld [hl], b
+    relpointer_move ENTVAR_PLAYER_ANIMATION
+    ld [hl], 0
+    relpointer_destroy
+
+    ;Return
+    ld l, c
+    ret
+;
+
+
+
 ; Set player sprite when grounded.
 ;
 ; Input:
 ; - `hl`: Player entity pointer (anywhere)
 ;
-; Saves: `hl`
+; Saves: `hl`, `de`
 player_sprite_grounded::
     push hl
 

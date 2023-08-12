@@ -240,12 +240,12 @@ player_state_jumpsquat::
     ;Fall off platform?
     ld c, PLAYER_STATE_AIRBORNE
     call player_left_platform
-    ret nz
+    jr nz, .return
 
     ;Decrement timer
     relpointer_move ENTVAR_PLAYER_TIMER
     dec [hl]
-    ret nz
+    jr nz, .return
 
     ;Move on to next state
     relpointer_move ENTVAR_PLAYER_STATE
@@ -286,6 +286,9 @@ player_state_jumpsquat::
     ld [hl+], a
 
     ;Return
+    .return
+    ld b, PLAYER_SPRITE_JUMPSQUAT
+    call player_sprite_set
     relpointer_destroy
     ret
 ;
