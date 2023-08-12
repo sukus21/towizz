@@ -1,3 +1,6 @@
+    IF !DEF(STRUCT_VRAM_TOWER_INC)
+    DEF STRUCT_VRAM_TOWER_INC EQU 1
+
 INCLUDE "hardware.inc"
 INCLUDE "macros/tilemap.inc"
 
@@ -79,3 +82,5 @@ ASSERT _RS <= $80
 
     tilemap_alloc_finish
 ;
+
+    ENDC

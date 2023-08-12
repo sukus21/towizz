@@ -35,12 +35,12 @@ player_state_grounded::
     ;Fall off platform?
     ld c, PLAYER_STATE_AIRBORNE
     call player_left_platform
-    ret nz
+    jr nz, .return
 
     ;Jump?
     ldh a, [h_input_pressed]
     bit PADB_A, a
-    ret z
+    jr z, .return
 
     ;Jump
     relpointer_move ENTVAR_PLAYER_STATE
@@ -48,7 +48,8 @@ player_state_grounded::
     relpointer_move ENTVAR_PLAYER_TIMER
     ld [hl], PLAYER_JUMPSQUAT_TIME
 
-    ;Return
+    .return
+    call player_sprite_grounded
     relpointer_destroy
     ret
 ;

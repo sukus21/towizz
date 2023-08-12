@@ -140,6 +140,11 @@ entity_player_draw:
         ret
     :
 
+    ;Get sprite ID -> stack
+    relpointer_move ENTVAR_PLAYER_SPRITE
+    ld a, [hl]
+    push af
+
     ;Get X and Y position -> DE
     relpointer_move ENTVAR_PLAYER_XPOS+1
     ld a, [w_camera_xpos+1]
@@ -172,7 +177,9 @@ entity_player_draw:
     call sprite_get
 
     ;Get tile ID -> B
-    ld b, VTI_TOWER_PLAYER
+    pop af
+    add a, VTI_TOWER_PLAYER
+    ld b, a
 
     ;Write sprite 0
     ld [hl], e
