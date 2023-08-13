@@ -1,11 +1,9 @@
-## General todo list
-Not in any particular order
-
-* [ ] Base player control
+### Should have (not prioritized)
+* [x] Base player control
     * [x] Walk-state
     * [x] Airborne state
     * [x] Platform interaction
-    * [ ] Animation system
+    * [x] Animation system
 * [ ] Player back-item modification
 * [ ] Player movement
     * [x] Jump
@@ -23,6 +21,12 @@ Not in any particular order
     * [ ] ...
 * [ ] Enemies
     * [ ] Knightling
+    * [ ] Citizen
+    * [ ] Masked hero-man
+    * [ ] Blummber
+    * [ ] Bear bear
+    * [ ] Wrecking ball
+    * [ ] Flame floor
 * [ ] Wave system
 * [ ] Tower gameloop
     * [x] Non-repeat mode (get rid of non-platform interrupts)
@@ -33,8 +37,21 @@ Not in any particular order
     * [ ] VRAM layout
     * [ ] LYC interrupts
     * [ ] Item preview
+    * [ ] Shopping music
+* [ ] Shop <-> Tower transition
 * [x] VRAM transfer queue
     * [x] Implement HALFMAP mode
     * [x] Implement COLUMN mode
+    * [x] Implement ROW mode
 * [x] Create relative pointer system
     * [x] Create auto-performance macros
+* [ ] Sound effects system
+
+### Nice to have (prioritized)
+* [ ] Intro cutscene
+* [ ] Endless mode
+* [ ] Multiple music tracks
+* [ ] Boss fight
+* [ ] Link-cable coop
+* [ ] Saved high-score table
+* [ ] Achievements
