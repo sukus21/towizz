@@ -95,7 +95,7 @@ entity_player_update:
     ld a, [hl]
 
     ;State switch
-    ld bc, .return
+    ld bc, .animate
     push bc
     cp a, PLAYER_STATE_GROUNDED
     jp z, player_state_grounded
@@ -105,8 +105,27 @@ entity_player_update:
     jp z, player_state_jumpsquat
 
     ;Unknown state, oops
+    .unknown_state
     ld hl, error_invplayerstate
     rst v_error
+
+    ;Animate player
+    .animate
+    relpointer_destroy
+    player_relpointer_init ENTVAR_PLAYER_STATE
+    ld a, [hl]
+    ld bc, .return
+    push bc
+    cp a, PLAYER_STATE_GROUNDED
+    jp z, player_sprite_grounded
+    cp a, PLAYER_STATE_AIRBORNE
+    jp z, player_sprite_airborne
+    cp a, PLAYER_STATE_JUMPSQUAT
+    ld b, PLAYER_SPRITE_JUMPSQUAT
+    jp z, player_sprite_set
+
+    ;Unknown state found
+    jr .unknown_state
 
     ;Return
     .return

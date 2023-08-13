@@ -35,12 +35,12 @@ player_state_grounded::
     ;Fall off platform?
     ld c, PLAYER_STATE_AIRBORNE
     call player_left_platform
-    jr nz, .return
+    ret nz
 
     ;Jump?
     ldh a, [h_input_pressed]
     bit PADB_A, a
-    jr z, .return
+    ret z
 
     ;Jump
     relpointer_move ENTVAR_PLAYER_STATE
@@ -48,8 +48,7 @@ player_state_grounded::
     relpointer_move ENTVAR_PLAYER_TIMER
     ld [hl], PLAYER_JUMPSQUAT_TIME
 
-    .return
-    call player_sprite_grounded
+    ;Return
     relpointer_destroy
     ret
 ;
@@ -119,8 +118,7 @@ player_state_airborne::
     jr c, .not_fallen
         add sp, 4
         call player_hurt
-        call player_respawn
-        jr .return
+        jp player_respawn
     .not_fallen
 
     ;Do we need to react to the platform?
@@ -184,7 +182,7 @@ player_state_airborne::
             dec a
             ld [hl-], a
             relpointer_pop
-            jr .return
+            ret
         ;
 
         ;Bonk tiny little head on bottom of platform
@@ -210,8 +208,7 @@ player_state_airborne::
     ld a, d
     ld [hl-], a
 
-    .return
-    call player_sprite_airborne
+    ;Return
     relpointer_destroy
     ret
 ;
@@ -242,12 +239,12 @@ player_state_jumpsquat::
     ;Fall off platform?
     ld c, PLAYER_STATE_AIRBORNE
     call player_left_platform
-    jr nz, .return
+    ret nz
 
     ;Decrement timer
     relpointer_move ENTVAR_PLAYER_TIMER
     dec [hl]
-    jr nz, .return
+    ret nz
 
     ;Move on to next state
     relpointer_move ENTVAR_PLAYER_STATE
@@ -288,9 +285,6 @@ player_state_jumpsquat::
     ld [hl+], a
 
     ;Return
-    .return
-    ld b, PLAYER_SPRITE_JUMPSQUAT
-    call player_sprite_set
     relpointer_destroy
     ret
 ;
