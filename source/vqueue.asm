@@ -56,6 +56,41 @@ vqueue_get::
 
 
 
+; Clears all vqueue transfers, even ones currently in progress.  
+; Lives in ROM0.
+;
+; Saves: `c`, `de`
+vqueue_clear::
+    ld hl, w_vqueue
+    ld a, l
+    ld [w_vqueue_first], a
+    ld a, h
+    ld [w_vqueue_first+1], a
+    ld b, VQUEUE_QUEUE_SIZE
+
+    .loop
+
+    ;Is this a valid entry?
+    ld a, [hl]
+    cp a, VQUEUE_TYPE_NONE
+    ret z
+
+    ;Clear this entry
+    xor a
+    REPT VQUEUE
+        ld [hl+], a
+    ENDR
+
+    ;Next entry?
+    dec b
+    jr nz, .loop
+
+    ;Nope, this is the end
+    ret
+;
+
+
+
 ; Execute transfers from the VRAM queue.  
 ; Assumes VRAM access.  
 ; Switches banks.  
