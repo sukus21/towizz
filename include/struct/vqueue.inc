@@ -38,6 +38,11 @@ DEF VQUEUE_TYPE_HALFROW RB 1
 ; When one column is done, move onto the next column.
 DEF VQUEUE_TYPE_COLUMN RB 1
 
+; Works with 20 bytes at a time.
+; Every 20 processed bytes, the destination pointer is moved 12 bytes forward.
+; One transfer operation = 20 bytes.
+DEF VQUEUE_TYPE_SCREENROW RB 1
+
 RSRESET
 
 ; Type of this vqueue element.
@@ -114,13 +119,14 @@ ENDM
 
 ; Macro that adds a copy-mode transfer to the VRAM transfer queue.
 ; Assumes the source label has an exported `.end` sublabel.
-; Throws errors if data length is not divisible by 16.
+; Throws errors if data length is not divisible by \4.
 ; Does not set writeback pointer.
 ;
 ; Input:
 ; - `1`: Transfer type (`VQUEUE_TYPE_*`)
 ; - `2`: Destination (address/label)
 ; - `3`: Source (label)
+; - `4*`: Source divisible by (default: 16)
 ;
 ; Returns:
 ; - `hl`: `VQUEUE` pointer, at `VQUEUE_WRITEBACK`
@@ -128,13 +134,21 @@ ENDM
 ; Destroys: `af`  
 ; Saves: `bc`, `de`
 MACRO vqueue_add_copy
-    ASSERT (\3.end - \3) & $0F == 0
+    IF _NARG == 4
+        ASSERT (\3.end - \3) % (\4) == 0
+    ELSE
+        ASSERT (\3.end - \3) % (16) == 0
+    ENDC
     call vqueue_get
 
     ;Write type and length
     ld a, \1 | VQUEUE_MODEFLAG_COPYMODE
     ld [hl+], a ;type
-    ld a, (\3.end - \3) >> 4
+    IF _NARG == 4
+        ld a, (\3.end - \3) / (\4)
+    ELSE
+        ld a, (\3.end - \3) / (16)
+    ENDC
     ld [hl+], a ;length
     xor a
     ld [hl+], a ;progress

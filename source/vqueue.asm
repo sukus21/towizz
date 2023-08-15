@@ -8,7 +8,7 @@ SECTION "VRAM QUEUE", ROM0
 
 ; Get a vqueue slot pointer.
 ; When adding multiple transfers, completion order is not guaranteed.  
-; \- Lives in ROM0.
+; Lives in ROM0.
 ;
 ; Returns:
 ; - `hl`: `VQUEUE` pointer
@@ -57,9 +57,9 @@ vqueue_get::
 
 
 ; Execute transfers from the VRAM queue.  
-; \- Assumes VRAM access.  
-; \- Switches banks.  
-; \- Lives in ROM0.  
+; Assumes VRAM access.  
+; Switches banks.  
+; Lives in ROM0.  
 ;
 ; Destroys: all
 vqueue_execute::
@@ -94,6 +94,13 @@ vqueue_execute::
             jr .finish
         :
 
+        cp a, VQUEUE_TYPE_SCREENROW
+        jr nz, :+
+            call vqueue_set_screenrow
+            ret z
+            jr .finish
+        :
+
         ;Transfer type not found
         jr .finish
     ;
@@ -117,6 +124,13 @@ vqueue_execute::
         cp a, VQUEUE_TYPE_COLUMN
         jr nz, :+
             call vqueue_copy_column
+            ret z
+            jr .finish
+        :
+
+        cp a, VQUEUE_TYPE_SCREENROW
+        jr nz, :+
+            call vqueue_copy_screenrow
             ret z
             jr .finish
         :
@@ -316,7 +330,7 @@ ENDM
 
 
 ; Subroutine for `vqueue_execute`.  
-; \- Same notes as `vqueue_execute`.
+; Same notes as `vqueue_execute`.
 ;
 ; Input:
 ; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
@@ -336,7 +350,7 @@ vqueue_copy_direct:
 
 
 ; Subroutine for `vqueue_execute`.  
-; \- Same notes as `vqueue_execute`.
+; Same notes as `vqueue_execute`.
 ;
 ; Input:
 ; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
@@ -354,7 +368,7 @@ vqueue_set_direct:
 
 
 ; Subroutine for `vqueue_execute`.  
-; \- Same notes as `vqueue_execute`.
+; Same notes as `vqueue_execute`.
 ;
 ; Input:
 ; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
@@ -383,7 +397,7 @@ vqueue_copy_halfrow:
 
 
 ; Subroutine for `vqueue_execute`.  
-; \- Same notes as `vqueue_execute`.
+; Same notes as `vqueue_execute`.
 ;
 ; Input:
 ; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
@@ -410,7 +424,7 @@ vqueue_set_halfrow:
 
 
 ; Subroutine for `vqueue_execute`.  
-; \- Same notes as `vqueue_execute`.
+; Same notes as `vqueue_execute`.
 ;
 ; Input:
 ; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
@@ -441,7 +455,7 @@ vqueue_copy_column:
 
 
 ; Subroutine for `vqueue_execute`.  
-; \- Same notes as `vqueue_execute`.
+; Same notes as `vqueue_execute`.
 ;
 ; Input:
 ; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
@@ -464,6 +478,62 @@ vqueue_set_column:
     ;Move destination pointer
     pop hl
     inc hl
+    
+    vqueue_set_end
+;
+
+
+
+; Subroutine for `vqueue_execute`.  
+; Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_copy_screenrow:
+    vqueue_copy_start
+    REPT 20
+        ld a, [hl+]
+        ld [bc], a
+        inc bc
+    ENDR
+
+    ;Move destination pointer
+    ld a, c
+    add a, 12
+    ld c, a
+    jr nc, :+
+        inc b
+    :
+    
+    vqueue_copy_end
+;
+
+
+
+; Subroutine for `vqueue_execute`.  
+; Same notes as `vqueue_execute`.
+;
+; Input:
+; - `hl`: `VQUEUE` pointer, at `VQUEUE_LENGTH`
+;
+; Returns:
+; - `fZ`: Transfer ended early
+vqueue_set_screenrow:
+    vqueue_set_start
+    REPT 20
+        ld [hl+], a
+    ENDR
+
+    ;Move destination pointer
+    ld a, l
+    add a, 12
+    ld l, a
+    jr nc, :+
+        inc h
+    :
     
     vqueue_set_end
 ;
