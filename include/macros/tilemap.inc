@@ -57,4 +57,25 @@ MACRO tilemap_alloc
     PURGE __tlmv_x, __tlmv_y
 ENDM
 
+
+
+; Pointer to tilemap position.
+; Does not allocate space in the tilemap buffer.
+; Coordinates of this can overlap with any allocation.
+;
+; Input:
+; - `1`: Tilemap addr
+; - `2`: Constant name
+; - `3`: X-position
+; - `4`: Y-position
+;
+; Returns:
+; - `tlmv_addr`: Tilemap address
+MACRO tilemap_ptr
+    ASSERT \3 <= 32, "x+width above 32 for \2"
+    ASSERT \4 <= 32, "y+height above 32 for \2"
+    ASSERT _NARG == 4, "tilemap_ptr requires 4 parameters for \2"
+    DEF tlmv_addr = \1 + \3 + (\4 * 32)
+ENDM
+
     ENDC
