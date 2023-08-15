@@ -34,7 +34,7 @@
     * [x] Window layer can use both tilemaps
     * [x] Background layer can use both tilemaps
 * [ ] Shop gameloop
-    * [ ] VRAM layout
+    * [x] VRAM layout
     * [ ] LYC interrupts
     * [ ] Item preview
     * [ ] Shopping music
@@ -43,15 +43,18 @@
     * [x] Implement HALFMAP mode
     * [x] Implement COLUMN mode
     * [x] Implement ROW mode
+    * [x] Implement SCREENROW mode
+    * [x] Prepared transfer system
 * [x] Create relative pointer system
     * [x] Create auto-performance macros
 * [ ] Sound effects system
 
 ### Nice to have (prioritized)
 * [ ] Intro cutscene
+* [ ] GBC palette select
 * [ ] Endless mode
+* [ ] Saved high-score table
+* [ ] Achievements
 * [ ] Multiple music tracks
 * [ ] Boss fight
 * [ ] Link-cable coop
-* [ ] Saved high-score table
-* [ ] Achievements
