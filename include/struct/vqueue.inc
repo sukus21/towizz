@@ -75,6 +75,77 @@ DEF VQUEUE RB 0
 
 
 
+; Prepares a label to be copied.
+; This macro expands to 10 bytes of data.
+;
+; Input:
+; - `1`: Transfer type (`VQUEUE_TYPE_*`)
+; - `2`: Transfer operation count (n8)
+; - `3`: Destination (address/label)
+; - `4`: Source (label)
+; - `5`: Writeback pointer (address/label)
+MACRO vqueue_prepare
+    db \1       ;type
+    db \2       ;transfer operation count
+    db $00      ;progress
+    dw \3       ;destination
+    db bank(\4) ;source bank
+    dw \4       ;source
+    dw \5       ;writeback pointer
+ENDM
+
+
+
+; Prepares a label to be copied.
+; Assumes the source label has an exported `.end` sublabel.
+; Throws errors if data length is not divisible by \4.
+; This macro expands to 10 bytes of data.
+;
+; Input:
+; - `1`: Transfer type (`VQUEUE_TYPE_*`)
+; - `2`: Destination (address/label)
+; - `3`: Source (label)
+; - `4`: Writeback pointer (address/label)
+; - `5`: Source divisible by (n8, default: 16)
+MACRO vqueue_prepare_copy
+    IF _NARG == 5
+        ASSERT (\3.end - \3) % (\5) == 0
+    ELSE
+        ASSERT (\3.end - \3) % (16) == 0
+    ENDC
+
+    db \1       ;type
+    IF _NARG == 5
+        db (\3.end - \3) / (\5) ;transfer operation count
+    ELSE
+        db (\3.end - \3) / (16) ;transfer operation count
+    ENDC
+    db $00      ;progress
+    dw \2       ;destination
+    db bank(\3) ;source bank
+    dw \3       ;source
+    dw \4       ;writeback pointer
+ENDM
+
+
+
+; This macro enqueues a prepared vqueue transfer automatically.  
+; Use `vqueue_prepare` to prepare a transfer.  
+; Switches banks.
+;
+; Input:
+; - `1`: Prepared transfer (label)
+;
+; Destroys: `af`, `de`, `hl`
+MACRO vqueue_enqueue_auto
+    ld a, bank(\1)
+    ld [rROMB0], a
+    ld de, \1
+    call vqueue_enqueue
+ENDM
+
+
+
 ; Macro that adds an element to the VRAM transfer queue.
 ; Does not set writeback pointer.
 ;

@@ -147,6 +147,9 @@ var_w0:
         
         ASSERT high(w_cgb_palette) == high(w_cgb_palette+7)
 
+        ; If you just need some value, this will do.
+        w_vqueue_writeback:: db $00
+
         ; Points to the first available vqueue slot.
         w_vqueue_first:: dw w_vqueue
 

@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "struct/vqueue.inc"
+INCLUDE "macros/memcpy.inc"
 
 ; If this scanline has been reached, do not perform any more transfer operations.
 DEF VQUEUE_ITERATION_TIME EQU $97
@@ -51,6 +52,21 @@ vqueue_get::
     ;Yes, good, return
     pop hl
     pop de
+    ret
+;
+
+
+
+; Enqueue a prepared vqueue transfer (See `vqueue_prepare`).  
+; Assumes the correct ROM-bank is switched in.  
+; Lives in ROM0.
+;
+; Input:
+; - `de`: Prepared transfer
+vqueue_enqueue::
+    call vqueue_get
+    ld b, VQUEUE
+    memcpy_custom hl, de, b
     ret
 ;
 
