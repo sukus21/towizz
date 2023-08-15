@@ -1,0 +1,152 @@
+INCLUDE "entsys.inc"
+INCLUDE "macros/color.inc"
+INCLUDE "macros/farcall.inc"
+INCLUDE "macros/relpointer.inc"
+INCLUDE "struct/vqueue.inc"
+INCLUDE "struct/entity/player.inc"
+INCLUDE "struct/vram/shop.inc"
+
+SECTION "GAMELOOP SHOP", ROM0
+
+; Setup routine for the shop gameloop.  
+; Disables interrupts.  
+; Assumes LCD is on.  
+; Lives in ROM0.
+gameloop_shop_setup:
+    di
+
+    ;Camera should be at 0,0 and not move
+    xor a
+    ld hl, w_camera_xspeed
+    ld [hl+], a
+    ld [hl+], a
+    ld [hl+], a
+    ld [hl+], a
+
+    ;Lock platform position, floor is solid in shops
+    ld hl, w_platform_xspeed
+    ld [hl+], a
+    ld [hl+], a
+    dec a
+    ld [hl+], a
+    ld [hl+], a
+
+    ;Platform should only be at floor level
+    xor a
+    ld hl, w_platform_yspeed
+    ld [hl+], a
+    ld [hl+], a
+    ld [hl+], a
+    ld [hl], SCRN_Y - 16
+
+    ;We don't need multiple OAM mirrors
+    ld a, high(w_oam_hud)
+    ldh [h_oam_active], a
+
+    ;Lock window in place
+    ld a, WX_OFS
+    ldh [rWX], a
+    ld a, SCRN_Y - 8*6
+    ldh [rWY], a
+
+    ;Lock background scroll position
+    ld a, -16
+    ldh [rSCY], a
+    xor a
+    ldh [rSCX], a
+
+    ;Set up entitysystem and create player
+    call entsys_clear
+    farcall_0 entity_player_create
+    relpointer_init l, ENTVAR_BANK
+    relpointer_move ENTVAR_PLAYER_XPOS
+    ld a, $FF
+    ld [hl+], a
+    ld [hl-], a
+    relpointer_destroy
+
+    ;Prepare a couple vqueue transfers
+    call vqueue_clear
+    vqueue_enqueue_auto shop_vprep_tileset
+    vqueue_enqueue_auto shop_vprep_background
+    vqueue_enqueue_auto shop_vprep_foreground
+    vqueue_enqueue_auto player_vprep_base
+    xor a
+    ld [w_vqueue_writeback], a
+
+    ;Perform transfers
+    ld a, IEF_VBLANK
+    ldh [rIE], a
+    .vqueue_wait
+        xor a
+        ldh [rIF], a
+        halt
+
+        ;Vblank, do transfer
+        call vqueue_execute
+
+        ;Are we done yet?
+        ld a, [w_vqueue_writeback]
+        cp a, 4
+        jr nz, .vqueue_wait
+        
+        ;Reset this
+        xor a
+        ld [w_vqueue_writeback], a
+    ;
+
+    ;Set screen registers
+    xor a
+    ldh [rIF], a
+    halt
+    ld a, LCDCF_ON | LCDCF_BGON | LCDCF_BLK21 | LCDCF_BG9800 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
+    ldh [rLCDC], a
+
+    ld a, PALETTE_DEFAULT
+    call set_palette_bgp
+    ld a, PALETTE_INVERTED
+    call set_palette_obp0
+
+    ;Return
+    ret
+;
+
+
+
+; Main entrypoint of the shop gameloop.  
+; Lives in ROM0.
+gameloop_shop::
+    call gameloop_shop_setup
+
+    ;This is where the gameloop repeats
+    .main::
+
+    ;Perform normal frame things
+    call input
+    call entsys_step
+
+    ;Finish up sprites for this frame
+    ldh a, [h_oam_active]
+    ld h, a
+    call sprite_finish
+
+    ;Wait for Vblank
+    .halting
+        halt 
+
+        ;Ignore if this wasn't V-blank
+        ldh a, [rSTAT]
+        and a, STATF_LCD
+        cp a, STATF_VBL
+        jr nz, .halting
+    ;
+
+    ;Run V-blank routine.
+    call shop_vblank
+
+    ;Repeat gameloop
+    xor a
+    ldh [rIF], a
+    ei
+    jr .main
+;
