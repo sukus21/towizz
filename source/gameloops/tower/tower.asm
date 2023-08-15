@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "tower.inc"
+INCLUDE "macros/color.inc"
 INCLUDE "macros/farcall.inc"
 INCLUDE "macros/lyc.inc"
 INCLUDE "struct/vqueue.inc"
@@ -54,7 +55,7 @@ gameloop_tower_setup:
     ;
 
     ;Set palette
-    ld a, $E4
+    ld a, PALETTE_DEFAULT
     call set_palette_bgp
     call set_palette_obp0
 
@@ -117,7 +118,7 @@ gameloop_tower::
     call gameloop_tower_setup
 
     ; This is where the gameloop repeats.
-    .mainloop
+    .main::
     call input
     call entsys_step
     call tower_buffer_prepare
@@ -144,7 +145,7 @@ gameloop_tower::
     xor a
     ldh [rIF], a
     ei
-    jp .mainloop
+    jr .main
 ;
 
 

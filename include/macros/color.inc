@@ -1,3 +1,16 @@
+    IF !DEF(MACRO_COLOR_INC)
+    DEF MACRO_COLOR_INC EQU 1
+
+; Default palette.  
+; Color order:  
+; White -> ltgray -> dkgray -> black
+DEF PALETTE_DEFAULT EQU $E4
+
+; Default palette with black and white swapped.  
+; Color order:  
+; Black -> ltgray -> dkgray -> white
+DEF PALETTE_INVERTED EQU $27
+
 ; Color macro, useful for defining palettes.
 ; Expands to a single `dw` command.
 ; 
@@ -28,3 +41,5 @@ ENDM
 MACRO color_dmg_wht
     color_t 31, 31, 31
 ENDM
+
+    ENDC
