@@ -43,7 +43,19 @@ v_stat::
 SECTION "MAIN", ROM0[$0150]
 
 ; Entrypoint of game code, jumped to after setup is complete.
+; LCD is off at this point.  
 ; Lives in ROM0.
-main::
-    jp gameloop_tower
+main:: 
+    ;Darken all palettes
+    ld a, $FF
+    call set_palette_bgp
+    call set_palette_obp0
+    call set_palette_obp1
+
+    ;Enable LCD with a few flags
+    ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_WINON
+    ldh [rLCDC], a
+    
+    ;Go to gameloop
+    jp gameloop_shop
 ;
