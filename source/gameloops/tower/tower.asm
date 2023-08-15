@@ -73,6 +73,7 @@ gameloop_tower_setup:
     ;Place background on both tilemaps
     vqueue_add_set VQUEUE_TYPE_HALFROW, 18, VM_TOWER_BACKGROUND0, VTI_TOWER_TESTTILES
     vqueue_add_set VQUEUE_TYPE_HALFROW, 18, VM_TOWER_BACKGROUND1, VTI_TOWER_TESTTILES
+    vqueue_enqueue player_vprep_base
 
     ;Perform transfers
     call vqueue_execute

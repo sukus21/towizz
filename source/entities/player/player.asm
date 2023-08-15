@@ -40,12 +40,8 @@ entity_player_create::
         ld [hl+], a
     ENDR
 
-    ;Load sprites
-    push bc
-    memcpy_label entity_player_sprite_base, VT_TOWER_PLAYER
-
     ;Return
-    pop bc
+    ld l, c
     ret
 ;
 
