@@ -256,13 +256,13 @@ vqueue_execute::
         ;Copy transfer to first slot
         ld bc, w_vqueue
         ld [bc], a
-        inc bc
+        inc c
         ld a, VQUEUE_TYPE_NONE
         ld [hl+], a
         REPT VQUEUE-1
             ld a, [hl+]
             ld [bc], a
-            inc bc
+            inc c
         ENDR
 
         ;Do we have time to start this transfer?
