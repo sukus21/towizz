@@ -102,17 +102,17 @@ gameloop_shop_setup:
         ld [w_vqueue_writeback], a
     ;
 
+    ;Now we wait for the screen to turn on
+    xor a
+    ldh [rIF], a
+    halt
+
     ;Set palette
     ld a, PALETTE_DEFAULT
     call set_palette_bgp
     ld a, PALETTE_INVERTED
     call set_palette_obp0
 
-    ;Now we wait for the screen to turn on
-    xor a
-    ldh [rIF], a
-    halt
-    
     ;Imagine we just drew a frame, now time for its V-blank
     call shop_vblank
 
