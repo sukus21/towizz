@@ -129,6 +129,28 @@ ENDM
 
 
 
+; Prepares a vqueue transfer, that can be enqueued fast.
+; Automatically appends the `SETMODE` flag.
+; This macro expands to 10 bytes of data.
+;
+; Input:
+; - `1`: Transfer type (`VQUEUE_TYPE_*`)
+; - `2`: Transfer operation count (n8)
+; - `3`: Destination (address/label)
+; - `4`: Byte value (n8)
+; - `5`: Writeback pointer (address/label)
+MACRO vqueue_prepare_set
+    db \1 | VQUEUE_MODEFLAG_SETMODE ;type
+    db \2                           ;transfer operation count
+    db $00                          ;progress
+    dw \3                           ;destination
+    db \4                           ;fill byte
+    dw $0000                        ;source data (unused for SET mode)
+    dw \5                           ;writeback pointer
+ENDM
+
+
+
 ; This macro enqueues a prepared vqueue transfer automatically.  
 ; Use `vqueue_prepare` to prepare a transfer.  
 ; Switches banks.

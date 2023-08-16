@@ -21,6 +21,9 @@ shop_tilemap_background::
 
 
 
+; A list of all prepared VQUEUE transfers, required for shop startup.
+shop_vprep::
+
 ; Prepared VQUEUE transfer.  
 ; Transfers all the tiles needed for the tile gameloop.
 shop_vprep_tileset:: vqueue_prepare_copy \
@@ -48,4 +51,41 @@ shop_vprep_background:: vqueue_prepare_copy \
     shop_tilemap_background, \
     w_vqueue_writeback, \
     20
+;
+
+; Prepared VQUEUE transfer.  
+; Transfers HUD tileset
+shop_vprep_hud_tls:: vqueue_prepare_copy \
+    VQUEUE_TYPE_DIRECT, \
+    VT_SHOP_HUD, \
+    tower_asset_hud, \
+    w_vqueue_writeback
+;
+
+; A set of 3 prepared VQUEUE transfers.  
+; Draws the HUD how I like it.
+shop_vprep_hud_tlm::
+    vqueue_prepare_set \
+        VQUEUE_TYPE_SCREENROW, \
+        1, \
+        VM_SHOP_HUD+$00, \
+        VTI_SHOP_HUD+0, \
+        w_vqueue_writeback
+    ;
+    
+    vqueue_prepare_set \
+        VQUEUE_TYPE_SCREENROW, \
+        1, \
+        VM_SHOP_HUD+$20, \
+        VTI_SHOP_HUD+1, \
+        w_vqueue_writeback
+    ;
+
+    vqueue_prepare_set \
+        VQUEUE_TYPE_SCREENROW, \
+        1, \
+        VM_SHOP_HUD+$40, \
+        VTI_SHOP_HUD+2, \
+        w_vqueue_writeback
+    ;
 ;

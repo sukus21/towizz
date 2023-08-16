@@ -72,6 +72,33 @@ vqueue_enqueue::
 
 
 
+; Enqueues multiple prepared vqueue transfers,
+; stored one after the other in memory.  
+; Assumes correct ROM-bank is switched in.  
+; Lives in ROM0.
+;
+; Input:
+; - `de`: Prepared transfers
+; - `b`: Number of transfers
+;
+; Destroys: all
+vqueue_enqueue_multi::
+    ld a, b
+    or a, a
+    ret z
+
+    ;Start loopin' away
+    .loop
+    call vqueue_get
+    ld c, VQUEUE
+    memcpy_custom hl, de, c
+    dec b
+    jr nz, .loop
+    ret
+;
+
+
+
 ; Clears all vqueue transfers, even ones currently in progress.  
 ; Lives in ROM0.
 ;

@@ -71,10 +71,13 @@ gameloop_shop_setup:
 
     ;Prepare a couple vqueue transfers
     call vqueue_clear
-    vqueue_enqueue_auto shop_vprep_tileset
-    vqueue_enqueue_auto shop_vprep_background
-    vqueue_enqueue_auto shop_vprep_foreground
     vqueue_enqueue_auto player_vprep_base
+    ld a, bank(shop_vprep)
+    ld [rROMB0], a
+    ld de, shop_vprep
+    ld b, 7
+    call vqueue_enqueue_multi
+    ld hl, shop_vprep_hud_tls
     xor a
     ld [w_vqueue_writeback], a
 
@@ -91,7 +94,7 @@ gameloop_shop_setup:
 
         ;Are we done yet?
         ld a, [w_vqueue_writeback]
-        cp a, 4
+        cp a, 8
         jr nz, .vqueue_wait
         
         ;Reset this
