@@ -159,6 +159,9 @@ var_w0:
         .end::
         ASSERT high(w_vqueue) == high(w_vqueue + VQUEUE)
 
+        ; Open-ness of shop preview pane.
+        w_shop_preview_open:: db $00
+
     ENDL
     var_w0_end:
 ;

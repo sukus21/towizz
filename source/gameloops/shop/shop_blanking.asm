@@ -40,6 +40,11 @@ shop_vblank::
 shop_hblank_hud::
     push af
 
+    ;Next interrupt should be the preview
+    LYC_set_jumppoint shop_hblank_preview
+    ld a, SHOP_LYC_PREVIEW
+    ldh [rLYC], a
+
     ;Wait for H-blank
     LYC_wait_hblank
 
@@ -47,6 +52,31 @@ shop_hblank_hud::
     ld a, SHOP_LCDC_BACKGROUND
     ldh [rLCDC], a
     ld a, SHOP_SCY_BACKGROUND
+    ldh [rSCY], a
+
+    ;Return
+    ei
+    pop af
+    ret
+;
+
+
+
+; H-blank routine for shop gameloop.  
+; Lives in ROM0.
+;
+; Saves: all
+shop_hblank_preview::
+    push af
+
+    ;Wait for H-blank
+    LYC_wait_hblank
+
+    ;Get scroll position
+    ld a, [w_shop_preview_open]
+    cpl
+    inc a
+    add a, SHOP_SCY_PREVIEW
     ldh [rSCY], a
 
     ;Return
