@@ -51,7 +51,7 @@ gameloop_shop_setup:
     ldh [rWY], a
 
     ;Lock background scroll position
-    ld a, -16
+    ld a, SHOP_SCY_BACKGROUND
     ldh [rSCY], a
     xor a
     ldh [rSCX], a
@@ -102,20 +102,30 @@ gameloop_shop_setup:
         ld [w_vqueue_writeback], a
     ;
 
-    ;Set screen registers
-    xor a
-    ldh [rIF], a
-    halt
-    ld a, LCDCF_ON | LCDCF_BGON | LCDCF_BLK21 | LCDCF_BG9800 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
-    ldh [rLCDC], a
-
+    ;Set palette
     ld a, PALETTE_DEFAULT
     call set_palette_bgp
     ld a, PALETTE_INVERTED
     call set_palette_obp0
 
+    ;Imagine we just drew a frame, now time for its V-blank
+    call shop_vblank
+
+    ;Now we wait for the screen to turn on
+    xor a
+    ldh [rIF], a
+    halt
+
+    ;Enable certain interrupts
+    ld a, IEF_VBLANK | IEF_STAT
+    ldh [rIE], a
+    ld a, STATF_LYC
+    ldh [rSTAT], a
+    xor a
+    ldh [rIF], a
+
     ;Return
-    ret
+    reti
 ;
 
 

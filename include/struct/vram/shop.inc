@@ -87,6 +87,12 @@ ASSERT _RS <= $80
     ; Located on `SCRN1`.
     DEF VM_SHOP_STAND3 EQU tlmv_addr
 
+    tilemap_alloc _SCRN1, "VM_SHOP_HUD", 0, 29, 20, 3
+    ; The HUD area inside the shop.  
+    ; 32x3 tiles.  
+    ; Located on `SCRN1`.
+    DEF VM_SHOP_HUD equ tlmv_addr
+
     tilemap_alloc_finish
 ;
 
