@@ -12,7 +12,7 @@ tower_asset_tower::
 
 ; HUD tileset.
 tower_asset_hud::
-    INCBIN "graphics/hud_test.tls"
+    INCBIN "graphics/hud.tls"
 .end::
 
 ; Tileset of tower made of bricks.

@@ -75,7 +75,7 @@ gameloop_shop_setup:
     ld a, bank(shop_vprep)
     ld [rROMB0], a
     ld de, shop_vprep
-    ld b, 7
+    ld b, 6
     call vqueue_enqueue_multi
     ld hl, shop_vprep_hud_tls
     xor a
@@ -94,7 +94,7 @@ gameloop_shop_setup:
 
         ;Are we done yet?
         ld a, [w_vqueue_writeback]
-        cp a, 8
+        cp a, 7
         jr nz, .vqueue_wait
         
         ;Reset this
@@ -108,13 +108,13 @@ gameloop_shop_setup:
     ld a, PALETTE_INVERTED
     call set_palette_obp0
 
-    ;Imagine we just drew a frame, now time for its V-blank
-    call shop_vblank
-
     ;Now we wait for the screen to turn on
     xor a
     ldh [rIF], a
     halt
+    
+    ;Imagine we just drew a frame, now time for its V-blank
+    call shop_vblank
 
     ;Enable certain interrupts
     ld a, IEF_VBLANK | IEF_STAT

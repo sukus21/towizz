@@ -62,22 +62,14 @@ shop_vprep_hud_tls:: vqueue_prepare_copy \
     w_vqueue_writeback
 ;
 
-; A set of 3 prepared VQUEUE transfers.  
+; A set of 2 prepared VQUEUE transfers.  
 ; Draws the HUD how I like it.
 shop_vprep_hud_tlm::
     vqueue_prepare_set \
         VQUEUE_TYPE_SCREENROW, \
-        1, \
+        2, \
         VM_SHOP_HUD+$00, \
         VTI_SHOP_HUD+0, \
-        w_vqueue_writeback
-    ;
-    
-    vqueue_prepare_set \
-        VQUEUE_TYPE_SCREENROW, \
-        1, \
-        VM_SHOP_HUD+$20, \
-        VTI_SHOP_HUD+1, \
         w_vqueue_writeback
     ;
 
@@ -85,7 +77,7 @@ shop_vprep_hud_tlm::
         VQUEUE_TYPE_SCREENROW, \
         1, \
         VM_SHOP_HUD+$40, \
-        VTI_SHOP_HUD+2, \
+        VTI_SHOP_HUD+1, \
         w_vqueue_writeback
     ;
 ;
