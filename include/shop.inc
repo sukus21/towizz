@@ -3,7 +3,8 @@
 
 INCLUDE "hardware.inc"
 
-; Window position in shop gameloop.
-DEF SHOP_WINDOW_YPOS EQU SCRN_Y - (6 * 8) + 4
+; Window position in shop gameloop.  
+; Shows the foreground.
+DEF SHOP_WY_FOREGROUND EQU SCRN_Y - 5*8
 
     ENDC

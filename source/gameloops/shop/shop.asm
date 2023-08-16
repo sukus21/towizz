@@ -1,4 +1,5 @@
 INCLUDE "entsys.inc"
+INCLUDE "shop.inc"
 INCLUDE "macros/color.inc"
 INCLUDE "macros/farcall.inc"
 INCLUDE "macros/relpointer.inc"
@@ -46,7 +47,7 @@ gameloop_shop_setup:
     ;Lock window in place
     ld a, WX_OFS
     ldh [rWX], a
-    ld a, SCRN_Y - 8*6
+    ld a, SHOP_WY_FOREGROUND
     ldh [rWY], a
 
     ;Lock background scroll position

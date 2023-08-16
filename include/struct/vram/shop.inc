@@ -62,7 +62,7 @@ ASSERT _RS <= $80
 ;
 
 ;SCRN1
-    tilemap_alloc _SCRN1, "VM_SHOP_FOREGROUND", 0, 0, 20, 6
+    tilemap_alloc _SCRN1, "VM_SHOP_FOREGROUND", 0, 0, 20, 5
     ; Static foreground elements inside shop.  
     ; Includes floor, exit, and item stands.  
     ; Spans 20x6 tiles.  
