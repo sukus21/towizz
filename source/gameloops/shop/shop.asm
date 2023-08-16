@@ -60,9 +60,12 @@ gameloop_shop_setup:
     farcall_0 entity_player_create
     relpointer_init l, ENTVAR_BANK
     relpointer_move ENTVAR_PLAYER_XPOS
-    ld a, $FF
+    xor a
     ld [hl+], a
+    ld a, 16*8
     ld [hl-], a
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    set PLAYER_FLAGB_FACING, [hl]
     relpointer_destroy
 
     ;Prepare a couple vqueue transfers
