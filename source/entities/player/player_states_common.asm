@@ -94,13 +94,13 @@ player_xspeed_apply::
         jr z, .return
 
         ;Beyond right side
-        ld a, $FF
+        xor a
         jr .nowrap
     .carried
         jr nz, .return
 
         ;Beyond left side
-        xor a
+        ld a, $FF
         ;jr .nowrap
     ;
 
