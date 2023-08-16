@@ -113,12 +113,12 @@ entity_player_update:
     ld bc, .return
     push bc
     cp a, PLAYER_STATE_GROUNDED
-    jp z, player_sprite_grounded
+    jp z, player_animate_grounded
     cp a, PLAYER_STATE_AIRBORNE
-    jp z, player_sprite_airborne
+    jp z, player_animate_airborne
     cp a, PLAYER_STATE_JUMPSQUAT
     ld b, PLAYER_SPRITE_JUMPSQUAT
-    jp z, player_sprite_set
+    jp z, player_animate_set
 
     ;Unknown state found
     jr .unknown_state

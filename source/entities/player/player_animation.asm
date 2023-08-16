@@ -5,7 +5,8 @@ INCLUDE "struct/vram/tower.inc"
 
 SECTION FRAGMENT "PLAYER", ROMX
 
-; Set player sprite to a specific sprite.
+; No animation used.
+; Just sets the current sprite to the given value.
 ;
 ; Input:
 ; - `b`: Sprite (`PLAYER_SPRITE_*`)
@@ -13,7 +14,7 @@ SECTION FRAGMENT "PLAYER", ROMX
 ;
 ; Destroys: `af`, `bc`  
 ; Saves: `hl`, `de`
-player_sprite_set::
+player_animate_set::
     ld c, l
 
     ;Apply
@@ -30,13 +31,13 @@ player_sprite_set::
 
 
 
-; Set player sprite when grounded.
+; Handles player animation when grounded.
 ;
 ; Input:
 ; - `hl`: Player entity pointer (anywhere)
 ;
 ; Saves: `hl`, `de`
-player_sprite_grounded::
+player_animate_grounded::
     push hl
 
     ;How are we doing in the speed department?
@@ -105,11 +106,11 @@ player_sprite_grounded::
 
 
 
-; Set player sprite when airborne.
+; Handles player animation when airborne.
 ;
 ; Input:
 ; - `hl`: Player entity pointer (anywhere)
-player_sprite_airborne::
+player_animate_airborne::
     ld c, a
     
     ;Get sprite based on Y-speed
