@@ -778,3 +778,68 @@ set_palette_obp0::
 set_palette_obp1::
     set_palette rOBP1, rOCPS, 1
 ;
+
+
+
+; Converts a binary value to BCD.
+;
+; Input:
+; - `a`: Binary value
+;
+; Returns:
+; - `a`: BCD value
+;
+; Destroys: `b`, `f`
+bin2bcd::
+    cp a, 10
+    ret c
+
+    ;Do the conversion
+    ld b, 0
+    .loop
+        inc b
+        sub a, 10
+        jr nc, .loop
+    ;
+
+    ;Aaand we are done here
+    add a, 10
+    swap b
+    or a, b
+    ret
+;
+
+
+
+; Converts a BCD value to binary.
+;
+; Input:
+; - `a`: BCD value
+;
+; Returns:
+; - `a`: Binary value
+;
+; Destroys: `f`, `bc`
+bcd2bin::
+    ld c, a
+    swap a
+    and a, %00001111
+    jr z, .quick
+    ld b, a
+    ld a, c
+    and a, %00001111
+
+    .loop1
+        add a, 10
+        dec b
+        jr nz, .loop1
+    :
+
+    ret
+
+    ;This is all we need
+    .quick
+    ld a, c
+    and a, %00001111
+    ret
+;
