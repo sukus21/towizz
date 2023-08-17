@@ -8,6 +8,7 @@ INCLUDE "struct/vram/tower.inc"
 SECTION FRAGMENT "PLAYER", ROMX
 
 ; Create a new player entity.  
+; Does not set X- and Y-positions, do that manually.  
 ; Allocates new entity.
 ;
 ; Output:
@@ -18,29 +19,40 @@ entity_player_create::
     call entsys_new32
     ld h, b
     ld l, c
+    relpointer_init l, ENTVAR_BANK
 
     ;Set bank
-    ld a, bank(@)
-    ld [hl+], a
-    inc l
+    ld [hl], bank(@)
 
     ;Set step function
+    relpointer_move ENTVAR_STEP
     ld a, low(entity_player)
     ld [hl+], a
     ld a, high(entity_player)
-    ld [hl+], a
+    ld [hl-], a
+
+    ;Set flags
+    relpointer_move ENTVAR_FLAGS
+    ld [hl], ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_PLAYER
+
+    ;Set width and height
+    relpointer_move ENTVAR_HEIGHT
+    ld [hl], PLAYER_HEIGHT
+    relpointer_move ENTVAR_WIDTH
+    ld [hl], PLAYER_WIDTH
 
     ;Reset variables
-    ld a, l
-    and a, %11100000
-    add a, ENTVAR_VAR
-    ld l, a
+    relpointer_move ENTVAR_PLAYER_START
     xor a
-    REPT ENTVAR_PLAYER_COUNT
+    ld b, ENTVAR_PLAYER_COUNT
+    :
         ld [hl+], a
-    ENDR
+        dec b
+        jr nz, :-
+    ;
 
     ;Return
+    relpointer_destroy
     ld l, c
     ret
 ;
@@ -161,13 +173,13 @@ entity_player_draw:
     push af
 
     ;Get X and Y position -> DE
-    relpointer_move ENTVAR_PLAYER_XPOS+1
+    relpointer_move ENTVAR_XPOS+1
     ld a, [w_camera_xpos+1]
     cpl
     add a, [hl]
     add a, 9
     ld d, a
-    relpointer_move ENTVAR_PLAYER_YPOS+1
+    relpointer_move ENTVAR_YPOS+1
     ld e, [hl]
     inc e
 
@@ -404,7 +416,7 @@ player_boundscheck::
     push hl
 
     ;Get X-position -> DE
-    player_relpointer_init ENTVAR_PLAYER_XPOS+1
+    player_relpointer_init ENTVAR_XPOS+1
     ld a, [hl-]
     ld d, a
     ld a, [hl+]
@@ -467,7 +479,7 @@ player_respawn::
     ld [hl-], a
 
     ;Reset X-position
-    relpointer_move ENTVAR_PLAYER_XPOS+1
+    relpointer_move ENTVAR_XPOS+1
     ld a, [w_platform_xpos+1]
     ld b, a
     res 0, b
@@ -479,7 +491,7 @@ player_respawn::
     ld [hl], a
 
     ;Reset Y-position
-    relpointer_move ENTVAR_PLAYER_YPOS+1
+    relpointer_move ENTVAR_YPOS+1
     ld a, [w_platform_ypos+1]
     sub a, $17
     ld [hl], a

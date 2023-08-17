@@ -60,7 +60,7 @@ gameloop_shop_setup:
     call entsys_clear
     farcall_0 entity_player_create
     relpointer_init l, ENTVAR_BANK
-    relpointer_move ENTVAR_PLAYER_XPOS
+    relpointer_move ENTVAR_XPOS
     xor a
     ld [hl+], a
     ld a, 16*8

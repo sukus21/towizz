@@ -74,7 +74,7 @@ player_xspeed_apply::
     push hl
 
     ;Get X-position -> DE
-    player_relpointer_init ENTVAR_PLAYER_XPOS
+    player_relpointer_init ENTVAR_XPOS
     ld a, [hl+]
     ld e, a
     ld a, [hl-]
@@ -177,7 +177,7 @@ player_xspeed_commit::
     push hl
 
     ;Save X-position
-    player_relpointer_init ENTVAR_PLAYER_XPOS
+    player_relpointer_init ENTVAR_XPOS
     ld a, e
     ld [hl+], a
     ld a, d
@@ -210,7 +210,7 @@ player_xspeed_commit::
 ; Destroys: `af`
 player_yspeed_stand::
     push hl
-    player_relpointer_init ENTVAR_PLAYER_YPOS
+    player_relpointer_init ENTVAR_YPOS
     ld a, $FF
     ld [hl+], a
     ld a, [w_platform_ypos+1]

@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc"
+INCLUDE "entsys.inc"
 INCLUDE "macros/relpointer.inc"
 INCLUDE "struct/entity/player.inc"
 
@@ -65,7 +66,7 @@ player_state_airborne::
     relpointer_init l, ENTVAR_PLAYER_STATE
 
     ;Save old X-position for later
-    relpointer_move ENTVAR_PLAYER_XPOS+1
+    relpointer_move ENTVAR_XPOS+1
     ld a, [hl]
     push af
 
@@ -89,7 +90,7 @@ player_state_airborne::
     ld [hl-], a
 
     ;Add to position
-    relpointer_move ENTVAR_PLAYER_YPOS
+    relpointer_move ENTVAR_YPOS
     ld a, [hl+]
     add a, c
     ld e, a
@@ -159,7 +160,7 @@ player_state_airborne::
             xor a
             ld [hl+], a
             ld [hl-], a
-            relpointer_move ENTVAR_PLAYER_XPOS
+            relpointer_move ENTVAR_XPOS
             xor a
             ld [hl+], a
             ld [hl], b
@@ -175,7 +176,7 @@ player_state_airborne::
             ;Stand on platform
             relpointer_push ENTVAR_PLAYER_STATE
             ld [hl], PLAYER_STATE_GROUNDED
-            relpointer_move ENTVAR_PLAYER_YPOS
+            relpointer_move ENTVAR_YPOS
             ld a, $FF
             ld [hl+], a
             ld a, [w_platform_ypos+1]
@@ -202,7 +203,7 @@ player_state_airborne::
 
     ;Save Y-position
     .ypos_save
-    relpointer_move ENTVAR_PLAYER_YPOS
+    relpointer_move ENTVAR_YPOS
     ld a, e
     ld [hl+], a
     ld a, d
