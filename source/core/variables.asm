@@ -248,12 +248,21 @@ SECTION "ENTITY STORAGE", WRAMX, ALIGN[8]
 ; Enitity system.  
 ; Check out `source/entitysystem/entsys.md` for documentation.
 w_entsys::
+    DEF entity_current = 0
     REPT ENTSYS_CHUNK_COUNT
-        w_entsys_bank_\@: ds 1
-        w_entsys_next_\@: ds 1
-        w_entsys_step_\@: ds 2
-        w_entsys_vars_\@: ds 12
+        w_entsys_bank_{d:entity_current}: ds 1
+        w_entsys_next_{d:entity_current}: ds 1
+        w_entsys_step_{d:entity_current}: ds 2
+        w_entsys_flags_{d:entity_current}: ds 1
+        w_entsys_ypos_{d:entity_current}: ds 2
+        w_entsys_xpos_{d:entity_current}: ds 2
+        w_entsys_height_{d:entity_current}: ds 1
+        w_entsys_width_{d:entity_current}: ds 1
+        w_entsys_dmgcall_{d:entity_current}: ds 2
+        w_entsys_vars_{d:entity_current}: ds 3
+        DEF entity_current += 1
     ENDR
+    PURGE entity_current
     w_entsys_end::
 ;
 
