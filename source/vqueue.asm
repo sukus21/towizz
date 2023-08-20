@@ -134,6 +134,20 @@ vqueue_clear::
 
 
 
+; Checks if vqueue is empty.  
+;
+; Returns:
+; - `fZ`: Is empty (z = yes)
+;
+; Destroys: `af`
+vqueue_empty::
+    ld a, [w_vqueue]
+    cp a, VQUEUE_TYPE_NONE
+    ret
+;
+
+
+
 ; Execute transfers from the VRAM queue.  
 ; Assumes VRAM access.  
 ; Switches banks.  
