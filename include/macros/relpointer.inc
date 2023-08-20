@@ -7,13 +7,17 @@
 ;
 ; Input:
 ; - `1`: 8-bit register
-; - `2`: Pointer starting position
+; - `2*`: Pointer starting position (default: 0)
 ;
 ; Output:
 ; - register `1`: Value of `2`
 MACRO relpointer_init
     DEF __RELPOINTER_REGISTER EQUS "\1"
-    DEF __RELPOINTER_POSITION = \2
+    IF _NARG == 2
+        DEF __RELPOINTER_POSITION = \2
+    ELSE
+        DEF __RELPOINTER_POSITION = 0
+    ENDC
     DEF __RELPOINTER_DIFF = 0
     DEF __RELPOINTER_STACK = 0
 ENDM
