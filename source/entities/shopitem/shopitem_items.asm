@@ -21,6 +21,17 @@ item_data::
 
 
 
+; Copies name from `w_shop_namebuffer` to screen.
+item_vprep_name:: vqueue_prepare \
+    VQUEUE_TYPE_HALFROW | VQUEUE_MODEFLAG_COPYMODE, \
+    1, \
+    VM_SHOP_ITEMNAME, \
+    w_shop_namebuffer, \
+    w_vqueue_writeback
+;
+
+
+
 ; Get pointer to sprite data from ID.
 ;
 ; Input:

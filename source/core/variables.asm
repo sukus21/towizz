@@ -172,6 +172,12 @@ var_w0:
         ; This value is an offset into `VTI_SHOP_ITEMS`.
         w_shop_itemsprite:: db $00
 
+        ; 16 tiles wide buffer for item name.
+        w_shop_namebuffer:: ds $10, " "
+
+        ; Number of waves passed.
+        w_waves_passed:: db $00
+
     ENDL
     var_w0_end:
 ;
