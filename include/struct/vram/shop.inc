@@ -12,7 +12,7 @@ RSSET $00
     DEF VTI_SHOP_PLAYER RB $30
 
     ; Preview tileset.
-    DEF VT_SHOP_PREVIEW EQU $8000 + $80 * _RS
+    DEF VT_SHOP_PREVIEW EQU $8000 + $10 * _RS
     DEF VTI_SHOP_PREVIEW RB $40
 ASSERT _RS <= $80
 
@@ -20,9 +20,12 @@ ASSERT _RS <= $80
 RSSET $80
 
     ; HUD tileset.
-    DEF _RS += _RS & 1
     DEF VT_SHOP_HUD EQU $8000 + $10 * _RS
     DEF VTI_SHOP_HUD RB $10
+
+    ; Shop item tiles.
+    DEF VT_SHOP_ITEMS EQU $8000 + $10 * _RS
+    DEF VTI_SHOP_ITEMS RB $10
 ASSERT _RS <= $100
 
 ;Block 2 (backgrounds only)
