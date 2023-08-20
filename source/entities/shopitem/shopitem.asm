@@ -139,14 +139,14 @@ entity_shopitem::
 
     ;Compare these
     ld a, [hl]
-    add a, 13
+    add a, PLAYER_WIDTH/2
     cp a, b
     jr c, .no_collision
     ld a, b
     add a, 16
     ld b, a
     ld a, [hl]
-    add a, 13
+    add a, PLAYER_WIDTH/2
     cp a, b
     jr c, .yes_collision
 
@@ -221,6 +221,7 @@ shopitem_draw:
     ;Read X-position
     relpointer_move ENTVAR_SHOPITEM_XPOS
     ld a, [de]
+    add a, 8
     ld e, a
 
     ;Obtain sprites

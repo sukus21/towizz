@@ -74,7 +74,13 @@ gameloop_shop_setup:
     ;Create item(s)
     xor a
     ld [w_shop_itemsprite], a
-    ld b, $10
+    ld b, $08
+    ld c, ITEM_ID_BALL
+    farcall_0 entity_shopitem_create
+    ld b, $28
+    ld c, ITEM_ID_BALL
+    farcall_0 entity_shopitem_create
+    ld b, $48
     ld c, ITEM_ID_BALL
     farcall_0 entity_shopitem_create
 
