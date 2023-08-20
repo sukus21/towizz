@@ -69,7 +69,7 @@ item_get_sprite::
 ; Saves: `hl`  
 ; Destroys: `af`, `bc`
 item_get_data::
-    ld de, item_sprites
+    ld de, item_data
     or a, a
     ret z
 
