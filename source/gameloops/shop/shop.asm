@@ -3,6 +3,7 @@ INCLUDE "shop.inc"
 INCLUDE "macros/color.inc"
 INCLUDE "macros/farcall.inc"
 INCLUDE "macros/relpointer.inc"
+INCLUDE "struct/item.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/entity/player.inc"
 INCLUDE "struct/vram/shop.inc"
@@ -78,8 +79,6 @@ gameloop_shop_setup:
     ld b, 6
     call vqueue_enqueue_multi
     ld hl, shop_vprep_hud_tls
-    xor a
-    ld [w_vqueue_writeback], a
 
     ;Perform transfers
     ld a, IEF_VBLANK
@@ -93,8 +92,7 @@ gameloop_shop_setup:
         call vqueue_execute
 
         ;Are we done yet?
-        ld a, [w_vqueue_writeback]
-        cp a, 7
+        call vqueue_empty
         jr nz, .vqueue_wait
         
         ;Reset this
@@ -141,6 +139,30 @@ gameloop_shop::
     ;Perform normal frame things
     call input
     call entsys_step
+
+    ;Do some open-ness stuff
+    ld hl, w_shop_preview_current
+    ld a, [hl-]
+    or a, a ;cp a, 0
+    jr z, .preview_close
+        ld a, [hl]
+        cp a, SHOP_PREVIEW_OPEN
+        jr z, .preview_done
+        inc [hl]
+        inc [hl]
+        jr .preview_done
+    ;
+
+    .preview_close
+        ld a, [hl]
+        or a, a ;cp a, 0
+        jr z, .preview_done
+        dec [hl]
+        dec [hl]
+        jr .preview_done
+    ;
+    
+    .preview_done
 
     ;Finish up sprites for this frame
     ldh a, [h_oam_active]

@@ -165,6 +165,9 @@ var_w0:
         ; Open-ness of shop preview pane.
         w_shop_preview_open:: db $00
 
+        ; What item is currently being previewed?
+        w_shop_preview_current:: db $00
+
     ENDL
     var_w0_end:
 ;
