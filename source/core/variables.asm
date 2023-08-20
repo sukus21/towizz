@@ -135,6 +135,9 @@ var_w0:
         ; Camera offset in pixels.
         w_camera_xpos:: dw $3800
 
+        ; A `TOWER_BUFFER` struct.
+        ; Prepared for HRAM transfer.
+        ; Do not read values from here outside of V-blank.
         w_tower_buffer:: ds TOWER_BUFFER, $00
 
         ; Color palette for CGB mode.
@@ -143,9 +146,9 @@ var_w0:
             color_dmg_ltg
             color_dmg_dkg
             color_dmg_blk
+            ASSERT high(w_cgb_palette) == high(w_cgb_palette+7)
         ;
         
-        ASSERT high(w_cgb_palette) == high(w_cgb_palette+7)
 
         ; If you just need some value, this will do.
         w_vqueue_writeback:: db $00

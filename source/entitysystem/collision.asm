@@ -3,7 +3,7 @@
 SECTION "ENTSYS COLLISION", ROM0
 
 ; Checks for collision between two rectangles.
-; Always assumes second x2 >= x1 and y2 >= y1 for both boxes.
+; Always assumes x2 >= x1 and y2 >= y1 for both boxes.
 ; Expects 2-bit alignment on `bc` and `de`.
 ; Lives in ROM0.
 ;
@@ -88,7 +88,7 @@ entsys_collision_rr8::
 
 
 ; Checks for collision between two rectangles.
-; Always assumes second x2 >= x1 and y2 >= y1 for both boxes.
+; Always assumes x2 >= x1 and y2 >= y1 for both boxes.
 ; Expects 3-bit alignment on `bc` and `de`.
 ; Lives in ROM0.
 ;
@@ -229,7 +229,7 @@ entsys_collision_rr16::
 
 
 ; Checks for collision between a point and a rectangle.
-; Always assumes second x2 >= x1 and y2 >= y1 for the rectangle.
+; Always assumes x2 >= x1 and y2 >= y1 for the rectangle.
 ; Expects 3-bit alignment on `de`.
 ; Lives in ROM0.
 ;
