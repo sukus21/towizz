@@ -53,12 +53,13 @@ input::
     cpl
 
     ;Get buttons pressed
-    ld c, a
+    ld b, a
     ldh a, [h_input]
-    xor a, c
-    and a, c
+    xor a, b
+    and a, b
     ldh [h_input_pressed], a
-    ld a, c
+    ld c, a
+    ld a, b
     ldh [h_input], a
 
     ;Reset input register and return
