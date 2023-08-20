@@ -789,12 +789,13 @@ set_palette_obp1::
 ; Returns:
 ; - `a`: BCD value
 ;
-; Destroys: `b`, `f`
+; Destroys: `f`
 bin2bcd::
     cp a, 10
     ret c
 
     ;Do the conversion
+    push bc
     ld b, 0
     .loop
         inc b
@@ -806,6 +807,7 @@ bin2bcd::
     add a, 10
     swap b
     or a, b
+    pop bc
     ret
 ;
 
