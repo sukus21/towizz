@@ -168,6 +168,10 @@ var_w0:
         ; What item is currently being previewed?
         w_shop_preview_current:: db $00
 
+        ; Where can I place an item when loading the assets in?  
+        ; This value is an offset into `VTI_SHOP_ITEMS`.
+        w_shop_itemsprite:: db $00
+
     ENDL
     var_w0_end:
 ;

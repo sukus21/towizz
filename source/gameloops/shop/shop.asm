@@ -58,6 +58,7 @@ gameloop_shop_setup:
     ldh [rSCX], a
 
     ;Set up entitysystem and create player
+    call vqueue_clear
     call entsys_clear
     farcall_0 entity_player_create
     relpointer_init l, ENTVAR_BANK
@@ -70,8 +71,14 @@ gameloop_shop_setup:
     set PLAYER_FLAGB_FACING, [hl]
     relpointer_destroy
 
+    ;Create item(s)
+    xor a
+    ld [w_shop_itemsprite], a
+    ld b, $10
+    ld c, ITEM_ID_BALL
+    farcall_0 entity_shopitem_create
+
     ;Prepare a couple vqueue transfers
-    call vqueue_clear
     vqueue_enqueue_auto player_vprep_base
     ld a, bank(shop_vprep)
     ld [rROMB0], a
