@@ -35,7 +35,7 @@
     * [x] Background layer can use both tilemaps
 * [ ] Shop gameloop
     * [x] VRAM layout
-    * [ ] LYC interrupts
+    * [x] LYC interrupts
     * [ ] Item preview
     * [ ] Shopping music
 * [ ] Shop <-> Tower transition
