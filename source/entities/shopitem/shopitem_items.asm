@@ -27,25 +27,26 @@ item_data::
 ; - `a`: Item ID (`ITEM_ID_*`)
 ;
 ; Returns:
-; - `hl`: Sprite pointer
+; - `de`: Sprite pointer
 ;
+; Saves: `hl`  
 ; Destroys: `af`, `bc`
 item_get_sprite::
-    ld hl, item_sprites
+    ld de, item_sprites
     or a, a
     ret z
 
     ;Prepare for loop
     ld b, a
     ld c, $40
-    ld a, l
+    ld a, e
 
     ;Add offset for every item
     .loop
         add a, c
-        ld l, a
+        ld e, a
         jr nc, :+
-            inc h
+            inc d
         :
         dec b
         jr nz, .loop
@@ -63,25 +64,26 @@ item_get_sprite::
 ; - `a`: Item ID (`ITEM_ID_*`)
 ;
 ; Returns:
-; - `hl`: `ITEM` pointer
+; - `de`: `ITEM` pointer
 ;
+; Saves: `hl`  
 ; Destroys: `af`, `bc`
 item_get_data::
-    ld hl, item_sprites
+    ld de, item_sprites
     or a, a
     ret z
 
     ;Prepare for loop
     ld b, a
     ld c, ITEM
-    ld a, l
+    ld a, e
 
     ;Add offset for every item
     .loop
         add a, c
-        ld l, a
+        ld e, a
         jr nc, :+
-            inc h
+            inc d
         :
         dec b
         jr nz, .loop
