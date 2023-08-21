@@ -94,24 +94,7 @@ gameloop_shop_setup:
     ld hl, shop_vprep_hud_tls
 
     ;Perform transfers
-    ld a, IEF_VBLANK
-    ldh [rIE], a
-    .vqueue_wait
-        xor a
-        ldh [rIF], a
-        halt
-
-        ;Vblank, do transfer
-        call vqueue_execute
-
-        ;Are we done yet?
-        call vqueue_empty
-        jr nz, .vqueue_wait
-        
-        ;Reset this
-        xor a
-        ld [w_vqueue_writeback], a
-    ;
+    call gameloop_loading
 
     ;Now we wait for the screen to turn on
     xor a
