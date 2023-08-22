@@ -20,35 +20,8 @@ towerdemo_sinewave:
 ; Returns:
 ; - `hl`: Towerdemo entity
 entity_towerdemo_create::
-    ;Sine curve checksum
-    ld hl, towerdemo_sinewave
-    xor a
-    ld b, a
-    ld c, a
-    :
-        ld a, c
-        add a, [hl]
-        ld c, a
-        ld a, l
-        add a, 4
-        ld l, a
-        jr nc, :-
-    nop
 
-    ;Another type of curve checksum
-    ld hl, towerdemo_sinewave
-    ld bc, w_buffer
-    .loop
-        ld a, [hl]
-        set 7, l
-        add a, [hl]
-        inc l
-        res 7, l
-        ld c, l
-        ld [bc], a
-        jr nz, .loop
-    nop
-
+    ;Get new entity
     call entsys_new16
     ld h, b
     ld l, c
@@ -62,6 +35,7 @@ entity_towerdemo_create::
     ld [hl], high(entity_towerdemo)
 
     ;Return
+    ld l, c
     ret 
 ;
 
@@ -92,7 +66,7 @@ entity_towerdemo::
     bit PADB_SELECT, b
     jr nz, :+
     cp a, 0
-    ret z
+    jp z, towerdemo_nospeed
     :
 
     ;Prepare sine pointer
@@ -210,4 +184,34 @@ entity_towerdemo::
 
     ;Return
     ret 
+;
+
+
+
+; Reset all tower related speeds.
+towerdemo_nospeed:
+    xor a
+
+    ld hl, w_tower_yspeed
+    ld [hl+], a
+    ld [hl-], a
+
+    ld hl, w_platform_yspeed
+    ld [hl+], a
+    ld [hl-], a
+
+    ld hl, w_platform_xspeed
+    ld [hl+], a
+    ld [hl-], a
+
+    ld hl, w_background_yspeed
+    ld [hl+], a
+    ld [hl-], a
+
+    ld hl, w_camera_xspeed
+    ld [hl+], a
+    ld [hl-], a
+
+    ;Return
+    ret
 ;
