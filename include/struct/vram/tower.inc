@@ -19,10 +19,6 @@ RSSET $80
     DEF VT_TOWER_PLATFORM EQU $8000 + $10 * _RS
     DEF VTI_TOWER_PLATFORM RB $20
 
-    ; Test tiles location.
-    DEF VT_TOWER_TESTTILES EQU $8000 + $10 * _RS
-    DEF VTI_TOWER_TESTTILES RB 8
-
     ; HUD tiles.
     DEF _RS += _RS & 1
     DEF VT_TOWER_HUD EQU $8000 + $10 * _RS

@@ -11,6 +11,9 @@ SECTION "TOWER VBLANK+HBLANK", ROM0
 ;
 ; Saves: none
 tower_vblank::
+    ;Fade routine
+    call transition_fade_step
+
     ;Reset background for HUD
     ld a, HUD_SCX
     ldh [rSCX], a

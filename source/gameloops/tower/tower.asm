@@ -10,8 +10,8 @@ INCLUDE "struct/vram/tower.inc"
 SECTION "GAMELOOP TOWER", ROM0
 
 ; Setup routine for tower gameloop.  
-; Assumes VRAM access.  
-; Enables interrupts and LCD when returning.  
+; Enables interrupts when returning.  
+; Assumes LCD is turned on.  
 ; Lives in ROM0.
 ;
 ; Saves: none
@@ -19,69 +19,20 @@ gameloop_tower_setup:
     ;Set tower flags
     ld a, TOWERMODEF_TOWER_REPEAT
     ld [w_tower_flags], a
+    ld a, high(w_oam1)
+    ldh [h_oam_active], a
 
-    ;Set tower tiles on background layer
-    ld hl, VM_TOWER_TOWER0 + $0F
-    ld c, 2
-    ld a, VTI_TOWER_TOWER + $1E
-    :
-        ld [hl-], a
-        sub a, c
-        jr nc, :-
-    ld hl, VM_TOWER_TOWER0 + $2F
-    ld a, VTI_TOWER_TOWER + $1F
-    :
-        ld [hl-], a
-        sub a, c
-        jr nc, :-
-    ;
-
-    ;Platform tiles
-    ld hl, VM_TOWER_PLATFORM + $0F
-    ld c, 2
-    ld a, VTI_TOWER_PLATFORM + $1E
-    :
-        ld [hl-], a
-        sub a, c
-        bit 7, a
-        jr nz, :-
-    ld hl, VM_TOWER_PLATFORM + $2F
-    ld a, VTI_TOWER_PLATFORM + $1F
-    :
-        ld [hl-], a
-        sub a, c
-        bit 7, a
-        jr nz, :-
-    ;
-
-    ;Set palette
-    ld a, PALETTE_DEFAULT
-    call set_palette_bgp
-    call set_palette_obp0
-
-    ;Copy tiles
-    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_TESTTILES, tower_asset_testtiles
-    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_TOWER, tower_asset_tower
-    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_PLATFORM, tower_asset_platform
-    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_HUD, tower_asset_hud
-
-    ;Set HUD tilemap
-    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, VM_TOWER_HUD+$00, VTI_TOWER_HUD + $00
-    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, VM_TOWER_HUD+$20, VTI_TOWER_HUD + $01
-    vqueue_add_set VQUEUE_TYPE_DIRECT, 2, VM_TOWER_HUD+$40, VTI_TOWER_HUD + $02
-
-    ;Place background on both tilemaps
-    vqueue_add_set VQUEUE_TYPE_HALFROW, 18, VM_TOWER_BACKGROUND0, VTI_TOWER_TESTTILES
-    vqueue_add_set VQUEUE_TYPE_HALFROW, 18, VM_TOWER_BACKGROUND1, VTI_TOWER_TESTTILES
+    ;Perform VRAM transfers
+    ld a, bank(tower_vprep)
+    ld [rROMB0], a
+    ld de, tower_vprep
+    ld b, 9
+    call vqueue_enqueue_multi
     vqueue_enqueue_auto player_vprep_base
+    call gameloop_loading
 
-    ;Perform transfers
-    call vqueue_execute
-
-    ;Clear entity system
+    ;Initialize entity system
     call entsys_clear
-
-    ;Create player
     farcall_0 entity_towerdemo_create
     farcall_0 entity_player_create
 
@@ -94,11 +45,18 @@ gameloop_tower_setup:
     ldh [rSTAT], a
 
     ;Reset interrupt registers
-    xor a
-    ldh [rIF], a
     ld a, IEF_STAT | IEF_VBLANK
     ldh [rIE], a
+    xor a
+    ldh [rIF], a
     ei
+
+    ;Prepare colors
+    ld a, PALETTE_DEFAULT
+    ld [w_bgp+1], a
+    ld [w_obp0+1], a
+    ld a, COLOR_FADESTATE_IN
+    call transition_fade_init
 
     ;Re-enable LCD
     ld a, LCDCF_BLK21 | LCDCF_BG9800 | LCDCF_WIN9C00 | LCDCF_BGON | LCDCF_WINON | LCDCF_ON
@@ -249,7 +207,8 @@ tower_update::
 
 
 ; Prepare the tower buffer.
-; This saves me from doing it in the middle of V-blank.
+; This saves me from doing it in the middle of V-blank.  
+; Lives in ROM0.
 ;
 ; Destroys: all
 tower_buffer_prepare:
@@ -416,7 +375,8 @@ tower_draw_byte::
 
 
 ; Subroutine for the tower gameloop.  
-; Draws a couple sprites on the HUD.
+; Draws a couple sprites on the HUD.  
+; Lives in ROM0.
 ;
 ; Saves: none
 draw_hud:
