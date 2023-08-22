@@ -68,16 +68,16 @@ shop_vprep_hud_tlm::
     vqueue_prepare_set \
         VQUEUE_TYPE_SCREENROW, \
         2, \
-        VM_SHOP_HUD+$00, \
-        VTI_SHOP_HUD+0, \
+        VM_SHOP_HUD  + $00, \
+        VTI_SHOP_HUD + $00, \
         w_vqueue_writeback
     ;
 
     vqueue_prepare_set \
         VQUEUE_TYPE_SCREENROW, \
         1, \
-        VM_SHOP_HUD+$40, \
-        VTI_SHOP_HUD+1, \
+        VM_SHOP_HUD  + $40, \
+        VTI_SHOP_HUD + $02, \
         w_vqueue_writeback
     ;
 ;
