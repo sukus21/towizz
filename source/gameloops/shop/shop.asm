@@ -96,16 +96,18 @@ gameloop_shop_setup:
     ;Perform transfers
     call gameloop_loading
 
-    ;Now we wait for the screen to turn on
+    ;Now we wait for V-blank once more
     xor a
     ldh [rIF], a
     halt
 
     ;Set palette
     ld a, PALETTE_DEFAULT
-    call set_palette_bgp
+    ld [w_bgp+1], a
     ld a, PALETTE_INVERTED
-    call set_palette_obp0
+    ld [w_obp0+1], a
+    ld a, COLOR_FADESTATE_IN
+    call transition_fade_init
 
     ;Imagine we just drew a frame, now time for its V-blank
     call shop_vblank
@@ -159,6 +161,16 @@ gameloop_shop::
     ;
     
     .preview_done
+
+    ;Test fade routine
+    ldh a, [h_input_pressed]
+    bit PADB_SELECT, a
+    ld a, COLOR_FADESTATE_OUT
+    call nz, transition_fade_init
+    ldh a, [h_input_pressed]
+    bit PADB_START, a
+    ld a, COLOR_FADESTATE_IN
+    call nz, transition_fade_init
 
     ;Finish up sprites for this frame
     ldh a, [h_oam_active]

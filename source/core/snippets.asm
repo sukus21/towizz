@@ -749,6 +749,7 @@ ENDM
 ;
 ; Destroys: `f`
 set_palette_bgp::
+    ld [w_bgp], a
     set_palette rBGP, rBCPS, 0
 ;
 
@@ -763,6 +764,7 @@ set_palette_bgp::
 ;
 ; Destroys: `f`
 set_palette_obp0::
+    ld [w_obp0], a
     set_palette rOBP0, rOCPS, 0
 ;
 
@@ -776,6 +778,7 @@ set_palette_obp0::
 ;
 ; Destroys: `f`
 set_palette_obp1::
+    ld [w_obp1], a
     set_palette rOBP1, rOCPS, 1
 ;
 

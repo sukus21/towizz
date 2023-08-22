@@ -8,12 +8,16 @@ SECTION "SHOP VBLANK+HBLANK", ROM0
 ; Assumes VRAM access.  
 ; Lives in ROM0.
 shop_vblank::
-    ;VRAM transfers
-    call vqueue_execute
+
+    ;Fade routine
+    call transition_fade_step
 
     ;DMA
     ld a, high(w_oam_hud)
     call h_dma
+
+    ;VRAM transfers
+    call vqueue_execute
 
     ;Prepare to display HUD
     ld a, SHOP_LCDC_HUD

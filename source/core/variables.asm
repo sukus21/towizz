@@ -149,6 +149,11 @@ var_w0:
             ASSERT high(w_cgb_palette) == high(w_cgb_palette+7)
         ;
         
+        ; Fade value for scene transitions.
+        w_fade_state:: db $00
+        w_bgp:: dw $0000
+        w_obp0:: dw $0000
+        w_obp1:: dw $0000
 
         ; If you just need some value, this will do.
         w_vqueue_writeback:: db $00
