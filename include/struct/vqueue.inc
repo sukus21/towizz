@@ -83,15 +83,19 @@ DEF VQUEUE RB 0
 ; - `2`: Transfer operation count (n8)
 ; - `3`: Destination (address/label)
 ; - `4`: Source (label)
-; - `5`: Writeback pointer (address/label)
+; - `5*`: Writeback pointer (address/label, default: 0)
 MACRO vqueue_prepare
-    db \1       ;type
-    db \2       ;transfer operation count
-    db $00      ;progress
-    dw \3       ;destination
-    db bank(\4) ;source bank
-    dw \4       ;source
-    dw \5       ;writeback pointer
+    db \1           ;type
+    db \2           ;transfer operation count
+    db $00          ;progress
+    dw \3           ;destination
+    db bank(\4)     ;source bank
+    dw \4           ;source
+    IF _NARG == 5
+        dw \5       ;writeback pointer
+    ELSE
+        dw $0000    ;writeback pointer
+    ENDC
 ENDM
 
 
@@ -105,8 +109,8 @@ ENDM
 ; - `1`: Transfer type (`VQUEUE_TYPE_*`)
 ; - `2`: Destination (address/label)
 ; - `3`: Source (label)
-; - `4`: Writeback pointer (address/label)
-; - `5`: Source divisible by (n8, default: 16)
+; - `4*`: Writeback pointer (address/label, default: 0)
+; - `5*`: Source divisible by (n8, default: 16)
 MACRO vqueue_prepare_copy
     IF _NARG == 5
         ASSERT (\3.end - \3) % (\5) == 0
@@ -114,17 +118,21 @@ MACRO vqueue_prepare_copy
         ASSERT (\3.end - \3) % (16) == 0
     ENDC
 
-    db \1       ;type
+    db \1 | VQUEUE_MODEFLAG_COPYMODE    ;type
     IF _NARG == 5
-        db (\3.end - \3) / (\5) ;transfer operation count
+        db (\3.end - \3) / (\5)         ;transfer operation count
     ELSE
-        db (\3.end - \3) / (16) ;transfer operation count
+        db (\3.end - \3) / (16)         ;transfer operation count
     ENDC
-    db $00      ;progress
-    dw \2       ;destination
-    db bank(\3) ;source bank
-    dw \3       ;source
-    dw \4       ;writeback pointer
+    db $00                              ;progress
+    dw \2                               ;destination
+    db bank(\3)                         ;source bank
+    dw \3                               ;source
+    IF _NARG >= 4
+        dw \4                           ;writeback pointer
+    ELSE
+        dw $0000                        ;writeback pointer
+    ENDC
 ENDM
 
 
@@ -138,7 +146,7 @@ ENDM
 ; - `2`: Transfer operation count (n8)
 ; - `3`: Destination (address/label)
 ; - `4`: Byte value (n8)
-; - `5`: Writeback pointer (address/label)
+; - `5*`: Writeback pointer (address/label, default: 0)
 MACRO vqueue_prepare_set
     db \1 | VQUEUE_MODEFLAG_SETMODE ;type
     db \2                           ;transfer operation count
@@ -146,7 +154,11 @@ MACRO vqueue_prepare_set
     dw \3                           ;destination
     db \4                           ;fill byte
     dw $0000                        ;source data (unused for SET mode)
-    dw \5                           ;writeback pointer
+    IF _NARG == 5
+        dw \5                       ;writeback pointer
+    ELSE
+        dw $0000                    ;writeback pointer
+    ENDC
 ENDM
 
 
