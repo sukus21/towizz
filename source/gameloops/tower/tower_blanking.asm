@@ -15,13 +15,13 @@ tower_vblank::
     call transition_fade_step
 
     ;Reset background for HUD
-    ld a, HUD_SCX
+    ld a, TOWER_HUD_SCX
     ldh [rSCX], a
-    ld a, HUD_SCY
+    ld a, TOWER_HUD_SCY
     ldh [rSCY], a
 
     ;Reset window position
-    ld a, BACKGROUND_OFFSCREEN_SCX
+    ld a, TOWER_BACKGROUND_OFFSCREEN_SCX
     ldh [rWX], a
     ld a, [w_background_ypos+1]
     ldh [rWY], a
@@ -38,7 +38,7 @@ tower_vblank::
     call h_dma
 
     ;Set mid-hud interrupt
-    ld a, HUD_LYC
+    ld a, TOWER_HUD_LYC
     ldh [rLYC], a
     LYC_set_jumppoint tower_hblank_gui
     
@@ -80,7 +80,7 @@ tower_hblank_gui::
     :
         LYC_set_jumppoint tower_hblank_tower
     :
-    ld a, HUD_HEIGHT-1
+    ld a, TOWER_HUD_HEIGHT-1
     ldh [rLYC], a
 
     ;Platform drawn entirely with sprites?
@@ -98,7 +98,7 @@ tower_hblank_gui::
     jr nz, :+
         ;Disable platform, or the LYC interrupt will clash with Vblank
         .no_platform
-        ld a, PLATFORM_DISABLE
+        ld a, TOWER_PLATFORM_DISABLE
         ldh [h_tower_buffer + TOWER_BUFFER_PYPOS], a
         jr .lyc_isset
     :
@@ -109,7 +109,7 @@ tower_hblank_gui::
     ld c, a
 
     ;Skip platform?
-    cp a, HUD_HEIGHT
+    cp a, TOWER_HUD_HEIGHT
     jr z, .no_platform
     jr c, .no_platform
 
@@ -118,7 +118,7 @@ tower_hblank_gui::
     jr c, .yes_platform
 
     ld a, b
-    cp a, HUD_HEIGHT
+    cp a, TOWER_HUD_HEIGHT
     jr z, .yes_platform
     jr nc, .lyc_isset
     
@@ -135,7 +135,7 @@ tower_hblank_gui::
     ;Wait for appropriate scanline
     :
     ldh a, [rLY]
-    cp a, HUD_DMA_LYC
+    cp a, TOWER_HUD_DMA_LYC
     jr c, :-
     :
     ldh a, [rSTAT]
@@ -266,7 +266,7 @@ tower_hblank_platform::
     ;Calculate background position
     ldh a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
     ld h, a
-    ld a, PLATFORM_SCY
+    ld a, TOWER_PLATFORM_SCY
     sub a, h
     ld h, a
     ldh a, [h_tower_buffer + TOWER_BUFFER_PXPOS]
@@ -275,7 +275,7 @@ tower_hblank_platform::
     ld l, a
 
     ;This will make the section routine faster
-    ld a, PLATFORM_DISABLE
+    ld a, TOWER_PLATFORM_DISABLE
     ldh [h_tower_buffer + TOWER_BUFFER_PYPOS], a
 
     ;Wait for H-blank

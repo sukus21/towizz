@@ -1,26 +1,26 @@
 ; LYC value for mid-hud interrupt.
-DEF HUD_LYC EQU $0D
+DEF TOWER_HUD_LYC EQU $0D
 
 ; Scanline to perform midframe DMA on.
-DEF HUD_DMA_LYC EQU $10
+DEF TOWER_HUD_DMA_LYC EQU $10
 
 ; Height of the HUD.
-DEF HUD_HEIGHT EQU $14
+DEF TOWER_HUD_HEIGHT EQU $14
 
 ; Coordinate for SCX when displaying HUD.
-DEF HUD_SCX EQU $00
+DEF TOWER_HUD_SCX EQU $00
 
 ; Coordniate for SCY when displaying HUD.
-DEF HUD_SCY EQU -$30
+DEF TOWER_HUD_SCY EQU -$30
 
 ; Resting position of platform when not in use
-DEF PLATFORM_DISABLE EQU SCRN_Y + 1
+DEF TOWER_PLATFORM_DISABLE EQU SCRN_Y + 1
 
 ; Platform scroll position
-DEF PLATFORM_SCY EQU -$18
+DEF TOWER_PLATFORM_SCY EQU -$18
 
 ; Background SCX when offscreen
-DEF BACKGROUND_OFFSCREEN_SCX EQU SCRN_X + 5
+DEF TOWER_BACKGROUND_OFFSCREEN_SCX EQU SCRN_X + 5
 
 RSRESET
 

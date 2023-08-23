@@ -224,7 +224,7 @@ tower_buffer_prepare:
     ;LYC
     ld a, [w_tower_ypos+1]
     ld c, a
-    ld a, HUD_HEIGHT-1
+    ld a, TOWER_HUD_HEIGHT-1
     sub a, c
     ld [hl+], a
 
