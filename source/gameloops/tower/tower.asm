@@ -16,6 +16,8 @@ SECTION "GAMELOOP TOWER", ROM0
 ;
 ; Saves: none
 gameloop_tower_setup:
+    di
+
     ;Set tower flags
     ld a, TOWERMODEF_TOWER_REPEAT
     ld [w_tower_flags], a

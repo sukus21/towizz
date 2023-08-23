@@ -68,7 +68,15 @@ ENDM
 MACRO relpointer_push
     DEF __RELPOINTER_STACK_{d:__RELPOINTER_STACK} = __RELPOINTER_POSITION
     DEF __RELPOINTER_STACK += 1
-    push hl
+    IF STRCMP(STRLWR("{__RELPOINTER_REGISTER}"), "l") == 0
+        push hl
+    ELIF STRCMP(STRLWR("{__RELPOINTER_REGISTER}"), "c") == 0
+        push bc
+    ELIF STRCMP(STRLWR("{__RELPOINTER_REGISTER}"), "e") == 0
+        push de
+    ELSE
+        FAIL "relpointer - register is not low part of r16, cannot push"
+    ENDC
     relpointer_move \1
 ENDM
 
@@ -83,7 +91,15 @@ MACRO relpointer_pop
     ASSERT __RELPOINTER_STACK != 0, "Cannot pop from an empty relpointer stack"
     DEF __RELPOINTER_STACK -= 1
     DEF __RELPOINTER_POSITION = __RELPOINTER_STACK_{d:__RELPOINTER_STACK}
-    pop hl
+    IF STRCMP(STRLWR("{__RELPOINTER_REGISTER}"), "l") == 0
+        pop hl
+    ELIF STRCMP(STRLWR("{__RELPOINTER_REGISTER}"), "c") == 0
+        pop bc
+    ELIF STRCMP(STRLWR("{__RELPOINTER_REGISTER}"), "e") == 0
+        pop de
+    ELSE
+        FAIL "relpointer - register is not low part of r16, cannot pop"
+    ENDC
 ENDM
 
 

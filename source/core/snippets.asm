@@ -107,8 +107,8 @@ memset::
 ; - `hl`: Destination + Byte count
 ; - `c`: `$00`
 ;
-; Destroys: `af`
-; Saves; `de`
+; Destroys: `af`  
+; Saves: `de`
 memset_short::
 
     ;Fill data

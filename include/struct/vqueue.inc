@@ -229,7 +229,7 @@ ENDM
 ;
 ; Input:
 ; - `1`: Transfer type (`VQUEUE_TYPE_*`)
-; - `2`: Destination (address/label)
+; - `2`: Destination (address/label/r16)
 ; - `3`: Source (label)
 ; - `4*`: Source divisible by (default: 16)
 ;
