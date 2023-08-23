@@ -75,17 +75,17 @@ gameloop_shop_setup:
     ;Create shop door
     ld de, VT_SHOP_SHOPDOOR
     farcall entity_shopdoor_load
-    ld a, VTI_SHOP_SHOPDOOR
+    ld b, VTI_SHOP_SHOPDOOR
     farcall entity_shopdoor_create
     relpointer_init l
     relpointer_move ENTVAR_SHOPDOOR_XPOS
-    ld [hl], 136
+    ld [hl], SHOP_SHOPDOOR_XPOS
     relpointer_move ENTVAR_SHOPDOOR_YPOS
-    ld [hl], 100
+    ld [hl], SHOP_SHOPDOOR_YPOS
     relpointer_move ENTVAR_SHOPDOOR_ADDR
-    ld a, low(gameloop_tower)
+    ld a, low(tower_transition_shop)
     ld [hl+], a
-    ld a, high(gameloop_tower)
+    ld a, high(tower_transition_shop)
     ld [hl-], a
     relpointer_destroy
 

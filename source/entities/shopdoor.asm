@@ -25,14 +25,14 @@ entity_shopdoor_load::
 ; Creates a new shopdoor entity.
 ;
 ; Input:
-; - `a`: Tile index
+; - `b`: Tile index
 ;
 ; Returns:
 ; - `hl`: Entity pointer
 ;
 ; Destroys: all
 entity_shopdoor_create::
-    push af
+    push bc
     call entsys_new16
     ld h, b
     ld l, c

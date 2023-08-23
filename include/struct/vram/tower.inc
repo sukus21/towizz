@@ -19,6 +19,10 @@ RSSET $80
     DEF VT_TOWER_PLATFORM EQU $8000 + $10 * _RS
     DEF VTI_TOWER_PLATFORM RB $20
 
+    ; Shopdoor tiles.
+    DEF VT_TOWER_SHOPDOOR EQU $8000 + $10 * _RS
+    DEF VTI_TOWER_SHOPDOOR RB $02
+
     ; HUD tiles.
     DEF _RS += _RS & 1
     DEF VT_TOWER_HUD EQU $8000 + $10 * _RS

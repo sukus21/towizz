@@ -28,6 +28,12 @@ DEF SHOP_LCDC_BACKGROUND EQU LCDCF_ON | LCDCF_BGON | LCDCF_BLK21 | LCDCF_BG9800 
 ; Shows the HUD.
 DEF SHOP_LCDC_HUD EQU LCDCF_ON | LCDCF_BGON | LCDCF_BLK21 | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
 
+; Shop exit X-position
+DEF SHOP_SHOPDOOR_XPOS EQU 136
+
+; Shop exit Y-position
+DEF SHOP_SHOPDOOR_YPOS EQU 100
+
 ; Max open-ness of the preview pane.
 ; When this value is reached, item preview movies can begin.
 DEF SHOP_PREVIEW_OPEN EQU $30

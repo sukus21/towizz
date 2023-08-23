@@ -38,7 +38,7 @@
     * [x] LYC interrupts
     * [x] Item preview system
     * [ ] Shopping music
-* [ ] Shop <-> Tower transition
+* [x] Shop <-> Tower transition
 * [x] VRAM transfer queue
     * [x] Implement HALFMAP mode
     * [x] Implement COLUMN mode

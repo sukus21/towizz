@@ -46,4 +46,16 @@ DEF TOWERMODEB_TOWER_TILEMAP RB 1
 DEF TOWERMODEF_TOWER_REPEAT EQU 1 << _RS
 DEF TOWERMODEB_TOWER_REPEAT RB 1
 
+; Camera X-position when transitioning to/from shop.
+; Sub-pixel position is 0.
+DEF TOWER_CAMERA_XPOS_SHOP EQU $38
+
+; Platform Y-position when transitioning to/from shop.
+; Sub-pixel position is 0.
+DEF TOWER_PLATFORM_YPOS_SHOP EQU 144 - 24
+
+; Platform X-position when transitioning to/from shop.
+; Sub-pixel position is 0.
+DEF TOWER_PLATFORM_XPOS_SHOP EQU $80 + $1B
+
     ENDC
