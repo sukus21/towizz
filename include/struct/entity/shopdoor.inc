@@ -1,0 +1,31 @@
+    IF !DEF(ENTITY_SHOPDOOR)
+    DEF ENTITY_SHOPDOOR EQU 1
+
+INCLUDE "entsys.inc"
+
+RSSET ENTVAR_VAR
+DEF ENTVAR_SHOPDOOR_VAR RB 0
+
+; X-position in scene.
+DEF ENTVAR_SHOPDOOR_XPOS RB 1
+
+; Y-position to draw sprites at.
+DEF ENTVAR_SHOPDOOR_YPOS RB 1
+
+; Animation timer.
+DEF ENTVAR_SHOPDOOR_TIMER RB 1
+
+; Tiles to use when drawing tooltip.
+DEF ENTVAR_SHOPDOOR_TILE RB 1
+
+; Has this door been entered or not?
+DEF ENTVAR_SHOPDOOR_ENTERED RB 1
+
+; Which address to jump to when entered.
+DEF ENTVAR_SHOPDOOR_ADDR RB 2
+
+DEF ENTVAR_SHOPDOOR_END RB 0
+DEF ENTVAR_SHOPDOOR_COUNT EQU _RS - ENTVAR_SHOPDOOR_VAR
+ASSERT ENTVAR_SHOPDOOR_END <= 16
+
+    ENDC

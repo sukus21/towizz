@@ -57,5 +57,5 @@ main::
     ldh [rLCDC], a
     
     ;Go to gameloop
-    jp gameloop_tower
+    jp gameloop_shop
 ;

@@ -14,6 +14,10 @@ RSSET $00
     ; Preview tileset.
     DEF VT_SHOP_PREVIEW EQU $8000 + $10 * _RS
     DEF VTI_SHOP_PREVIEW RB $40
+
+    ; Shopdoor tiles
+    DEF VT_SHOP_SHOPDOOR EQU $8000 + $10 * _RS
+    DEF VTI_SHOP_SHOPDOOR RB $02
 ASSERT _RS <= $80
 
 ;Block 1 (sprites + background)

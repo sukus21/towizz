@@ -6,6 +6,7 @@ INCLUDE "macros/relpointer.inc"
 INCLUDE "struct/item.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/entity/player.inc"
+INCLUDE "struct/entity/shopdoor.inc"
 INCLUDE "struct/vram/shop.inc"
 
 SECTION "GAMELOOP SHOP", ROM0
@@ -69,6 +70,23 @@ gameloop_shop_setup:
     ld [hl-], a
     relpointer_move ENTVAR_PLAYER_FLAGS
     set PLAYER_FLAGB_FACING, [hl]
+    relpointer_destroy
+
+    ;Create shop door
+    ld de, VT_SHOP_SHOPDOOR
+    call entity_shopdoor_load
+    ld a, VTI_SHOP_SHOPDOOR
+    call entity_shopdoor_create
+    relpointer_init l
+    relpointer_move ENTVAR_SHOPDOOR_XPOS
+    ld [hl], 136
+    relpointer_move ENTVAR_SHOPDOOR_YPOS
+    ld [hl], 100
+    relpointer_move ENTVAR_SHOPDOOR_ADDR
+    ld a, low(gameloop_tower)
+    ld [hl+], a
+    ld a, high(gameloop_tower)
+    ld [hl-], a
     relpointer_destroy
 
     ;Create item(s)
@@ -161,16 +179,6 @@ gameloop_shop::
     ;
     
     .preview_done
-
-    ;Test fade routine
-    ldh a, [h_input_pressed]
-    bit PADB_SELECT, a
-    ld a, COLOR_FADESTATE_OUT
-    call nz, transition_fade_init
-    ldh a, [h_input_pressed]
-    bit PADB_START, a
-    ld a, COLOR_FADESTATE_IN
-    call nz, transition_fade_init
 
     ;Finish up sprites for this frame
     ldh a, [h_oam_active]
