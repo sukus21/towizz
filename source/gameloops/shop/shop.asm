@@ -61,7 +61,7 @@ gameloop_shop_setup:
     ;Set up entitysystem and create player
     call vqueue_clear
     call entsys_clear
-    farcall_0 entity_player_create
+    farcall entity_player_create
     relpointer_init l, ENTVAR_BANK
     relpointer_move ENTVAR_XPOS
     xor a
@@ -74,9 +74,9 @@ gameloop_shop_setup:
 
     ;Create shop door
     ld de, VT_SHOP_SHOPDOOR
-    call entity_shopdoor_load
+    farcall entity_shopdoor_load
     ld a, VTI_SHOP_SHOPDOOR
-    call entity_shopdoor_create
+    farcall entity_shopdoor_create
     relpointer_init l
     relpointer_move ENTVAR_SHOPDOOR_XPOS
     ld [hl], 136
@@ -94,13 +94,13 @@ gameloop_shop_setup:
     ld [w_shop_itemsprite], a
     ld b, $08
     ld c, ITEM_ID_BALL
-    farcall_0 entity_shopitem_create
+    farcall entity_shopitem_create
     ld b, $28
     ld c, ITEM_ID_BALL
-    farcall_0 entity_shopitem_create
+    farcall entity_shopitem_create
     ld b, $48
     ld c, ITEM_ID_BALL
-    farcall_0 entity_shopitem_create
+    farcall entity_shopitem_create
 
     ;Prepare a couple vqueue transfers
     vqueue_enqueue_auto player_vprep_base

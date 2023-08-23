@@ -1,15 +1,15 @@
 ; Switches banks, and jumps to the given symbol.
-; `a` and `hl` will be clobbered before the jump,
+; `a` will be clobbered before the jump,
 ; and can therefore not be used as function arguments.
 ; Does not switch banks back when returning.
 ;
 ; Input:
-; - `1`: Symbol to call
+; - `1`: Symbol to call (label)
 ;
-; Destroys: `a`, `hl`, unknown
-MACRO farcall_0
+; Destroys: `a`, unknown
+MACRO farcall
+    ASSERT bank(@) == 0, "farcall - can only do non-returning farcall from ROM0"
     ld a, bank(\1)
     ld [rROMB0], a
-    ld hl, \1
-    call _hl_
+    call \1
 ENDM

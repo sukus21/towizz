@@ -624,7 +624,7 @@ entsys_clear::
         ld [hl+], a     ;entity bank
         ld [hl], $40    ;slot size
         inc l
-        ld [hl+], a     ;step function pointer, high
+        ld [hl+], a     ;step function pointer, low
         ld [hl+], a     ;step function pointer, high
         REPT 12
             ld [hl+], a ;unassigned data
@@ -632,6 +632,18 @@ entsys_clear::
         dec b
         jr nz, .entsys_loop
     ;
+
+    ;Set first-pointers
+    ld hl, w_entsys_first16
+    xor a
+    ld [hl+], a
+    ld [hl+], a
+    ld [hl+], a
+    ld [hl+], a
+    ld a, low(w_entsys)
+    ld [hl+], a
+    ld a, high(w_entsys)
+    ld [hl+], a
 
     ;Return
     ret

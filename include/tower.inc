@@ -1,3 +1,8 @@
+    IF !DEF(TOWER_INC)
+    DEF TOWER_INC EQU 1
+
+INCLUDE "hardware.inc"
+
 ; LYC value for mid-hud interrupt.
 DEF TOWER_HUD_LYC EQU $0D
 
@@ -40,3 +45,5 @@ DEF TOWERMODEB_TOWER_TILEMAP RB 1
 ; When switched off, works best with tower on SCRN1.
 DEF TOWERMODEF_TOWER_REPEAT EQU 1 << _RS
 DEF TOWERMODEB_TOWER_REPEAT RB 1
+
+    ENDC

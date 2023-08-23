@@ -45,7 +45,7 @@ setup::
     ldh [h_setup], a
 
     ;Do my intro with the logo
-    ;farcall_0 intro
+    ;farcall intro
 
     ; Skip GBC detection and RNG reset.
     ; Lives in ROM0.
@@ -90,7 +90,7 @@ setup::
     .rngskip
 
     ;Setup ALL variables
-    farcall_0 variables_init
+    farcall variables_init
 
     ;Put RNG seed back maybe
     pop af
