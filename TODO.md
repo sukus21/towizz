@@ -36,7 +36,7 @@
 * [ ] Shop gameloop
     * [x] VRAM layout
     * [x] LYC interrupts
-    * [ ] Item preview
+    * [x] Item preview system
     * [ ] Shopping music
 * [ ] Shop <-> Tower transition
 * [x] VRAM transfer queue
