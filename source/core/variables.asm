@@ -127,13 +127,13 @@ var_w0:
 
         ; Background Y-position changes by this value every frame.
         w_background_yspeed:: dw $0000
-        w_background_ypos:: dw $0000
+        w_background_ypos:: dw $0F00
 
         ; Added to camera X-position every frame.
         w_camera_xspeed:: dw $0000
 
         ; Camera offset in pixels.
-        w_camera_xpos:: dw $3800
+        w_camera_xpos:: dw $6000
 
         ; A `TOWER_BUFFER` struct.
         ; Prepared for HRAM transfer.
@@ -183,6 +183,8 @@ var_w0:
         ; Number of waves passed.
         w_waves_passed:: db $00
 
+        ; Current background section.
+        w_background_section:: db $03
     ENDL
     var_w0_end:
 ;

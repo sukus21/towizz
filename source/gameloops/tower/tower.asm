@@ -39,7 +39,7 @@ gameloop_tower_setup:
 
     ;Initialize entity system
     call entsys_clear
-    farcall entity_towerdemo_create
+    farcall entity_background_test_create
     farcall entity_player_create
 
     ;Call regular V-blank routine
