@@ -1,4 +1,4 @@
-INCLUDE "struct/vram/tower.inc"
+
 
 SECTION "TOWER BACKGROUND DATA", ROMX
 
@@ -27,7 +27,7 @@ tower_background_newtiles::
     db $0C
     db $12
 
-    db $14
+    db $10
     db $07
     db $17
     db $10
