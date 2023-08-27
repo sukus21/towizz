@@ -24,54 +24,9 @@ tower_background_fullqueue::
     :
     ld d, b
 
-    ;Get pointer to tilemap data -> BC
-    ld bc, tower_background_tlm
-    ld a, TOWER_BACKGROUND_SECTIONCOUNT-1
-    sub a, d
-    add a, a
-    add a, a
-    swap a
-    ld e, a
-    and a, %00001111
-    add a, b
-    ld b, a
-    ld a, e
-    and a, %11110000
-    add a, c
-    ld c, a
-    jr nc, :+
-        inc b
-    :
-
-    ;Copy tilemap data
-    call vqueue_get
-
-    ;Write type and length
-    ld a, VQUEUE_TYPE_HALFROW
-    ld [hl+], a ;type
-    ld a, 16
-    ld [hl+], a ;length
-    xor a
-    ld [hl+], a ;progress
-
-    ;Write destination
-    ld a, low(VM_TOWER_BACKGROUND0)
-    ld [hl+], a ;destination (low)
-    ld a, high(VM_TOWER_BACKGROUND0)
-    ld [hl+], a ;destination (high)
-    
-    ;Write source
-    ld a, bank(tower_background_tlm)
-    ld [hl+], a
-    ld a, c
-    ld [hl+], a
-    ld a, b
-    ld [hl+], a
-
-    ;Reset writeback
-    xor a
-    ld [hl+], a
-    ld [hl+], a
+    ;Load tilemap
+    ld e, high(VM_TOWER_BACKGROUND0)
+    call tower_background_mapqueue
 
     ;Figure out oldest tile to load -> C
     ld a, d
@@ -210,6 +165,65 @@ tower_background_tilequeue::
         ;Return
         ret
     ;
+;
+
+
+
+; Input:
+; - `d`: Section number
+; - `e`: Target tilemap (high)
+tower_background_mapqueue::
+
+    ;Get pointer to tilemap data -> BC
+    ld bc, tower_background_tlm
+    ld a, TOWER_BACKGROUND_SECTIONCOUNT-1
+    sub a, d
+    add a, a
+    add a, a
+    swap a
+    ld l, a
+    and a, %00001111
+    add a, b
+    ld b, a
+    ld a, l
+    and a, %11110000
+    add a, c
+    ld c, a
+    jr nc, :+
+        inc b
+    :
+
+    ;Copy tilemap data
+    call vqueue_get
+
+    ;Write type and length
+    ld a, VQUEUE_TYPE_HALFROW
+    ld [hl+], a ;type
+    ld a, 16
+    ld [hl+], a ;length
+    xor a
+    ld [hl+], a ;progress
+
+    ;Write destination
+    ld [hl+], a ;destination (low)
+    ld a, e
+    ld [hl+], a ;destination (high)
+    
+    ;Write source
+    ld a, bank(tower_background_tlm)
+    ld [hl+], a
+    ld a, c
+    ld [hl+], a
+    ld a, b
+    ld [hl+], a
+
+    ;Reset writeback
+    xor a
+    ld [hl+], a
+    ld [hl+], a
+
+    ;Return
+    ret
 ;
 
 
