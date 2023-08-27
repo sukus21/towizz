@@ -35,6 +35,11 @@ RSSET $00
     ;Location of tower tileset.
     DEF VT_TOWER_TOWER EQU $9000 + $10 * _RS
     DEF VTI_TOWER_TOWER RB $20
+
+    ; Location of background tileset.
+    ; This tileset is very dynamic.
+    DEF VT_TOWER_BACKGROUND EQU $9000 + $10 * _RS
+    DEF VTI_TOWER_BACKGROUND RB $60
 ASSERT _RS <= $80
 
 
