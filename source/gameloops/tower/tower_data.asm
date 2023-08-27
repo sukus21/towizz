@@ -110,19 +110,3 @@ tower_vprep_hud:
         VTI_TOWER_HUD + $02
     ;
 ;
-
-tower_vprep_background:
-    vqueue_prepare_set \
-        VQUEUE_TYPE_HALFROW, \
-        18, \
-        VM_TOWER_BACKGROUND0, \
-        VTI_TOWER_PLATFORM
-    ;
-
-    vqueue_prepare_set \
-        VQUEUE_TYPE_HALFROW, \
-        18, \
-        VM_TOWER_BACKGROUND1, \
-        VTI_TOWER_PLATFORM
-    ;
-;

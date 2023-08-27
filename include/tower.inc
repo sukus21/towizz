@@ -58,4 +58,9 @@ DEF TOWER_PLATFORM_YPOS_SHOP EQU 144 - 24
 ; Sub-pixel position is 0.
 DEF TOWER_PLATFORM_XPOS_SHOP EQU $80 + $1B
 
+
+
+; Number of 16x4 segments in background.
+DEF TOWER_BACKGROUND_SECTIONCOUNT EQU 16
+
     ENDC

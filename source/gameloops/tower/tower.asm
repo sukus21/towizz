@@ -25,10 +25,14 @@ gameloop_tower_setup:
     ldh [h_oam_active], a
 
     ;Perform VRAM transfers
+    ld b, 3
+    call tower_background_fullqueue
+    call gameloop_loading
+
     ld a, bank(tower_vprep)
     ld [rROMB0], a
     ld de, tower_vprep
-    ld b, 9
+    ld b, 7
     call vqueue_enqueue_multi
     vqueue_enqueue_auto player_vprep_base
     call gameloop_loading
