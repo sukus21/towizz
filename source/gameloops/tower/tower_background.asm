@@ -1,3 +1,4 @@
+INCLUDE "hardware.inc"
 INCLUDE "tower.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/vram/tower.inc"
@@ -58,12 +59,14 @@ tower_background_fullqueue::
 
 
 
-; Queue up background tiles for transfer.
+; Queue up background tiles for transfer.  
+; Assumes the correct bank is switched in.  
+; Lives in ROM0.
 ;
 ; Input:
 ; - `b`: Highest tile ID
 ; - `c`: Lowest tile ID
-tower_background_tilequeue::
+tower_background_tilequeue:
     
     ;Pointer to oldest tile -> HL
     ld hl, tower_background_tls
@@ -169,6 +172,10 @@ tower_background_tilequeue::
 
 
 
+; Creates a vqueue transfer that loads the specified background tiles.  
+; Assumes the correct bank is switched in.  
+; Lives in ROM0.
+;
 ; Input:
 ; - `d`: Section number
 ; - `e`: Target tilemap (high)
@@ -193,13 +200,24 @@ tower_background_mapqueue::
         inc b
     :
 
+    ;Modify tilemap pointer a bit
+    ld a, e
+    cp a, high(VM_TOWER_BACKGROUND1)
+    jr nz, :+
+        ld a, c
+        add a, $20
+        ld c, a
+        jr nc, :+
+        inc b
+    :
+
     ;Copy tilemap data
     call vqueue_get
 
     ;Write type and length
     ld a, VQUEUE_TYPE_HALFROW
     ld [hl+], a ;type
-    ld a, 16
+    ld a, 18
     ld [hl+], a ;length
     xor a
     ld [hl+], a ;progress
@@ -217,10 +235,15 @@ tower_background_mapqueue::
     ld a, b
     ld [hl+], a
 
-    ;Reset writeback
-    xor a
+    ;Set writeback pointer
+    ld a, low(w_background_writeback)
     ld [hl+], a
+    ld a, high(w_background_writeback)
     ld [hl+], a
+
+    ;Increment writeback target
+    ld hl, w_background_writeback_target
+    inc [hl]
 
     ;Return
     ret
@@ -228,6 +251,9 @@ tower_background_mapqueue::
 
 
 
+; Adds a background transfer to the vqueue.  
+; Lives in ROM0.
+;
 ; Input:
 ; - `a`: Operation count
 ; - `de`: Destination
@@ -261,11 +287,119 @@ background_transfer_add:
     ld a, b
     ld [hl+], a
 
-    ;Reset writeback
-    xor a
+    ;Set writeback pointer
+    ld a, low(w_background_writeback)
     ld [hl+], a
+    ld a, high(w_background_writeback)
     ld [hl+], a
 
+    ;Increment writeback target
+    ld hl, w_background_writeback_target
+    inc [hl]
+
     ;Return
+    ret
+;
+
+
+
+; 
+; Switches banks.  
+; Lives in ROM0.
+;
+; Input:
+; - `b`: Section number
+tower_background_nextqueue::
+    ld a, bank(tower_background_newtiles)
+    ld [rROMB0], a
+    push bc
+    inc b
+    xor a
+    ld hl, tower_background_newtiles-1
+    :   inc hl
+        add a, [hl]
+        dec b
+        jr nz, :-
+    ;
+
+    ;Load the funny tiles
+    ld b, a
+    sub a, [hl]
+    ld c, a
+    call tower_background_tilequeue
+
+    ;Load the funny map
+    pop de
+    ld e, high(VM_TOWER_BACKGROUND1)
+    call tower_background_mapqueue
+
+    ;Return
+    ret
+;
+
+
+
+; Moves the platform animation along.  
+; Switches banks.  
+; Lives in ROM0.
+tower_background_step::
+    xor a
+    ld [w_background_writeback], a
+    ld a, [w_tower_flags]
+    bit TOWERMODEB_WINDOW_TILEMAP, a
+    ld hl, w_background_section
+    ld a, [hl]
+    jr z, .small
+    
+        ;Reset entirely?
+        cp a, 15
+        jr nz, :+
+            ld a, 3
+            ld [hl], a
+            ld b, a
+            jp tower_background_fullqueue
+        :
+
+        ;Just go to next section
+        inc a
+        ld [hl], a
+        ld b, a
+        jp tower_background_nextqueue
+    ;
+
+    ;Copy tilemap to background 1
+    .small
+    ld a, bank(tower_background_newtiles)
+    ld [rROMB0], a
+    ld d, [hl]
+    ld e, high(VM_TOWER_BACKGROUND0)
+    jp tower_background_mapqueue
+;
+
+
+
+; Listens.
+tower_background_handler::
+    ld hl, w_background_writeback_target
+    ld a, [hl-]
+    or a, a ;xp a, 0
+    ret z
+
+    ;Compare to current writeback status
+    cp a, [hl]
+    ret c
+
+    ;Alright, loading is done, toggle window
+    ld bc, w_tower_flags
+    ld a, [bc]
+    xor a, TOWERMODEF_WINDOW_TILEMAP
+    ld [bc], a
+
+    ;Reset writeback registers as well
+    xor a
+    ld [hl+], a
+    ld [hl], a
+
+    ;That's it I think
     ret
 ;

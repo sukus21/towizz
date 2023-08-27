@@ -11,10 +11,10 @@ SECTION "BACKGROUND TEST", ROMX
 ;
 ; Destroys: all
 entity_background_test_create::
-    push bc
     call entsys_new16
     ld h, b
     ld l, c
+    push hl
     relpointer_init l
 
     ;Set bank and execution pointer
@@ -48,24 +48,6 @@ entity_background_test:
     bit PADB_SELECT, a
     ret z
 
-    ld a, [w_background_section]
-    bit PADB_A, b
-    jr z, :+
-        dec a
-        cp a, 3
-        jr nc, .shifting
-        ld a, 15
-        jr .shifting
-    :
-        inc a
-        cp a, 16
-        jr c, .shifting
-        ld a, 3
-    ;
-
-    .shifting
-    ld [w_background_section], a
-    ld b, a
-    jp tower_background_fullqueue
+    jp tower_background_step
     ;I had to jump there, as the bank this code is in would be switched out.
 ;

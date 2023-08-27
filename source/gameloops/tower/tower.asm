@@ -86,8 +86,12 @@ gameloop_tower::
     .main::
     call input
     call entsys_step
-    call tower_buffer_prepare
     call draw_hud
+    ldh a, [h_input]
+    bit PADB_A, a
+    call z, tower_update
+    call tower_background_handler
+    call tower_buffer_prepare
 
     ;Wait for Vblank
     ldh a, [h_oam_active]
@@ -179,8 +183,12 @@ tower_update::
     ;Clamp background scroll position
     ld hl, w_background_ypos+1
     ld a, [hl]
-    and a, %00001111
-    ld [hl], a
+    cp a, 16
+    jr c, :+
+        xor a
+        ld [hl], a
+        call tower_background_step
+    :
 
     ;Clamp tower position.
     call tower_truncate

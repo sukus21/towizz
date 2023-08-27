@@ -126,8 +126,8 @@ var_w0:
         w_platform_height:: db $10
 
         ; Background Y-position changes by this value every frame.
-        w_background_yspeed:: dw $0000
-        w_background_ypos:: dw $0F00
+        w_background_yspeed:: dw $0040
+        w_background_ypos:: dw $0000
 
         ; Added to camera X-position every frame.
         w_camera_xspeed:: dw $0000
@@ -185,6 +185,13 @@ var_w0:
 
         ; Current background section.
         w_background_section:: db $03
+
+        ; Writeback address for tower background thing.
+        w_background_writeback:: db $00
+
+        ; Writeback target value.
+        w_background_writeback_target:: db $00
+
     ENDL
     var_w0_end:
 ;
