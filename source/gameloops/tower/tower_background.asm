@@ -94,6 +94,22 @@ tower_background_fullqueue::
         jr nz, :-
     ld b, a
 
+    ;Transfer tiles needed
+    call tower_background_tilequeue
+
+    ;Return
+    ret
+;
+
+
+
+; Queue up background tiles for transfer.
+;
+; Input:
+; - `b`: Highest tile ID
+; - `c`: Lowest tile ID
+tower_background_tilequeue::
+    
     ;Pointer to oldest tile -> HL
     ld hl, tower_background_tls
     swap c
@@ -123,6 +139,7 @@ tower_background_fullqueue::
     :   sub a, e
         jr nc, :-
         add a, e
+    push af
     ld de, VT_TOWER_BACKGROUND
     swap a
     ld c, a
@@ -137,16 +154,80 @@ tower_background_fullqueue::
         inc d
     :
 
-    ;A bit of register shuffling to free HL
+    ;Should transfer be split in 2?
+    pop af
+    ld c, a
+    add a, b
+    sub a, $60
+    jr nc, .split
+
+    ;Start tha transfer!
     ld a, b
-    push af
     ld b, h
     ld c, l
+    call background_transfer_add
 
+    ;Return
+    ret
+
+    ; Split transfer.
+    ;
+    ; Input:
+    ; - `a`: Overshoot amount
+    ; - `de`: Destination
+    ; - `hl`: Source
+    ; - `b`: Unmodified operation count
+    .split
+        push af
+        ld c, a
+        ld a, b
+        sub a, c
+        push af
+
+        ;Do intended transfer, but truncated
+        ld b, h
+        ld c, l
+        call background_transfer_add
+
+        ;Do the trail end of truncated transfer
+        ld de, VT_TOWER_BACKGROUND
+        pop af
+        swap a
+        ld h, a
+        and a, %00001111
+        add a, b
+        ld b, a
+        ld a, h
+        and a, %11110000
+        add a, c
+        ld c, a
+        jr nc, :+
+            inc b
+        :
+        pop af
+        call background_transfer_add
+
+        ;Return
+        ret
+    ;
+;
+
+
+
+; Input:
+; - `a`: Operation count
+; - `de`: Destination
+; - `bc`: Source
+;
+; Saves: `bc`, `de`  
+; Destroys: `af`, `hl`
+background_transfer_add:
+    
     ;Start transferin'
+    push af
     call vqueue_get
-    ld [hl], VQUEUE_TYPE_DIRECT ;transfer type
-    inc hl
+    ld a, VQUEUE_TYPE_DIRECT
+    ld [hl+], a ;transfer type
     pop af
     ld [hl+], a ;transfer length
     xor a

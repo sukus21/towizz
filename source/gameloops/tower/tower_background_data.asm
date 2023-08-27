@@ -23,9 +23,9 @@ tower_background_newtiles::
     db $11
 
     db $0A
-    db $0D
-    db $0D
-    db $11
+    db $12
+    db $0C
+    db $12
 
     db $14
     db $07
@@ -42,16 +42,16 @@ tower_background_oldtile::
 
     db $00
     db $00
-    db $2C
-    db $2C
+    db $2B
+    db $2B
 
-    db $3C
-    db $59
-    db $60
+    db $2B
+    db $4B
+    db $5A
+    db $5A
+
     db $84
-
     db $94
-    db $AB
-    db $AB
-    db $AB
+    db $9B
+    db $9B
 ;
