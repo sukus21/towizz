@@ -129,7 +129,7 @@ entity_player_update:
     cp a, PLAYER_STATE_AIRBORNE
     jp z, player_animate_airborne
     cp a, PLAYER_STATE_JUMPSQUAT
-    ld b, PLAYER_SPRITE_JUMPSQUAT
+    ld b, PLAYER_SPRITE_JUMP_JUMPSQUAT
     jp z, player_animate_set
 
     ;Unknown state found

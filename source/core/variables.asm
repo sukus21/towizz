@@ -1,11 +1,10 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
+INCLUDE "macros/color.inc"
 INCLUDE "struct/oam_mirror.inc"
 INCLUDE "struct/tower_buffer.inc"
 INCLUDE "struct/vqueue.inc"
-INCLUDE "macros/color.inc"
-
-
+INCLUDE "struct/entity/player.inc"
 
 SECTION "DMA INIT", ROM0
 
@@ -191,6 +190,12 @@ var_w0:
 
         ; Writeback target value.
         w_background_writeback_target:: db $00
+
+        w_player_equipment:: db PLAYER_EQUIP_JUMP
+        w_player_weapon:: db PLAYER_WEAPON_FIREBREATH
+        w_durability_equipment:: db $00
+        w_durability_weapon:: db $00
+        w_player_woffset:: db $00
 
     ENDL
     var_w0_end:

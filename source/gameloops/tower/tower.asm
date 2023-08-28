@@ -27,6 +27,7 @@ gameloop_tower_setup:
     ;Perform VRAM transfers
     ld b, 3
     call tower_background_fullqueue
+    farcall entity_player_load
     call gameloop_loading
 
     ld a, bank(tower_vprep)
@@ -34,7 +35,6 @@ gameloop_tower_setup:
     ld de, tower_vprep
     ld b, 7
     call vqueue_enqueue_multi
-    vqueue_enqueue_auto player_vprep_base
     call gameloop_loading
 
     ;Initialize entity system

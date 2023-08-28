@@ -103,7 +103,7 @@ gameloop_shop_setup:
     farcall entity_shopitem_create
 
     ;Prepare a couple vqueue transfers
-    vqueue_enqueue_auto player_vprep_base
+    farcall entity_player_load
     ld a, bank(shop_vprep)
     ld [rROMB0], a
     ld de, shop_vprep
