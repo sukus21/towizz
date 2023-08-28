@@ -28,9 +28,9 @@
     * [ ] Wrecking ball
     * [ ] Flame floor
 * [ ] Wave system
-* [ ] Tower gameloop
+* [x] Tower gameloop
     * [x] Non-repeat mode (get rid of non-platform interrupts)
-    * [ ] Window layer update system
+    * [x] Window layer update system
     * [x] Window layer can use both tilemaps
     * [x] Background layer can use both tilemaps
 * [ ] Shop gameloop
