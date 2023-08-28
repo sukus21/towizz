@@ -16,6 +16,8 @@ SECTION "TOWER BACKGROUND", ROM0
 tower_background_fullqueue::
     ld a, bank(tower_background_tls)
     ld [rROMB0], a
+    ld hl, w_tower_flags
+    res TOWERMODEB_WINDOW_TILEMAP, [hl]
     
     ;Cannot full-queue the lowest sections.
     ld a, b
@@ -26,7 +28,11 @@ tower_background_fullqueue::
     ld d, b
 
     ;Load tilemap
+    push de
     ld e, high(VM_TOWER_BACKGROUND0)
+    call tower_background_mapqueue
+    pop de
+    ld e, high(VM_TOWER_BACKGROUND1)
     call tower_background_mapqueue
 
     ;Figure out oldest tile to load -> C
@@ -202,13 +208,13 @@ tower_background_mapqueue::
 
     ;Modify tilemap pointer a bit
     ld a, e
-    cp a, high(VM_TOWER_BACKGROUND1)
+    cp a, high(VM_TOWER_BACKGROUND0)
     jr nz, :+
         ld a, c
-        add a, $20
+        sub a, $20
         ld c, a
         jr nc, :+
-        inc b
+        dec b
     :
 
     ;Copy tilemap data

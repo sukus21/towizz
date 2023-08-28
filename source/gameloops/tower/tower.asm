@@ -87,9 +87,7 @@ gameloop_tower::
     call input
     call entsys_step
     call draw_hud
-    ldh a, [h_input]
-    bit PADB_A, a
-    call z, tower_update
+    call tower_update
     call tower_background_handler
     call tower_buffer_prepare
 
@@ -424,6 +422,19 @@ draw_hud:
     ld bc, $84_10
     call draw_byte
     */
+    
+    ;Get current background
+    ld b, 8
+    ld h, high(w_oam_hud)
+    call sprite_get
+    ld a, [w_tower_flags]
+    bit TOWERMODEB_WINDOW_TILEMAP, a
+    ld a, high(_SCRN0)
+    jr z, :+
+        ld a, high(_SCRN1)
+    :
+    ld bc, $4010
+    call tower_draw_byte
 
     ;Cover up window layer on HUD
     ld h, high(w_oam_hud)

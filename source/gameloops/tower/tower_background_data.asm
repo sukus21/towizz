@@ -9,6 +9,7 @@ INCBIN "graphics/background/background.tls"
 ; Tilemap for the panoramic background.
 tower_background_tlm::
 INCBIN "graphics/background/background.tlm"
+ds $20, $00
 
 ; How many new tiles to load for each section.
 tower_background_newtiles::
