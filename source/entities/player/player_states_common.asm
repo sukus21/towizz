@@ -265,3 +265,183 @@ player_left_platform::
     or a, h ;reset Z flag
     ret
 ;
+
+
+
+; Adds gravity to yspeed.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+;
+; Returns:
+; - `bc`: New Y-speed
+;
+; Saves: `de`, `hl`
+player_yspeed_gravity::
+    push hl
+    player_relpointer_init ENTVAR_PLAYER_YSPEED
+    ld a, [hl]
+    add a, low(PLAYER_GRAVITY)
+    ld c, a
+    ld [hl+], a
+    ld a, [hl]
+    adc a, high(PLAYER_GRAVITY)
+    ld b, a
+    ld [hl-], a
+
+    ;Return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Adds Y-speed to Y-position.
+; Handles boundary-crossing.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+; - `bc`: Player Y-speed
+;
+; Returns:
+; - `de`: New Y-position
+;
+; Saves: `bc`, `hl`
+player_yspeed_commit::
+    push hl
+    player_relpointer_init ENTVAR_YPOS
+
+    ;Add speed to Y-position
+    ld a, [hl+]
+    add a, c
+    ld e, a
+    ld a, [hl-]
+    adc a, b
+    ld d, a
+    pop hl
+    relpointer_destroy
+
+    ;No boundary crossing
+    bit 7, b
+    jr nz, :+
+        ret nc
+    jr .carried
+    :   ret c
+    .carried
+    xor a
+    ld d, a
+    ld e, a
+    ld [hl+], a
+    ld [hl-], a
+
+    ;Return
+    ret
+;
+
+
+
+; Airborne platform interactions.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+; - `a`: Landing state (`PLAYER_STATE_*`)
+; - `b`: Old X-position (high)
+; - `c`: Old Y-position (high)
+; - `de`: Player Y-position
+;
+; Saves: `hl`
+player_yspeed_platform::
+    push hl
+    push af
+
+    player_relpointer_init ENTVAR_YPOS
+    ld a, [w_platform_xpos+1]
+    cp a, b
+    jr c, .ypos_save
+    jr z, .ypos_save
+        
+        ;Is bottom above platform?
+        ld a, [w_platform_ypos+1]
+        ld b, a
+        dec a
+        cp a, d
+        jr nc, .ypos_save
+
+        ;Is top below platform?
+        ld a, [w_platform_height]
+        add a, b
+        ld b, a
+        ld a, d
+        sub a, PLAYER_HEIGHT
+        cp a, b
+        jr nc, .ypos_save
+
+        ;Ok, we have a collision. Now what
+        ld a, [w_platform_xpos+1]
+        cp a, c
+        jr z, .pushed
+        jr nc, .not_pushed
+            ;Here we are
+            .pushed
+            ld b, a
+            relpointer_push ENTVAR_PLAYER_XSPEED
+            xor a
+            ld [hl+], a
+            ld [hl-], a
+            relpointer_move ENTVAR_XPOS
+            xor a
+            ld [hl+], a
+            ld [hl], b
+            dec l
+            relpointer_pop
+            jr .ypos_save
+        .not_pushed
+
+        ;Are we above or under the platform?
+        ld a, b
+        cp a, d
+        jr c, .bonkage
+            ;Stand on platform
+            pop bc
+            relpointer_push ENTVAR_PLAYER_STATE
+            ld [hl], b
+            relpointer_move ENTVAR_YPOS
+            ld a, $FF
+            ld [hl+], a
+            ld a, [w_platform_ypos+1]
+            dec a
+            ld [hl-], a
+            relpointer_pop
+            pop hl
+            ret
+        ;
+
+        ;Bonk tiny little head on bottom of platform
+        .bonkage
+            add a, PLAYER_HEIGHT
+            ld d, a
+            relpointer_push ENTVAR_PLAYER_YSPEED
+            xor a
+            ld e, a
+            ld [hl+], a
+            ld [hl-], a
+            relpointer_pop
+            jr .ypos_save
+        ;
+    ;
+
+    ;Save Y-position
+    .ypos_save
+    relpointer_move ENTVAR_YPOS
+    ld a, e
+    ld [hl+], a
+    ld a, d
+    ld [hl-], a
+
+    ;Return
+    relpointer_destroy
+    pop af
+    pop hl
+    ret
+;
