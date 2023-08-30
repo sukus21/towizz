@@ -98,9 +98,10 @@ entity_player_update:
         relpointer_move ENTVAR_PLAYER_INVINCIBLE
     :
 
-    ;Read state -> E
+    ;Read state
     relpointer_move ENTVAR_PLAYER_STATE
     ld a, [hl]
+    push hl
 
     ;State switch
     ld bc, .animate
@@ -119,8 +120,7 @@ entity_player_update:
 
     ;Animate player
     .animate
-    relpointer_destroy
-    player_relpointer_init ENTVAR_PLAYER_STATE
+    pop hl
     ld a, [hl]
     ld bc, .return
     push bc
@@ -513,6 +513,7 @@ player_respawn::
 ; Input:
 ; - `hl`: Player entity pointer (anywhere)
 ;
+; Saves: `hl`, `de`  
 ; Destroys: `af`, `b`
 player_hurt::
     ld b, l
@@ -524,6 +525,7 @@ player_hurt::
     ;TODO: health
 
     ;Return
+    relpointer_destroy
     ld l, b
     ret
 ;

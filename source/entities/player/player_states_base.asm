@@ -15,6 +15,8 @@ SECTION FRAGMENT "PLAYER", ROMX
 ; Destroys: all
 player_state_grounded::
     relpointer_init l, ENTVAR_PLAYER_STATE
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    set PLAYER_FLAGB_GROUNDED, [hl]
     
     ;Stand on top of platform
     call player_yspeed_stand
@@ -46,7 +48,6 @@ player_state_grounded::
         ;What action to perform?
         ld a, [w_player_equipment]
 
-
         ;Jump
         cp a, PLAYER_EQUIP_JUMP
         jr nz, :+
@@ -59,7 +60,7 @@ player_state_grounded::
         :
 
         ;Unknown equipment
-        ld hl, error_unknwnequipmnt
+        ld hl, error_unknwn_equipmt
         rst v_error
     .no_movement
 
@@ -78,6 +79,8 @@ player_state_grounded::
 ; Destroys: all
 player_state_airborne::
     relpointer_init l, ENTVAR_PLAYER_STATE
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    res PLAYER_FLAGB_GROUNDED, [hl]
 
     ;Save old X-position for later
     relpointer_move ENTVAR_XPOS+1
@@ -102,12 +105,8 @@ player_state_airborne::
 
     ;Did we fall down?
     pop bc
-    ld a, d
-    cp a, SCRN_Y + $18
-    jr c, .not_fallen
-        call player_hurt
-        jp player_respawn
-    .not_fallen
+    call player_yspeed_fallen
+    ret nz
 
     ;Do we need to react to the platform?
     ld a, PLAYER_STATE_GROUNDED
@@ -129,6 +128,8 @@ player_state_airborne::
 ; Destroys: all
 player_state_jumpsquat::
     relpointer_init l, ENTVAR_PLAYER_STATE
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    set PLAYER_FLAGB_GROUNDED, [hl]
 
     ;Stand on platform
     call player_yspeed_stand

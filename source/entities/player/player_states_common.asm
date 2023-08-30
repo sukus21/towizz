@@ -350,6 +350,9 @@ player_yspeed_commit::
 ; - `c`: Old Y-position (high)
 ; - `de`: Player Y-position
 ;
+; Returns:
+; - `fZ`: Changed state (z = no, nz = yes)
+;
 ; Saves: `hl`
 player_yspeed_platform::
     push hl
@@ -414,6 +417,7 @@ player_yspeed_platform::
             ld [hl-], a
             relpointer_pop
             pop hl
+            or a, h
             ret
         ;
 
@@ -443,5 +447,34 @@ player_yspeed_platform::
     relpointer_destroy
     pop af
     pop hl
+    xor a
+    ret
+;
+
+
+
+; Did player fall into the void?
+; Changes player state if we did fall.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+; - `de`: Player Y-position
+;
+; Returns:
+; - `fZ`: Changed state (z = no, nz = yes)
+;
+; Saves: `hl`
+player_yspeed_fallen::
+    ld a, d
+    cp a, SCRN_Y + $18
+    jr nc, :+
+        xor a
+        ret
+    :
+
+    ;We did indeed fall
+    call player_hurt
+    call player_respawn
+    or a, h
     ret
 ;
