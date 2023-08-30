@@ -57,6 +57,34 @@ player_xspeed_movement::
 
 
 
+; Slowly come to a stop.
+; Finds friction values to use based on `PLAYER_FLAGSB_GROUNDED`.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+;
+; Saves: `hl`
+player_xspeed_slow::
+    ld c, l
+    player_relpointer_init ENTVAR_PLAYER_FLAGS
+    ld de, PLAYER_XSPEED_FRICTION_GROUND
+    bit PLAYER_FLAGB_GROUNDED, [hl]
+    jr nz, :+
+        ld e, PLAYER_XSPEED_FRICTION_AIR
+    :
+
+    ;Read current xspeed
+    relpointer_move ENTVAR_PLAYER_XSPEED
+    ld a, [hl+]
+    ld b, [hl]
+    ld l, c
+    ld c, a
+    jp player_speed_slow
+    relpointer_destroy
+;
+
+
+
 ; Update player position based on the given speed.
 ; Output X-position is NOT truncated.
 ; Does not commit anything to memory.

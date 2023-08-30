@@ -681,5 +681,6 @@ error_messages:
     error_vqueueoverflow::  create_message "VQUEUE OVERFLOW"
     error_invplayerstate::  create_message "INVLD PLAYER STATE"
     error_unknwn_equipmt::  create_message "UNKNOWN EQUIPMENT"
+    error_unknown_weapon::  create_message "UNKNOWN WEAPON"
     POPC
 ;

@@ -112,6 +112,8 @@ entity_player_update:
     jp z, player_state_airborne
     cp a, PLAYER_STATE_JUMPSQUAT
     jp z, player_state_jumpsquat
+    cp a, PLAYER_STATE_FIREBREATH
+    jp z, player_state_firebreath
 
     ;Unknown state, oops
     .unknown_state
@@ -131,6 +133,8 @@ entity_player_update:
     cp a, PLAYER_STATE_JUMPSQUAT
     ld b, PLAYER_SPRITE_JUMP_JUMPSQUAT
     jp z, player_animate_set
+    cp a, PLAYER_STATE_FIREBREATH
+    jp z, player_animate_firebreath
 
     ;Unknown state found
     jr .unknown_state
@@ -528,4 +532,43 @@ player_hurt::
     relpointer_destroy
     ld l, b
     ret
+;
+
+
+
+; Switch player state based on the weapon equipped.
+; Might crash if invalid weapon is selected.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+;
+; Returns:
+; - `fZ`: Switched state (z = no, nz = yes)
+;
+; Saves: none
+player_use_weapon::
+    player_relpointer_init ENTVAR_PLAYER_STATE
+    ldh a, [h_input_pressed]
+    bit PADB_B, a
+    ret z
+
+    ;What weapon to use?
+    ld a, [w_player_weapon]
+
+    ;Fire breath
+    cp a, PLAYER_WEAPON_FIREBREATH
+    jr nz, :+
+        relpointer_push ENTVAR_PLAYER_STATE, 0
+        ld [hl], PLAYER_STATE_FIREBREATH
+        relpointer_move ENTVAR_PLAYER_TIMER
+        ld [hl], PLAYER_FIREBREATH_TIME
+        or a, h ;H is never 0 here, resets Z flag
+        ret
+        relpointer_pop 0
+    :
+
+    ;Unknown weapon
+    ld hl, error_unknown_weapon
+    rst v_error
+    relpointer_destroy
 ;

@@ -130,3 +130,30 @@ player_animate_airborne::
     ld l, c
     ret
 ;
+
+
+
+; Handles player animation when spittin' fire.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+player_animate_firebreath::
+    ld a, [w_player_woffset]
+    ld b, a
+    player_relpointer_init ENTVAR_PLAYER_TIMER
+    ld a, [hl]
+    ld c, a
+    cp a, PLAYER_FIREBREATH_TIME_SUMMON
+    ld a, PLAYER_SPRITE_FIREBREATH_INHALE
+    jr nc, :+
+        ld a, PLAYER_SPRITE_FIREBREATH_EXHALE
+    :
+    add a, b
+    ld b, a
+    relpointer_move ENTVAR_PLAYER_SPRITE
+    ld [hl], b
+
+    ;Return
+    relpointer_destroy
+    ret
+;

@@ -64,7 +64,8 @@ player_state_grounded::
         rst v_error
     .no_movement
 
-    ;Return
+    ;Weapon action?
+    call player_use_weapon
     relpointer_destroy
     ret
 ;
@@ -111,6 +112,9 @@ player_state_airborne::
     ;Do we need to react to the platform?
     ld a, PLAYER_STATE_GROUNDED
     call player_yspeed_platform
+
+    ;Now do this
+    call z, player_use_weapon
 
     ;Return
     relpointer_destroy
@@ -191,6 +195,89 @@ player_state_jumpsquat::
     ld [hl+], a
 
     ;Return
+    relpointer_destroy
+    ret
+;
+
+
+
+; Shoot balls of fire out of mouth.
+; Disables all momentum while this is happening.
+;
+; Input:
+; - `hl`: `ENTVAR_PLAYER_STATE`
+;
+; Destroys: all
+player_state_firebreath::
+    relpointer_init l, ENTVAR_PLAYER_STATE
+    
+    ;Horizontal movement
+    call player_xspeed_slow
+    call player_xspeed_apply
+    call player_xspeed_platform
+    call player_xspeed_commit
+
+    ;How to handle vertical movement?
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    bit PLAYER_FLAGB_GROUNDED, [hl]
+    jr nz, .grounded
+
+    ;Airborne
+    .airborne
+        push de
+        call player_yspeed_gravity
+        call player_yspeed_commit
+        call player_yspeed_fallen
+        pop bc
+        ret nz
+        ld c, d
+        ld a, PLAYER_STATE_FIREBREATH
+        call player_yspeed_platform
+        jr z, :+
+            set PLAYER_FLAGB_GROUNDED, [hl]
+        :
+
+        jr .countdown
+    ;
+
+    ;Grounded yspeed things
+    .grounded
+        call player_yspeed_stand
+        ld c, PLAYER_STATE_FIREBREATH
+        call player_left_platform
+        jr z, :+
+            res PLAYER_FLAGB_GROUNDED, [hl]
+        :
+    ;
+
+    ;Fireball countdown
+    .countdown
+    relpointer_move ENTVAR_PLAYER_TIMER
+    dec [hl]
+    ld a, [hl]
+    cp a, PLAYER_FIREBREATH_TIME_SUMMON
+    jr nz, :+
+        ;Create fireball
+        nop
+    :
+
+    ;End of waiting time, back to normal?
+    or a, a ;cp a, 0
+    jr nz, :+
+        ld d, l
+        relpointer_push ENTVAR_PLAYER_FLAGS, 0
+        ld e, [hl]
+        relpointer_move ENTVAR_PLAYER_STATE
+        bit PLAYER_FLAGB_GROUNDED, e
+        ld [hl], PLAYER_STATE_GROUNDED
+        jr nz, :+
+            ld [hl], PLAYER_STATE_AIRBORNE
+        :
+        relpointer_pop 0
+        ld l, d
+    :
+
+    ;Show's over
     relpointer_destroy
     ret
 ;
