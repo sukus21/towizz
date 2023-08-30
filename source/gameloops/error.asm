@@ -680,5 +680,6 @@ error_messages:
     error_color_required::  create_message "ONLY PLAYS ON CGB"
     error_vqueueoverflow::  create_message "VQUEUE OVERFLOW"
     error_invplayerstate::  create_message "INVLD PLAYER STATE"
+    error_unknwnequipmnt::  create_message "UNKOWNN EQUIPMENT"
     POPC
 ;

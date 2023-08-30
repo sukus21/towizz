@@ -38,16 +38,30 @@ player_state_grounded::
     call player_left_platform
     ret nz
 
-    ;Jump?
+    ;Movement action?
     ldh a, [h_input_pressed]
     bit PADB_A, a
-    ret z
+    jr z, .no_movement
 
-    ;Jump
-    relpointer_move ENTVAR_PLAYER_STATE
-    ld [hl], PLAYER_STATE_JUMPSQUAT
-    relpointer_move ENTVAR_PLAYER_TIMER
-    ld [hl], PLAYER_JUMPSQUAT_TIME
+        ;What action to perform?
+        ld a, [w_player_equipment]
+
+
+        ;Jump
+        cp a, PLAYER_EQUIP_JUMP
+        jr nz, :+
+            relpointer_push ENTVAR_PLAYER_STATE, 0
+            ld [hl], PLAYER_STATE_JUMPSQUAT
+            relpointer_move ENTVAR_PLAYER_TIMER
+            ld [hl], PLAYER_JUMPSQUAT_TIME
+            ret
+            relpointer_pop 0
+        :
+
+        ;Unknown equipment
+        ld hl, error_unknwnequipmnt
+        rst v_error
+    .no_movement
 
     ;Return
     relpointer_destroy
