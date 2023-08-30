@@ -97,7 +97,7 @@ MACRO relpointer_pop
     ASSERT __RELPOINTER_STACK != 0, "Cannot pop from an empty relpointer stack"
     DEF __RELPOINTER_STACK -= 1
     DEF __RELPOINTER_POSITION = __RELPOINTER_STACK_{d:__RELPOINTER_STACK}
-    IF _NARG == 1
+    IF _NARG == 0
         IF STRCMP(STRLWR("{__RELPOINTER_REGISTER}"), "l") == 0
             pop hl
         ELIF STRCMP(STRLWR("{__RELPOINTER_REGISTER}"), "c") == 0
