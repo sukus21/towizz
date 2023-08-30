@@ -67,8 +67,8 @@ player_state_airborne::
 
     ;Save old X-position for later
     relpointer_move ENTVAR_XPOS+1
-    ld a, [hl]
-    push af
+    ld c, [hl]
+    push bc
 
     ;Horizontal movement
     ld d, PLAYER_XSPEED_ACCEL_AIR
@@ -76,8 +76,9 @@ player_state_airborne::
     call player_xspeed_movement
     call player_xspeed_apply
     call player_xspeed_commit
-    pop af
-    ld c, a
+
+    ;Save these
+    pop bc
     ld b, d
     push bc
 
@@ -86,17 +87,16 @@ player_state_airborne::
     call player_yspeed_commit
 
     ;Did we fall down?
+    pop bc
     ld a, d
     cp a, SCRN_Y + $18
     jr c, .not_fallen
-        add sp, 2
         call player_hurt
         jp player_respawn
     .not_fallen
 
     ;Do we need to react to the platform?
     ld a, PLAYER_STATE_GROUNDED
-    pop bc
     call player_yspeed_platform
 
     ;Return
