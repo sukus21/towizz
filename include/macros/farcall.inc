@@ -13,3 +13,23 @@ MACRO farcall
     ld [rROMB0], a
     call \1
 ENDM
+
+
+
+; Switches banks, and jumps to the given symbol.
+; `a` and `hl` will be clobbered before the jump,
+; and can therefore not be used as function arguments.
+; Switches banks back before returning.
+;
+; Input:
+; - `1`: Symbol to call (label)
+;
+; Destroys: `a`, `hl`, unknown
+MACRO farcall_x
+    ASSERT bank(@) != 0, "farcall - should not use farcall_x from ROM0"
+    ld a, bank(@)
+    ldh [h_bank_number], a
+    ld a, bank(\1)
+    ld hl, \1
+    call farcall_handler_x
+ENDM

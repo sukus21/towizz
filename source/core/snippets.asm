@@ -784,7 +784,8 @@ set_palette_obp1::
 
 
 
-; Converts a binary value to BCD.
+; Converts a binary value to BCD.  
+; Lives in ROM0.
 ;
 ; Input:
 ; - `a`: Binary value
@@ -816,7 +817,8 @@ bin2bcd::
 
 
 
-; Converts a BCD value to binary.
+; Converts a BCD value to binary.  
+; Lives in ROM0.
 ;
 ; Input:
 ; - `a`: BCD value
@@ -846,5 +848,26 @@ bcd2bin::
     .quick
     ld a, c
     and a, %00001111
+    ret
+;
+
+
+
+; Call anything from anywhere.  
+; Use with `farcall_x` macro in `macros/farcall.inc`.  
+; Lives in ROM0.
+;
+; Input:
+; - `a`: Bank to switch to
+; - `hl`: Address in bank
+;
+; Destroys: `a`, ``
+farcall_handler_x::
+    ld [rROMB0], a
+    ldh a, [h_bank_number]
+    push af
+    call _hl_
+    pop af
+    ld [rROMB0], a
     ret
 ;
