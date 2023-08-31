@@ -94,7 +94,6 @@ entity_shopdoor:
     ld c, ENTSYS_FLAGF_PLAYER
     call entsys_find
     pop bc
-    bit 7, h
     ret z
     relpointer_init l
 

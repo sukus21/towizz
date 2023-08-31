@@ -124,7 +124,6 @@ entity_shopitem::
     ;Find player
     ld c, ENTSYS_FLAGF_PLAYER
     call entsys_find
-    bit 7, h ;if this is not set, this is rom. entities are not in rom.
     ret z
 
     ;We found a player, find its position

@@ -11,6 +11,7 @@ SECTION "ENTSYS FIND", ROM0
 ; - `c`: Flags that must match
 ;
 ; Returns:
+; - `fZ`: Found entity (z = no, nz = yes)
 ; - `hl`: Entity pointer (`$0000` when none found)
 ;
 ; Saves: `bc`, `de`
@@ -33,6 +34,7 @@ entsys_find::
         jr nz, .next
 
         ;Ok, we have outselves a match!
+        or a, h ;reset Z flag
         ret
     ;
 
@@ -49,7 +51,7 @@ entsys_find::
         jr c, .check
 
         ;Nope, we are done here
-        ld hl, $0000
+        xor a ;set Z flag
         ret
     ;
 ;
