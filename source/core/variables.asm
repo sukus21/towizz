@@ -197,6 +197,10 @@ var_w0:
         w_durability_weapon:: db $00
         w_player_woffset:: db $00
 
+        ; What sprite slots have been occupied?
+        ; This is a bitfield.
+        w_tower_spriteslots:: db $00
+
     ENDL
     var_w0_end:
 ;

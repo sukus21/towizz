@@ -6,7 +6,6 @@ INCLUDE "macros/lyc.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/vram/tower.inc"
 
-
 SECTION "GAMELOOP TOWER", ROM0
 
 ; Setup routine for tower gameloop.  
@@ -450,5 +449,119 @@ draw_hud:
 
     ;That's it, we are done drawing the HUD
     call sprite_finish
+    ret
+;
+
+
+
+; Allocates a block of VRAM for some enemy tiles.  
+; Lives in ROM0.
+;
+; Input:
+; - `b`: Number of blocks needed (1-8).
+;
+; Returns:
+; - `b`: Tile index
+; - `de`: Tile address
+tower_sprite_alloc::
+    
+    ;Construct bitmask -> B
+    xor a
+    :   add a, a
+        inc a
+        dec b
+        jr nz, :-
+    ld b, a
+
+    ;Find free space
+    ld d, 8
+    ld a, [w_tower_spriteslots]
+    ld c, a
+    .try
+    and a, b
+    jr z, .return
+
+        ;Nope, shift a bit and try again
+        rrc c
+        dec d
+        ld a, c
+        jr nz, .try
+
+        ;Uh oh
+        ld hl, error_not_enogh_vram
+        rst v_error
+    ;
+
+    .return
+    ;Mark as occupied
+    ld a, c
+    or a, b
+    ld b, a
+    ld a, 8
+    sub a, d
+    ld c, a
+    jr z, :++
+    :   rlc b
+        dec a
+        jr nz, :-
+    :
+    ld a, b
+    ld [w_tower_spriteslots], a
+
+    ;Get tile slot -> B
+    ld a, c
+    swap a
+    add a, VTI_TOWER_ENEMIES
+    ld b, a
+
+    ;Get tile address -> HL
+    ld de, VT_TOWER_ENEMIES
+    ld a, d
+    add a, c
+    ld d, a
+
+    ;Return
+    ret
+;
+
+
+
+; Frees an allocated sprite.  
+; Lives in ROM0.
+;
+; Input:
+; - `b`: Number of blocks (1-8)
+; - `c`: Tile index
+tower_sprite_free::
+    
+    ;Construct bitmask -> B
+    xor a
+    :   add a, a
+        inc a
+        dec b
+        jr nz, :-
+    cpl
+    ld b, a
+
+    ;Get block number
+    ld a, c
+    sub a, VTI_TOWER_ENEMIES
+    swap a
+    ld c, a
+
+    ;Shift bitmask
+    jr z, .save
+    :   rlc b
+        dec a
+        jr nz, :-
+    ;
+
+    ;Save spriteslots
+    .save
+    ld a, [w_tower_spriteslots]
+    and a, b
+    ld [w_tower_spriteslots], a
+
+    ;Return
     ret
 ;

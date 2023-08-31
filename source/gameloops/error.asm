@@ -682,5 +682,6 @@ error_messages:
     error_invplayerstate::  create_message "INVLD PLAYER STATE"
     error_unknwn_equipmt::  create_message "UNKNOWN EQUIPMENT"
     error_unknown_weapon::  create_message "UNKNOWN WEAPON"
+    error_not_enogh_vram::  create_message "NOT ENOUGH VRAM"
     POPC
 ;
