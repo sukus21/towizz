@@ -1,6 +1,8 @@
     IF !DEF(ENTSYS_INC)
     DEF ENTSYS_INC EQU 1
 
+INCLUDE "macros/relpointer.inc"
+
 ; Number of entity chunks available
 ; Assumed to be a multiple of 16.
 DEF ENTSYS_CHUNK_COUNT EQU 64
@@ -75,5 +77,38 @@ DEF ENTSYS_FLAGB_DAMAGE RB 1
 ; This entity has a callback when DEALING damage.
 DEF ENTSYS_FLAGF_DMGCALL EQU 1 << _RS
 DEF ENTSYS_FLAGB_DMGCALL RB 1
+
+
+
+; Allocate new entity, set bank and step-pointer.  
+; Initializes relpointer.
+;
+; Input:
+; - `1`: Entity size (16, 32 or 64)
+; - `2`: Entity step pointer (label)
+; - `3`: Flags (`ENTSYS_FLAGF_*`)
+;
+; Returns:
+; - `hl`: Entity pointer (use relpointer)
+;
+; Destroys: all
+MACRO entsys_new
+    call entsys_new\1
+    ld h, b
+    ld l, c
+    relpointer_init l
+
+    ;Write bank and step pointer
+    ld [hl], bank(\2)
+    relpointer_move ENTVAR_STEP
+    ld a, low(\2)
+    ld [hl+], a
+    ld a, high(\2)
+    ld [hl-], a
+
+    ;Set flags
+    relpointer_move ENTVAR_FLAGS
+    ld [hl], \3
+ENDM
 
     ENDC

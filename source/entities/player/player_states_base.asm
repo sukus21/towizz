@@ -1,6 +1,8 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
+INCLUDE "macros/farcall.inc"
 INCLUDE "macros/relpointer.inc"
+INCLUDE "struct/entity/firebreath.inc"
 INCLUDE "struct/entity/player.inc"
 
 SECTION FRAGMENT "PLAYER", ROMX
@@ -256,10 +258,37 @@ player_state_firebreath::
     dec [hl]
     ld a, [hl]
     cp a, PLAYER_FIREBREATH_TIME_SUMMON
-    jr nz, :+
+    jr nz, .dont_shoot
+        ;What, how
+        relpointer_push ENTVAR_XPOS+1
+        ld d, [hl]
+        relpointer_move ENTVAR_YPOS+1
+        ld e, [hl]
+
+        ;Get projectile X-speed
+        ld bc, FIREBREATH_SPEED_PRIMARY
+        ldh a, [h_input]
+        bit PADB_UP, a
+        jr z, :+
+            ld bc, FIREBREATH_SPEED_SECONDARY
+        :
+        relpointer_move ENTVAR_PLAYER_FLAGS
+        bit PLAYER_FLAGB_FACING, [hl]
+        jr z, :+
+            ld a, c
+            cpl
+            inc a
+            ld c, a
+            ld a, b
+            cpl
+            ld b, a
+        :
+
         ;Create fireball
         nop
-    :
+        farcall_x entity_firebreath_create
+        relpointer_pop
+    .dont_shoot
 
     ;End of waiting time, back to normal?
     or a, a ;cp a, 0

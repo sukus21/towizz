@@ -13,7 +13,7 @@
     * [ ] Tornado
     * [ ] ...
 * [ ] Player weapons
-    * [ ] Flaming cough
+    * [x] Flaming cough
     * [ ] Uppercuters headband
     * [ ] Plumbing boots
     * [ ] Spelunkers whip
