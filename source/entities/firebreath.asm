@@ -61,7 +61,7 @@ entity_firebreath_create::
     ld a, -FIREBREATH_SPEED_PRIMARY
     cp a, c
     jr nz, :+
-        ld a, -FIREBREATH_SPEED_SECONDARY
+        ld a, -FIREBREATH_SPEED_SECONDARY_Y
     :
     ld c, a
 

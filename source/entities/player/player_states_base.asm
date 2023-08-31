@@ -270,7 +270,7 @@ player_state_firebreath::
         ldh a, [h_input]
         bit PADB_UP, a
         jr z, :+
-            ld bc, FIREBREATH_SPEED_SECONDARY
+            ld bc, FIREBREATH_SPEED_SECONDARY_X
         :
         relpointer_move ENTVAR_PLAYER_FLAGS
         bit PLAYER_FLAGB_FACING, [hl]
