@@ -111,4 +111,29 @@ MACRO entsys_new
     ld [hl], \3
 ENDM
 
+
+
+; Initializes relpointer for an entity.
+;
+; Input:
+; - `hl`: Somewhere
+; - `1`: Starting position (n8)
+; - `2*`: Entity bitmask (n8, default: `%11100000`)
+;
+; Returns:
+; - `hl`: Relpointer to position `1`.
+;
+; Destroys: `af`
+MACRO entsys_relpointer_init
+    ld a, l
+    IF _NARG == 2
+        and a, \2
+    ELSE
+        and a, %11100000
+    ENDC
+    or a, \1
+    ld l, a
+    relpointer_init l, \1
+ENDM
+
     ENDC

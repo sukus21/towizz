@@ -6,39 +6,52 @@ INCLUDE "macros/tilemap.inc"
 
 ;Block 0 (sprites only)
 RSSET $00
+    DEF EQRB EQUS "$8000 + $10 * _RS"
 
     ; Player tileset.
-    DEF VT_TOWER_PLAYER EQU $8000 + $10 * _RS
+    DEF VT_TOWER_PLAYER EQU EQRB
     DEF VTI_TOWER_PLAYER RB $30
+
+    ; Enemy tileset(s).
+    DEF VT_TOWER_ENEMIES EQU EQRB
+    DEF VTI_TOWER_ENEMIES RB $50
 ASSERT _RS <= $80
 
 ;Block 1 (sprites + backgrounds)
 RSSET $80
+    PURGE EQRB
+    DEF EQRB EQUS "$8000 + $10 * _RS"
+
+    ; Enemy tileset(s) 2.
+    DEF VT_TOWER_ENEMIES2 EQU EQRB
+    DEF VTI_TOWER_ENEMIES2 RB $30
 
     ; Location of platform tileset.
-    DEF VT_TOWER_PLATFORM EQU $8000 + $10 * _RS
+    DEF VT_TOWER_PLATFORM EQU EQRB
     DEF VTI_TOWER_PLATFORM RB $20
 
     ; Shopdoor tiles.
-    DEF VT_TOWER_SHOPDOOR EQU $8000 + $10 * _RS
+    DEF VT_TOWER_SHOPDOOR EQU EQRB
     DEF VTI_TOWER_SHOPDOOR RB $02
 
     ; HUD tiles.
     DEF _RS += _RS & 1
-    DEF VT_TOWER_HUD EQU $8000 + $10 * _RS
+    DEF VT_TOWER_HUD EQU EQRB
     DEF VTI_TOWER_HUD RB $10
 ASSERT _RS <= $100
 
 ;Block 2 (backgrounds only)
 RSSET $00
+    PURGE EQRB
+    DEF EQRB EQUS "$9000 + $10 * _RS"
 
     ; Location of background tileset.
     ; This tileset is very dynamic.
-    DEF VT_TOWER_BACKGROUND EQU $9000 + $10 * _RS
+    DEF VT_TOWER_BACKGROUND EQU EQRB
     DEF VTI_TOWER_BACKGROUND RB $60
 
     ;Location of tower tileset.
-    DEF VT_TOWER_TOWER EQU $9000 + $10 * _RS
+    DEF VT_TOWER_TOWER EQU EQRB
     DEF VTI_TOWER_TOWER RB $20
 ASSERT _RS <= $80
 
