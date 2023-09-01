@@ -115,7 +115,7 @@ var_w0:
 
         ; Platform Y-position changes by this volume every frame.
         w_platform_yspeed:: dw $0000
-        w_platform_ypos:: dw $6000
+        w_platform_ypos:: dw $4000
 
         ; Platform X-position changes by this volume every frame.
         w_platform_xspeed:: dw $0000
@@ -132,7 +132,7 @@ var_w0:
         w_camera_xspeed:: dw $0000
 
         ; Camera offset in pixels.
-        w_camera_xpos:: dw $2000
+        w_camera_xpos:: dw $4000
 
         ; A `TOWER_BUFFER` struct.
         ; Prepared for HRAM transfer.

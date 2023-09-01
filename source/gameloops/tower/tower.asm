@@ -39,10 +39,10 @@ gameloop_tower_setup:
 
     ;Initialize entity system
     call entsys_clear
-    farcall entity_background_test_create
     farcall entity_player_create
     ld bc, $8050
     farcall entity_knightling_create
+    farcall entity_towerdemo_create
 
     ;Call regular V-blank routine
     call tower_buffer_prepare
@@ -89,9 +89,9 @@ gameloop_tower::
     call input
     call entsys_step
     call draw_hud
-    call tower_update
     call tower_background_handler
     call tower_buffer_prepare
+    call tower_update
 
     ;Wait for Vblank
     ldh a, [h_oam_active]

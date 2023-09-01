@@ -128,34 +128,6 @@ entity_towerdemo::
     add a, 9*8
     ld [w_camera_xpos+1], a
 
-    ;Background Y-position
-    ld a, [hl]
-    add a, 2
-    ld [hl+], a
-    ld c, a
-    ld a, [bc]
-    ld d, a
-    xor a
-    bit 7, d
-    jr z, :+
-        dec a
-    :
-    sla d
-    rla
-    sla d
-    rla
-    dec a
-    ld e, a
-    ld bc, w_background_ypos
-    ld a, [bc]
-    add a, d
-    ld [bc], a
-    inc bc
-    ld a, [bc]
-    adc a, e
-    ld [bc], a
-    ld b, high(towerdemo_sinewave)
-
     ;Tower height
     ld a, [hl]
     add a, 4
@@ -178,9 +150,6 @@ entity_towerdemo::
     ld a, 1
     ld [w_tower_yspeed+1], a
     call tower_truncate
-
-    ;Apply speed changes
-    call tower_update
 
     ;Return
     ret 
