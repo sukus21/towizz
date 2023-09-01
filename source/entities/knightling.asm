@@ -104,13 +104,218 @@ entity_knightling_create::
 entity_knightling:
     ld h, d
     ld l, e
-    relpointer_init l
 
     ;Do some crazy stuff
+    call knightling_update
     call knightling_draw
 
     ;Return
+    ret
+;
+
+
+
+; Main update function for knightlings.
+;
+; Input:
+; - `hl`: Knightling entity pointer (0)
+;
+; Saves: `hl`
+knightling_update:
+    push hl
+    relpointer_init l
+
+    ;How to handle vertical movement?
+    relpointer_move ENTVAR_KNIGHTLING_STATE
+    ld a, [hl]
+    cp a, KNIGHTLING_STATE_WAIT
+    jr z, .return
+    cp a, KNIGHTLING_STATE_FALLING
+    call nz, knightling_speed_stand
+    call z, knightling_speed_fall
+
+    ;Ok, now go into the state machine
+    ld bc, .return
+    push bc
+    ld a, [hl]
+    cp a, KNIGHTLING_STATE_WALK
+    jp z, knightling_walk
+
+    ;Unknow state
+    ld hl, error_invst_knightln
+    rst v_error
+
+    .return
     relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+knightling_walk:
+    push hl
+    entsys_relpointer_init ENTVAR_KNIGHTLING_FLAGS
+    ld b, [hl]
+    relpointer_move ENTVAR_KNIGHTLING_XSPEED
+
+    ;Add speed
+    bit KNIGHTLING_FLAGB_FACING, b
+    ld a, [hl]
+    jr z, :+
+        dec a
+        cp a, -KNIGHTLING_XSPEED_MAX
+        jr nc, .xspeed_add
+        ld a, -KNIGHTLING_XSPEED_MAX
+        jr .xspeed_add
+    :
+        inc a
+        cp a, KNIGHTLING_XSPEED_MAX
+        jr c, .xspeed_add
+        ld a, KNIGHTLING_XSPEED_MAX
+    .xspeed_add
+    ld [hl], a
+
+    ;Apply speed to X-position
+    swap a
+    ld c, a
+    and a, %00001111
+    bit 3, a
+    jr z, :+
+        add a, %11110000
+    :
+    ld e, a
+    relpointer_move ENTVAR_XPOS
+    ld a, c
+    and a, %11110000
+    add a, [hl]
+    ld [hl+], a
+    ld a, e
+    adc a, [hl]
+    ld [hl-], a
+    ld d, a
+
+    ;Get turnaround condition
+    bit KNIGHTLING_FLAGB_FACING, b
+    jr nz, :+
+        ld a, [w_platform_xpos+1]
+        sub a, 20
+        cp a, d
+        jr .turnaround
+    :
+        ld a, [w_camera_xpos+1]
+        cp a, d
+        ccf
+    .turnaround
+
+    ;So do turnaround?
+    jr nc, .no_turnaround
+        ld a, b
+        xor a, KNIGHTLING_FLAGF_FACING
+        ld b, a
+        relpointer_push ENTVAR_KNIGHTLING_FLAGS, 0
+        ld [hl], b
+        relpointer_move ENTVAR_KNIGHTLING_XSPEED
+        ld [hl], 0
+        relpointer_pop 0
+        jr .return
+    .no_turnaround
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Stand on the platform.
+;
+; Input:
+; - `hl`: Knightling entity pointer (anywhere)
+;
+; Saves: `af`, `hl`
+knightling_speed_stand:
+    push af
+    push hl
+    entsys_relpointer_init ENTVAR_YPOS+1
+
+    ;Stand on platform
+    ld a, [w_platform_ypos+1]
+    dec a
+    ld [hl-], a
+    xor a
+    ld [hl+], a
+
+    ;Move with platform
+    relpointer_move ENTVAR_XPOS
+    ld a, [w_platform_xspeed]
+    add a, [hl]
+    ld [hl+], a
+    ld a, [w_platform_xspeed+1]
+    adc a, [hl]
+    ld [hl-], a
+
+    ;Reset Y-position
+    relpointer_move ENTVAR_KNIGHTLING_YSPEED
+    ld [hl], 0
+
+    ;Return
+    relpointer_destroy
+    pop hl
+    pop af
+    ret
+;
+
+
+
+; Falling into the abyss.
+;
+; Input:
+; - `hl`: Knightling entity pointer (anywhere)
+;
+; Saves: `af`, `hl`
+knightling_speed_fall:
+    push af
+    push hl
+
+    ;Add gravity to Y-speed
+    entsys_relpointer_init ENTVAR_KNIGHTLING_YSPEED
+    ld a, [hl]
+    add a, KNIGHTLING_YSPEED_GRAVITY ;I'll just assume this one doesn't overflow...
+    ld [hl], a
+
+    ;Elongate to 16-bit
+    swap a
+    ld c, a
+    and a, %00001111
+    bit 3, a
+    jr z, :+
+        or a, %11110000
+    :
+    ld b, a
+
+    ld a, c
+    and a, %11110000
+    ld c, a
+
+    ;Move downward
+    relpointer_move ENTVAR_YPOS
+    ld a, [hl]
+    add a, c
+    ld [hl+], a
+    ld a, [hl]
+    adc a, b
+    ld [hl-], a
+
+    ;Return
+    relpointer_destroy
+    pop hl
+    pop af
     ret
 ;
 
@@ -166,6 +371,7 @@ knightling_draw:
     ;Y-position -> E
     relpointer_move ENTVAR_YPOS+1
     ld e, [hl]
+    inc e
 
     ;Get OAM attributes -> stack
     ld b, 0
@@ -233,7 +439,7 @@ knightling_draw_sword:
     ld b, a
     ld a, [hl]
     cp a, KNIGHTLING_STATE_ATTACK
-    jr z, :+
+    jr nz, :+
         inc b
         inc b
     :

@@ -680,6 +680,7 @@ error_messages:
     error_color_required::  create_message "ONLY PLAYS ON CGB"
     error_vqueueoverflow::  create_message "VQUEUE OVERFLOW"
     error_invplayerstate::  create_message "INVLD PLAYER STATE"
+    error_invst_knightln::  create_message "INVLD KNIGHTLN STATE"
     error_unknwn_equipmt::  create_message "UNKNOWN EQUIPMENT"
     error_unknown_weapon::  create_message "UNKNOWN WEAPON"
     error_not_enogh_vram::  create_message "NOT ENOUGH VRAM"
