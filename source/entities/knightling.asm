@@ -140,6 +140,8 @@ knightling_update:
     ld a, [hl]
     cp a, KNIGHTLING_STATE_WALK
     jp z, knightling_walk
+    cp a, KNIGHTLING_STATE_TURNAROUND
+    jp z, knightling_turnaround
 
     ;Unknow state
     ld hl, error_invst_knightln
@@ -179,8 +181,15 @@ knightling_walk:
         ld a, KNIGHTLING_XSPEED_MAX
     .xspeed_add
     ld [hl], a
+    add a, a
+    ld c, a
+    relpointer_move ENTVAR_KNIGHTLING_ANIMATE
+    ld a, [hl]
+    add a, c
+    ld [hl], a
 
     ;Apply speed to X-position
+    ld a, c
     swap a
     ld c, a
     and a, %00001111
@@ -214,13 +223,17 @@ knightling_walk:
 
     ;So do turnaround?
     jr nc, .no_turnaround
-        ld a, b
-        xor a, KNIGHTLING_FLAGF_FACING
-        ld b, a
-        relpointer_push ENTVAR_KNIGHTLING_FLAGS, 0
-        ld [hl], b
-        relpointer_move ENTVAR_KNIGHTLING_XSPEED
+
+        ;Reset speed and timer
+        relpointer_push ENTVAR_KNIGHTLING_XSPEED, 0
         ld [hl], 0
+        relpointer_move ENTVAR_KNIGHTLING_TIMER
+        ld [hl], 0
+
+        ;Change state
+        relpointer_move ENTVAR_KNIGHTLING_STATE
+        ld [hl], KNIGHTLING_STATE_TURNAROUND
+
         relpointer_pop 0
         jr .return
     .no_turnaround
@@ -228,6 +241,44 @@ knightling_walk:
     .return
     relpointer_destroy
     pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+knightling_turnaround:
+    ld e, l
+    entsys_relpointer_init ENTVAR_KNIGHTLING_TIMER
+    inc [hl]
+    ld a, [hl]
+
+    ;Actually do the thing
+    cp a, KNIGHTLING_TURNAROUND_STEP*2
+    jr nz, :+
+        relpointer_push ENTVAR_KNIGHTLING_FLAGS, 0
+        ld a, [hl]
+        xor a, KNIGHTLING_FLAGF_FACING
+        ld [hl], a
+        jr .return
+        relpointer_pop 0
+    :
+
+    ;End state?
+    cp a, KNIGHTLING_TURNAROUND_STEP*4
+    jr nz, :+
+        relpointer_push ENTVAR_KNIGHTLING_STATE, 0
+        ld [hl], KNIGHTLING_STATE_WALK
+        jr .return
+        relpointer_pop 0
+    :
+
+    .return
+    relpointer_destroy
+    ld l, e
     ret
 ;
 
@@ -341,8 +392,25 @@ knightling_draw:
     ;Walk sprite
     cp a, KNIGHTLING_STATE_WALK
     jr nz, :+
-        bit 4, b
+        bit 7, b
         jr z, .sprited
+        ld a, c
+        add a, KNIGHTLING_SPRITE_WALK
+        ld c, a
+        jr .sprited
+    :
+
+    ;Turnaround sprites
+    cp a, KNIGHTLING_STATE_TURNAROUND
+    jr nz, :+
+        ld e, l
+        relpointer_push ENTVAR_KNIGHTLING_TIMER, 0
+        ld a, [hl]
+        relpointer_pop 0
+        ld l, e
+        sub a, KNIGHTLING_TURNAROUND_STEP
+        cp a, KNIGHTLING_TURNAROUND_STEP*2
+        jr nc, .sprited
         ld a, c
         add a, KNIGHTLING_SPRITE_WALK
         ld c, a
