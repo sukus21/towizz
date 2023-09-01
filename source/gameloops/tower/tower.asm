@@ -312,7 +312,7 @@ tower_buffer_prepare:
     add a, 16
     ld c, a ;sprite Y-position
     ld a, d ;sprite X-position
-    ld e, $9E ;sprite tile
+    ld e, VTI_TOWER_PLATFORM + $1E ;sprite tile
 
     ;Write data
     .loop
