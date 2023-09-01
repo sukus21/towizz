@@ -115,11 +115,11 @@ var_w0:
 
         ; Platform Y-position changes by this volume every frame.
         w_platform_yspeed:: dw $0000
-        w_platform_ypos:: dw $5000
+        w_platform_ypos:: dw $6000
 
         ; Platform X-position changes by this volume every frame.
         w_platform_xspeed:: dw $0000
-        w_platform_xpos:: dw $8000
+        w_platform_xpos:: dw $9800
 
         ; Height of platform in pixels.
         w_platform_height:: db $10
@@ -132,7 +132,7 @@ var_w0:
         w_camera_xspeed:: dw $0000
 
         ; Camera offset in pixels.
-        w_camera_xpos:: dw $6000
+        w_camera_xpos:: dw $2000
 
         ; A `TOWER_BUFFER` struct.
         ; Prepared for HRAM transfer.
@@ -200,6 +200,8 @@ var_w0:
         ; What sprite slots have been occupied?
         ; This is a bitfield.
         w_tower_spriteslots:: db $00
+
+        w_sprite_knightling:: db $00
 
     ENDL
     var_w0_end:

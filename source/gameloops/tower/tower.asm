@@ -27,6 +27,7 @@ gameloop_tower_setup:
     ld b, 3
     call tower_background_fullqueue
     farcall entity_player_load
+    farcall entity_knightling_load
     call gameloop_loading
 
     ld a, bank(tower_vprep)
@@ -40,6 +41,8 @@ gameloop_tower_setup:
     call entsys_clear
     farcall entity_background_test_create
     farcall entity_player_create
+    ld bc, $8050
+    farcall entity_knightling_create
 
     ;Call regular V-blank routine
     call tower_buffer_prepare
