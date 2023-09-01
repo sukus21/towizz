@@ -1,10 +1,11 @@
-
+INCLUDE "entsys.inc"
+INCLUDE "macros/relpointer.inc"
 
 SECTION "ENTSYS COLLISION", ROM0
 
-; Checks for collision between two rectangles.
-; Always assumes x2 >= x1 and y2 >= y1 for both boxes.
-; Expects 2-bit alignment on `bc` and `de`.
+; Checks for collision between two rectangles.  
+; Always assumes x2 >= x1 and y2 >= y1 for both boxes.  
+; Expects 2-bit alignment on `bc` and `de`.  
 ; Lives in ROM0.
 ;
 ; Input:
@@ -87,9 +88,9 @@ entsys_collision_rr8::
 
 
 
-; Checks for collision between two rectangles.
-; Always assumes x2 >= x1 and y2 >= y1 for both boxes.
-; Expects 3-bit alignment on `bc` and `de`.
+; Checks for collision between two rectangles.  
+; Always assumes x2 >= x1 and y2 >= y1 for both boxes.  
+; Expects 3-bit alignment on `bc` and `de`.  
 ; Lives in ROM0.
 ;
 ; Input:
@@ -325,4 +326,49 @@ entsys_collision_pr16::
         adc a, a
         ret 
     ;
+;
+
+
+
+; Write a collision-enabled entity's collision data into buffer.
+; This only writes the high-byte of the position, not the low-byte.
+; This will always write to the second position in the buffer, not the first.  
+; Lives in ROM0.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `b`, `hl`  
+; Destroys: `af`, `c`, `de`
+entsys_collision_prepare_8::
+    push hl
+    
+    ;Get top-left corner
+    entsys_relpointer_init ENTVAR_YPOS+1
+    ld e, [hl]
+    relpointer_move ENTVAR_XPOS+1
+    ld d, [hl]
+
+    ;Get bottom-right
+    relpointer_move ENTVAR_HEIGHT
+    ld a, e
+    sub a, [hl]
+    ld c, a
+    relpointer_move ENTVAR_WIDTH
+    ld a, d
+    add a, [hl]
+
+    ;Write data to buffer
+    ld hl, w_buffer+4
+    ld [hl+], a
+    ld a, d
+    ld [hl+], a
+    ld a, c
+    ld [hl+], a
+    ld [hl], e
+
+    ;Return
+    relpointer_destroy
+    pop hl
+    ret
 ;

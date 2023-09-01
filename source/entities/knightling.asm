@@ -238,6 +238,25 @@ knightling_walk:
         jr .return
     .no_turnaround
 
+    ;Engage player?
+    call knightling_engage
+    jr z, .no_engage
+
+        ;Reset speed and timer
+        relpointer_push ENTVAR_KNIGHTLING_XSPEED, 0
+        ld [hl], 0
+        relpointer_move ENTVAR_KNIGHTLING_TIMER
+        ld [hl], 0
+
+        ;Change state
+        relpointer_move ENTVAR_KNIGHTLING_STATE
+        ;ld [hl], KNIGHTLING_STATE_FIGHT
+        call knightling_draw_sword
+
+        relpointer_pop 0
+        jr .return
+    .no_engage
+
     .return
     relpointer_destroy
     pop hl
@@ -367,6 +386,77 @@ knightling_speed_fall:
     relpointer_destroy
     pop hl
     pop af
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Returns:
+; - `fZ`: Engaged (z = no, nz = yes)
+; - `bc`: Engaged entity
+;
+; Saves: `hl`
+knightling_engage:
+    push hl
+    entsys_relpointer_init ENTVAR_XPOS+1
+
+    ;Get X-positions
+    ld a, [hl]
+    sub a, KNIGHTLING_ENGAGE_DISTANCE
+    ld b, a
+    ld a, [hl]
+    add a, KNIGHTLING_ENGAGE_DISTANCE + KNIGHTLING_WIDTH
+    ld d, a
+
+    ;Get Y-positions
+    relpointer_move ENTVAR_YPOS+1
+    ld a, [hl]
+    sub a, KNIGHTLING_ENGAGE_HEIGHT
+    ld c, a
+    ld e, [hl]
+
+    ;Write these to buffer
+    relpointer_destroy
+    ld hl, w_buffer
+    ld a, b
+    ld [hl+], a
+    ld a, d
+    ld [hl+], a
+    ld a, c
+    ld [hl+], a
+    ld a, e
+    ld [hl+], a
+
+    ;Get player entity
+    ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_PLAYER
+    call entsys_find
+    jr z, .return
+    push hl
+
+    .find_player
+        ;Get its collision data
+        call entsys_collision_prepare_8
+        ld bc, w_buffer
+        ld de, w_buffer+4
+        call entsys_collision_rr8
+        pop hl
+        ld b, h
+        ld c, l
+        jr nz, .return
+
+        ;Find next entity
+        ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_PLAYER
+        call entsys_find_continue
+        jr z, .return
+        push hl
+        jr .find_player
+    ;
+
+    .return
+    pop hl
     ret
 ;
 

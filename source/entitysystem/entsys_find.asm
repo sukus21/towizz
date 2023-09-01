@@ -1,4 +1,5 @@
-
+INCLUDE "entsys.inc"
+INCLUDE "macros/relpointer.inc"
 
 SECTION "ENTSYS FIND", ROM0
 
@@ -16,6 +17,7 @@ SECTION "ENTSYS FIND", ROM0
 ;
 ; Saves: `bc`, `de`
 entsys_find::
+    push bc
     ld hl, w_entsys
 
     .check
@@ -24,6 +26,7 @@ entsys_find::
         or a, a
         ld a, [hl-]
         jr z, .next
+        ld b, a
 
         ;Match all flags
         set 2, l
@@ -31,9 +34,11 @@ entsys_find::
         res 2, l
         and a, c
         xor a, c
+        ld a, b
         jr nz, .next
 
         ;Ok, we have outselves a match!
+        pop bc
         or a, h ;reset Z flag
         ret
     ;
@@ -51,6 +56,7 @@ entsys_find::
         jr c, .check
 
         ;Nope, we are done here
+        pop bc
         xor a ;set Z flag
         ret
     ;
@@ -72,6 +78,7 @@ entsys_find::
 ;
 ; Saves: `bc`, `de`
 entsys_find_continue::
+    push bc
     inc l
     ld a, [hl-]
     jp entsys_find.next
