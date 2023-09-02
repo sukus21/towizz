@@ -372,3 +372,40 @@ entsys_collision_prepare_8::
     pop hl
     ret
 ;
+
+
+
+; Draw a test rectangle.  
+; Assumes rectangle tiles are loaded.  
+; Lives in ROM0.
+;
+; Input:
+; - `b`: Left X-pos
+; - `c`: Top Y-pos
+; - `d`: Right X-pos
+; - `e`: Bottom Y-pos
+;
+; Saves: `bc`, `de`
+;
+entsys_boundsdraw::
+    push bc
+    push de
+
+    ;Adjust X-coordinates
+    ld a, [w_camera_xpos+1]
+    ld h, a
+    ld a, b
+    sub a, h
+    ld b, a
+    ld a, d
+    sub a, h
+    ld d, a
+
+    ;Draw thing
+    call rectangle_points_draw
+
+    ;Return
+    pop de
+    pop bc
+    ret
+;

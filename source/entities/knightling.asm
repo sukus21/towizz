@@ -432,6 +432,9 @@ knightling_engage:
     ld a, e
     ld [hl+], a
 
+    ;Debug rectangle drawing
+    call entsys_boundsdraw
+
     ;Get player entity
     ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_PLAYER
     call entsys_find

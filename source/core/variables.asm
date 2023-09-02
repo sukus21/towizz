@@ -202,6 +202,7 @@ var_w0:
         w_tower_spriteslots:: db $00
 
         w_sprite_knightling:: db $00
+        w_sprite_rectangle:: db $00
 
     ENDL
     var_w0_end:

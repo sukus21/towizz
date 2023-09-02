@@ -26,6 +26,9 @@ gameloop_tower_setup:
     ;Perform VRAM transfers
     ld b, 3
     call tower_background_fullqueue
+    ld b, 1
+    call tower_sprite_alloc
+    farcall rectangle_points_load
     farcall entity_player_load
     farcall entity_knightling_load
     call gameloop_loading
