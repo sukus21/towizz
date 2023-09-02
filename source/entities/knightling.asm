@@ -144,6 +144,8 @@ knightling_update:
     jp z, knightling_turnaround
     cp a, KNIGHTLING_STATE_FIGHT
     jp z, knightling_fight
+    cp a, KNIGHTLING_STATE_ATTACK
+    jp z, knightling_attack
 
     ;Unknow state
     ld hl, error_invst_knightln
@@ -293,6 +295,8 @@ knightling_turnaround:
     jr nz, :+
         relpointer_push ENTVAR_KNIGHTLING_STATE, 0
         ld [hl], KNIGHTLING_STATE_WALK
+        relpointer_move ENTVAR_KNIGHTLING_XSPEED
+        ld [hl], 0
         relpointer_move ENTVAR_KNIGHTLING_ANIMATE
         ld [hl], $C0
         jr .return
@@ -314,6 +318,9 @@ knightling_turnaround:
 knightling_fight:
     push hl
     entsys_relpointer_init ENTVAR_KNIGHTLING_TIMER
+    ld a, [hl]
+    cp a, KNIGHTLING_CHARGE_TIME
+    jr nc, .no_engage
     call knightling_engage
     jr nz, .engaged
 
@@ -327,6 +334,11 @@ knightling_fight:
 
     .engaged
     call knightling_face_engaged
+    .no_engage
+
+    ;Get flags -> D
+    relpointer_move ENTVAR_KNIGHTLING_FLAGS
+    ld d, [hl]
 
     ;Tick down timer
     relpointer_move ENTVAR_KNIGHTLING_TIMER
@@ -340,9 +352,7 @@ knightling_fight:
         relpointer_push ENTVAR_KNIGHTLING_STATE, 0
         ld [hl], KNIGHTLING_STATE_ATTACK
 
-        ;Set charge speed
-        relpointer_move ENTVAR_KNIGHTLING_FLAGS
-        ld d, [hl]
+        ;Set fight speed
         relpointer_move ENTVAR_KNIGHTLING_XSPEED
         bit KNIGHTLING_FLAGB_FACING, d
         ld [hl], KNIGHTLING_XSPEED_ATTACK
@@ -356,6 +366,125 @@ knightling_fight:
         relpointer_pop 0
         jr .return
     .no_fight
+
+    ;Charge back
+    cp a, KNIGHTLING_CHARGE_TIME
+    jr c, .no_charge
+        ld bc, -(KNIGHTLING_XSPEED_CHARGE << 4)
+        bit KNIGHTLING_FLAGB_FACING, d
+        jr z, :+
+            ld bc, KNIGHTLING_XSPEED_CHARGE << 4
+        :
+
+        ;Apply stepback speed
+        ld e, l
+        relpointer_push ENTVAR_XPOS, 0
+        ld a, c
+        add a, [hl]
+        ld [hl+], a
+        ld a, b
+        adc a, [hl]
+        ld [hl-], a
+
+        ;Yup
+        relpointer_pop 0
+        ld l, e
+    .no_charge
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+knightling_attack:
+    push hl
+    entsys_relpointer_init ENTVAR_KNIGHTLING_FLAGS
+    ld d, [hl]
+
+    ;Get speed decrease -> B
+    relpointer_move ENTVAR_KNIGHTLING_TIMER
+    inc [hl]
+    ld a, [hl]
+    cp a, 1
+    ld b, 0
+    jr c, :+
+        ld [hl], 0
+        ld b, $01
+        bit KNIGHTLING_FLAGB_FACING, d
+        jr z, :+
+        ld b, $FF
+    :
+
+    ;Get X-speed -> C
+    relpointer_move ENTVAR_KNIGHTLING_XSPEED
+    ld a, [hl]
+    sub a, b
+    ld [hl], a
+    ld c, a
+    jr nz, .no_stop
+        relpointer_push ENTVAR_KNIGHTLING_STATE, 0
+
+        ;Stop movin'
+        .turnaround
+        ld [hl], KNIGHTLING_STATE_TURNAROUND
+        relpointer_move ENTVAR_KNIGHTLING_TIMER
+        ld [hl], 0
+        jr .return
+        relpointer_pop 0
+    .no_stop
+
+    ;Add to animation
+    relpointer_move ENTVAR_KNIGHTLING_ANIMATE
+    ld a, c
+    add a, [hl]
+    ld [hl], a
+    
+    ;Add X-speed to X-position -> B
+    relpointer_move ENTVAR_XPOS
+    swap c
+    ld a, c
+    and a, %00001111
+    bit 3, a
+    jr z, :+
+        or a, %11110000
+    :
+    ld e, a
+    ld a, c
+    and a, %11110000
+    add a, [hl]
+    ld [hl+], a
+    ld a, e
+    adc a, [hl]
+    ld [hl-], a
+    ld b, a
+
+    ;Move into tower?
+    ld a, [w_camera_xpos+1]
+    cp a, b
+    jr c, .no_tower
+        relpointer_push ENTVAR_KNIGHTLING_STATE, 0
+        jr .turnaround
+        relpointer_pop 0
+    .no_tower
+
+    ;Move out of platform?
+    ld a, [w_platform_xpos+1]
+    cp a, b
+    jr nc, .no_platform
+        relpointer_push ENTVAR_KNIGHTLING_STATE, 0
+        ld [hl], KNIGHTLING_STATE_FALLING
+        relpointer_move ENTVAR_KNIGHTLING_YSPEED
+        ld [hl], 0
+        jr .return
+        relpointer_pop 0
+    .no_platform
 
     .return
     relpointer_destroy
@@ -720,6 +849,7 @@ knightling_draw_sword:
     ;Y-position -> E
     relpointer_move ENTVAR_YPOS+1
     ld e, [hl]
+    inc e
 
     ;Get sprite
     relpointer_destroy
