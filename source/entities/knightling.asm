@@ -243,6 +243,7 @@ knightling_walk:
     ;Engage player?
     call knightling_engage
     jr z, .no_engage
+        call knightling_face_engaged
 
         ;Reset speed and timer
         relpointer_push ENTVAR_KNIGHTLING_XSPEED, 0
@@ -325,6 +326,7 @@ knightling_fight:
         jr .return
 
     .engaged
+    call knightling_face_engaged
 
     ;Tick down timer
     relpointer_move ENTVAR_KNIGHTLING_TIMER
@@ -520,6 +522,38 @@ knightling_engage:
 
     .return
     pop hl
+    ret
+;
+
+
+
+; Face the engaged entity.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+; - `bc`: Engaged entity pointer
+;
+; Saves: `hl`
+knightling_face_engaged:
+    ld e, l
+    entsys_relpointer_init ENTVAR_XPOS+1
+    ld d, [hl]
+    relpointer_move ENTVAR_KNIGHTLING_FLAGS
+    ld a, c
+    or a, ENTVAR_XPOS+1
+    ld c, a
+
+    ;Compare positiond
+    ld a, [bc]
+    cp a, d
+    res KNIGHTLING_FLAGB_FACING, [hl]
+    jr nc, :+
+        set KNIGHTLING_FLAGB_FACING, [hl]
+    :
+
+    ;Return
+    relpointer_destroy
+    ld l, e
     ret
 ;
 
