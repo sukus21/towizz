@@ -338,8 +338,8 @@ entsys_collision_pr16::
 ; Input:
 ; - `hl`: Entity pointer (anywhere)
 ;
-; Saves: `b`, `hl`  
-; Destroys: `af`, `c`, `de`
+; Saves: `hl`  
+; Destroys: `af`, `bc`, `de`
 entsys_collision_prepare_8::
     push hl
     
@@ -347,7 +347,7 @@ entsys_collision_prepare_8::
     entsys_relpointer_init ENTVAR_YPOS+1
     ld e, [hl]
     relpointer_move ENTVAR_XPOS+1
-    ld d, [hl]
+    ld b, [hl]
 
     ;Get bottom-right
     relpointer_move ENTVAR_HEIGHT
@@ -355,11 +355,17 @@ entsys_collision_prepare_8::
     sub a, [hl]
     ld c, a
     relpointer_move ENTVAR_WIDTH
-    ld a, d
+    ld a, b
     add a, [hl]
+    ld d, a
+    relpointer_destroy
+
+    ;Debug thing
+    call entsys_boundsdraw
 
     ;Write data to buffer
     ld hl, w_buffer+4
+    ld a, b
     ld [hl+], a
     ld a, d
     ld [hl+], a
@@ -368,7 +374,6 @@ entsys_collision_prepare_8::
     ld [hl], e
 
     ;Return
-    relpointer_destroy
     pop hl
     ret
 ;
