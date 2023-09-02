@@ -142,6 +142,8 @@ knightling_update:
     jp z, knightling_walk
     cp a, KNIGHTLING_STATE_TURNAROUND
     jp z, knightling_turnaround
+    cp a, KNIGHTLING_STATE_FIGHT
+    jp z, knightling_fight
 
     ;Unknow state
     ld hl, error_invst_knightln
@@ -250,8 +252,7 @@ knightling_walk:
 
         ;Change state
         relpointer_move ENTVAR_KNIGHTLING_STATE
-        ;ld [hl], KNIGHTLING_STATE_FIGHT
-        call knightling_draw_sword
+        ld [hl], KNIGHTLING_STATE_FIGHT
 
         relpointer_pop 0
         jr .return
@@ -300,6 +301,63 @@ knightling_turnaround:
     .return
     relpointer_destroy
     ld l, e
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+knightling_fight:
+    push hl
+    entsys_relpointer_init ENTVAR_KNIGHTLING_TIMER
+    call knightling_engage
+    jr nz, .engaged
+
+        ;No longer engaged, go back to walking
+        relpointer_push ENTVAR_KNIGHTLING_STATE, 0
+        ld [hl], KNIGHTLING_STATE_WALK
+        relpointer_move ENTVAR_KNIGHTLING_ANIMATE
+        ld [hl], $C0
+        relpointer_pop 0
+        jr .return
+
+    .engaged
+
+    ;Tick down timer
+    relpointer_move ENTVAR_KNIGHTLING_TIMER
+    inc [hl]
+    ld a, [hl]
+    cp a, KNIGHTLING_FIGHT_TIME
+    jr nz, .no_fight
+        ld [hl], 0
+
+        ;Oh yeah, start fightin'
+        relpointer_push ENTVAR_KNIGHTLING_STATE, 0
+        ld [hl], KNIGHTLING_STATE_ATTACK
+
+        ;Set charge speed
+        relpointer_move ENTVAR_KNIGHTLING_FLAGS
+        ld d, [hl]
+        relpointer_move ENTVAR_KNIGHTLING_XSPEED
+        bit KNIGHTLING_FLAGB_FACING, d
+        ld [hl], KNIGHTLING_XSPEED_ATTACK
+        jr z, :+
+            ld [hl], -KNIGHTLING_XSPEED_ATTACK
+        :
+
+        ;Reset timer
+        relpointer_move ENTVAR_KNIGHTLING_TIMER
+        ld [hl], 0
+        relpointer_pop 0
+        jr .return
+    .no_fight
+
+    .return
+    relpointer_destroy
+    pop hl
     ret
 ;
 
