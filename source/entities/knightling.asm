@@ -291,6 +291,8 @@ knightling_turnaround:
     jr nz, :+
         relpointer_push ENTVAR_KNIGHTLING_STATE, 0
         ld [hl], KNIGHTLING_STATE_WALK
+        relpointer_move ENTVAR_KNIGHTLING_ANIMATE
+        ld [hl], $C0
         jr .return
         relpointer_pop 0
     :
