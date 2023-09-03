@@ -200,9 +200,10 @@ var_w0:
         ; What sprite slots have been occupied?
         ; This is a bitfield.
         w_tower_spriteslots:: db $00
-
-        w_sprite_knightling:: db $00
         w_sprite_rectangle:: db $00
+
+        w_knightling_count:: db $00
+        w_knightling_sprite:: db $00
 
     ENDL
     var_w0_end:

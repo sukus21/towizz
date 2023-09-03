@@ -18,7 +18,7 @@ entity_knightling_load::
     ld b, 1
     call tower_sprite_alloc
     ld a, b
-    ld [w_sprite_knightling], a
+    ld [w_knightling_sprite], a
     vqueue_add_copy \
         VQUEUE_TYPE_DIRECT, \
         de, \
@@ -47,6 +47,10 @@ entity_knightling_load::
 ;
 ; Destroys: all
 entity_knightling_create::
+    ld hl, w_knightling_count
+    inc [hl]
+
+    ;Allocate entity
     push bc
     entsys_new 32, entity_knightling, KNIGHTLING_FLAGS
     pop bc
@@ -146,6 +150,8 @@ knightling_update:
     jp z, knightling_fight
     cp a, KNIGHTLING_STATE_ATTACK
     jp z, knightling_attack
+    cp a, KNIGHTLING_STATE_FALLING
+    jp z, knightling_fall
 
     ;Unknow state
     ld hl, error_invst_knightln
@@ -494,6 +500,51 @@ knightling_attack:
 
 
 
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+knightling_fall:
+    push hl
+
+    ;Get X-speed -> BC
+    entsys_relpointer_init ENTVAR_KNIGHTLING_XSPEED
+    ld b, [hl]
+    xor a
+    sra b
+    rra
+    sra b
+    rra
+    sra b
+    rra
+    sra b
+    rra
+    ld c, a
+
+    ;Add X-speed to position
+    relpointer_move ENTVAR_XPOS
+    ld a, c
+    add a, [hl]
+    ld [hl+], a
+    ld a, b
+    adc a, [hl]
+    ld [hl-], a
+
+    ;Now check Y-position
+    relpointer_move ENTVAR_YPOS+1
+    ld a, [hl]
+    cp a, 160
+    ld b, 0
+    call nc, knightling_destroy
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
 ; Stand on the platform.
 ;
 ; Input:
@@ -688,6 +739,53 @@ knightling_face_engaged:
 
 
 
+; Call when knightling is defeated/falls off the edge.
+;
+; Input:
+; - `b`: Death effects (0 = no)
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+knightling_destroy:
+    push hl
+    entsys_relpointer_init 0
+
+    ;Spawn death effects + coin(s)
+    ld a, b
+    or a, a ;cp a, 0
+    jr z, .no_effects
+        relpointer_push ENTVAR_XPOS+1
+        ld b, [hl]
+        relpointer_move ENTVAR_YPOS+1
+        ld c, [hl]
+        push bc
+
+        ;Create smoke particle
+        ;TODO: smoke particle
+
+        ;Create coin(s)
+        pop bc
+        ;TODO: coins
+
+        ;Alrighty
+        relpointer_pop
+    .no_effects
+
+    ;Free the entity
+    call entsys_free
+
+    ;Decrement entity count
+    ld hl, w_knightling_count
+    dec [hl]
+
+    ;Return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
 ; Draw call for knightling enemy.
 ;
 ; Input:
@@ -698,12 +796,21 @@ knightling_draw:
     push hl
 
     ;Tile ID based on state -> C
-    ld a, [w_sprite_knightling]
+    ld a, [w_knightling_sprite]
     ld c, a
     entsys_relpointer_init ENTVAR_KNIGHTLING_ANIMATE
     ld b, [hl]
     relpointer_move ENTVAR_KNIGHTLING_STATE
     ld a, [hl]
+
+    ;Fall sprite
+    cp a, KNIGHTLING_STATE_FALLING
+    jr nz, :+
+        ld a, c
+        add a, KNIGHTLING_SPRITE_WALK
+        ld c, a
+        jr .sprited
+    :
 
     ;Walk sprite
     cp a, KNIGHTLING_STATE_WALK
@@ -818,7 +925,7 @@ knightling_draw_sword:
 
     ;Sprite tile -> stack
     entsys_relpointer_init ENTVAR_KNIGHTLING_STATE
-    ld a, [w_sprite_knightling]
+    ld a, [w_knightling_sprite]
     add a, KNIGHTLING_SPRITE_SWORD_WAIT
     ld b, a
     ld a, [hl]

@@ -83,3 +83,105 @@ entsys_find_continue::
     ld a, [hl-]
     jp entsys_find.next
 ;
+
+
+
+; Low-precision collision check.
+; Only tests using high-bytes of positions.  
+; Lives in ROM0.
+;
+; Input:
+; - `c`: Flags to test for (`ENTSYS_FLAGF_*`)
+; - `hl`: Source entity (`ENTVAR_XPOS+1`)
+;
+; Returns:
+; - `fZ`: Found anything (z = no, nz = yes)
+; - `hl`: Collided entity
+;
+; Saves: `c`  
+; Destroys: `af`, `b`, `de`
+entsys_find_collision::
+    relpointer_init l, ENTVAR_XPOS+1
+    ld d, [hl]
+    relpointer_move ENTVAR_YPOS+1
+    ld e, [hl]
+    relpointer_move ENTVAR_HEIGHT
+    ld a, [hl-]
+    sub a, e
+    ld b, a
+    ld a, [hl+]
+    sub a, d
+
+    ;Write this data to collision buffer
+    relpointer_destroy
+    ld hl, w_buffer
+    ld [hl+], a
+    ld a, b
+    ld [hl+], a
+    ld a, d
+    ld [hl+], a
+    ld [hl], e
+
+    ;Find entity with these flags
+    call entsys_find
+    ret z
+
+    ;Ok, grab rectangle params
+    .collide
+    push bc
+    push hl
+    relpointer_init l
+    relpointer_move ENTVAR_XPOS+1
+    ld d, [hl]
+    relpointer_move ENTVAR_YPOS+1
+    ld e, [hl]
+    relpointer_move ENTVAR_WIDTH
+    ld a, [hl-]
+    sub a, d
+    ld b, a
+    ld a, [hl+]
+    sub a, e
+    relpointer_destroy
+
+    ;Write to buffer
+    ld hl, w_buffer+7
+    ld [hl-], a
+    ld a, b
+    ld [hl-], a
+    ld a, e
+    ld [hl-], a
+    ld [hl], d
+
+    ;Perform collision call
+    ld b, h
+    ld c, l
+    ld d, h
+    ld e, low(w_buffer)
+    call entsys_collision_rr8
+
+    ;Did we find anything?
+    pop hl
+    pop bc
+    ret nz
+
+    ; Low-precision collision check.
+    ; Only tests using high-bytes of positions.
+    ; Check more entities of needed.  
+    ; Assumes `w_buffer` is unchanged.  
+    ; Lives in ROM0.
+    ;
+    ; Input:
+    ; - `c`: Flags to test for (`ENTSYS_FLAGF_*`)
+    ; - `hl`: Last found entity pointer (`ENTVAR_BANK`)
+    ;
+    ; Returns:
+    ; - `fZ`: Found anything (z = no, nz = yes)
+    ; - `hl`: Collided entity
+    ;
+    ; Saves: `c`  
+    ; Destroys: `af`, `b`, `de`
+    entsys_find_collision_continue::
+    call entsys_find_continue
+    jr nz, entsys_find_collision.collide
+    ret
+;
