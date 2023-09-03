@@ -139,7 +139,7 @@ knightling_update:
     call z, knightling_speed_fall
 
     ;Ok, now go into the state machine
-    ld bc, .return
+    ld bc, .poststate
     push bc
     ld a, [hl]
     cp a, KNIGHTLING_STATE_WALK
@@ -156,6 +156,25 @@ knightling_update:
     ;Unknow state
     ld hl, error_invst_knightln
     rst v_error
+
+    ;Take damage?
+    .poststate
+    relpointer_move ENTVAR_XPOS+1
+    push hl
+    ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_DAMAGE
+    call entsys_find_collision
+    ld a, bank(@)
+    call nz, entsys_do_dmgcall
+    pop hl
+    jr z, .no_damage
+        
+        ;Deal damage, maybe even destroy
+        relpointer_push ENTVAR_KNIGHTLING_HEALTH
+        dec [hl]
+        ld b, h ;non-zero
+        call z, knightling_destroy
+        relpointer_pop
+    .no_damage
 
     .return
     relpointer_destroy

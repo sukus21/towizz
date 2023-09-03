@@ -32,6 +32,12 @@ entity_firebreath_create::
     ld a, e
     ld [hl-], a
 
+    ;Set width and height
+    relpointer_move ENTVAR_HEIGHT
+    ld a, $0E
+    ld [hl+], a
+    ld [hl-], a
+
     ;Set dmgcall pointer
     relpointer_move ENTVAR_DMGCALL
     ld a, low(entity_firebreath_dmgcall)

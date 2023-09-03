@@ -33,6 +33,7 @@ entsys_step::
             ld h, [hl]
             ld l, a
             call _hl_
+            .exited
             pop hl
         ;
 
@@ -650,6 +651,46 @@ entsys_clear::
     ld [hl+], a
 
     ;Return
+    ret
+;
+
+
+
+; Do DMGcall for supported entities.  
+; Lives in ROM0.
+;
+; Input:
+; - `a`: Source bank (called from)
+; - `hl`: Entity pointer (0)
+;
+; Saves: `af`, `hl`
+entsys_do_dmgcall::
+    push af
+    push hl
+    relpointer_init l
+    ld c, [hl]
+    ld d, h
+    ld e, l
+
+    ;Do we HAVE to do DMG call?
+    relpointer_move ENTVAR_FLAGS
+    bit ENTSYS_FLAGB_DMGCALL, [hl]
+    jr z, .return
+
+    ;Yes we do. Find pointer and jump
+    relpointer_move ENTVAR_DMGCALL
+    ld a, [hl+]
+    ld h, [hl]
+    ld l, a
+    ld a, c
+    ld [rROMB0], a
+    call _hl_
+
+    .return
+    relpointer_destroy
+    pop hl
+    pop af
+    ld [rROMB0], a
     ret
 ;
 
