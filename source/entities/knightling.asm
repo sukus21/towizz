@@ -199,21 +199,21 @@ knightling_walk:
     ld [hl], a
 
     ;Apply speed to X-position
-    ld a, c
-    swap a
-    ld c, a
-    and a, %00001111
-    bit 3, a
-    jr z, :+
-        add a, %11110000
-    :
+    xor a
+    sra c
+    rra
+    sra c
+    rra
+    sra c
+    rra
+    sra c
+    rra
     ld e, a
     relpointer_move ENTVAR_XPOS
-    ld a, c
-    and a, %11110000
+    ld a, e
     add a, [hl]
     ld [hl+], a
-    ld a, e
+    ld a, c
     adc a, [hl]
     ld [hl-], a
     ld d, a
@@ -454,19 +454,18 @@ knightling_attack:
     
     ;Add X-speed to X-position -> B
     relpointer_move ENTVAR_XPOS
-    swap c
-    ld a, c
-    and a, %00001111
-    bit 3, a
-    jr z, :+
-        or a, %11110000
-    :
-    ld e, a
-    ld a, c
-    and a, %11110000
+    xor a
+    sra c
+    rra
+    sra c
+    rra
+    sra c
+    rra
+    sra c
+    rra
     add a, [hl]
     ld [hl+], a
-    ld a, e
+    ld a, c
     adc a, [hl]
     ld [hl-], a
     ld b, a
@@ -602,17 +601,16 @@ knightling_speed_fall:
     ld [hl], a
 
     ;Elongate to 16-bit
-    swap a
-    ld c, a
-    and a, %00001111
-    bit 3, a
-    jr z, :+
-        or a, %11110000
-    :
     ld b, a
-
-    ld a, c
-    and a, %11110000
+    xor a
+    sra b
+    rra
+    sra b
+    rra
+    sra b
+    rra
+    sra b
+    rra
     ld c, a
 
     ;Move downward
@@ -671,9 +669,6 @@ knightling_engage:
     ld [hl+], a
     ld a, e
     ld [hl+], a
-
-    ;Debug rectangle drawing
-    call entsys_boundsdraw
 
     ;Get player entity
     ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_PLAYER
