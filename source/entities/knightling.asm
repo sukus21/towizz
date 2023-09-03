@@ -172,9 +172,21 @@ knightling_update:
         relpointer_push ENTVAR_KNIGHTLING_HEALTH
         dec [hl]
         ld b, h ;non-zero
-        call z, knightling_destroy
+        jp z, knightling_destroy
+
+        ;Set stun
+        relpointer_move ENTVAR_KNIGHTLING_STUN
+        ld [hl], KNIGHTLING_STUN_TIME
         relpointer_pop
     .no_damage
+
+    ;Decrement stun (maybe)
+    relpointer_move ENTVAR_KNIGHTLING_STUN
+    ld a, [hl]
+    or a, a
+    jr z, :+
+        dec [hl]
+    :
 
     .return
     relpointer_destroy
@@ -809,10 +821,19 @@ knightling_destroy:
 knightling_draw:
     push hl
 
+    entsys_relpointer_init ENTVAR_KNIGHTLING_STUN
+    ld a, [hl]
+    and a, %00000110
+    cp a, %00000110
+    jr nz, :+
+        pop hl
+        ret
+    :
+
     ;Tile ID based on state -> C
     ld a, [w_knightling_sprite]
     ld c, a
-    entsys_relpointer_init ENTVAR_KNIGHTLING_ANIMATE
+    relpointer_move ENTVAR_KNIGHTLING_ANIMATE
     ld b, [hl]
     relpointer_move ENTVAR_KNIGHTLING_STATE
     ld a, [hl]
@@ -921,6 +942,7 @@ knightling_draw:
     ld [hl], b
 
     ;Return
+    .return
     pop hl
     ret
 ;
