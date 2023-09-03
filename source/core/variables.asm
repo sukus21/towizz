@@ -98,6 +98,9 @@ var_w0:
         ; First known 4-chunk entity slot.
         w_entsys_first64:: dw w_entsys
 
+        ; Stack-position to exit an entity's gameloop.
+        w_entsys_exit:: dw $0000
+
         ; Tower visuals mode.
         ; Possible flags located in `tower.inc`.
         w_tower_flags:: db $00

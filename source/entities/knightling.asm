@@ -735,14 +735,12 @@ knightling_face_engaged:
 
 
 ; Call when knightling is defeated/falls off the edge.
+; Does NOT return, exits entity code execution entirely.
 ;
 ; Input:
 ; - `b`: Death effects (0 = no)
 ; - `hl`: Entity pointer (anywhere)
-;
-; Saves: `hl`
 knightling_destroy:
-    push hl
     entsys_relpointer_init 0
 
     ;Spawn death effects + coin(s)
@@ -773,10 +771,9 @@ knightling_destroy:
     ld hl, w_knightling_count
     dec [hl]
 
-    ;Return
+    ;Exit
     relpointer_destroy
-    pop hl
-    ret
+    jp entsys_exit
 ;
 
 

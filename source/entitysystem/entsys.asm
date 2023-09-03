@@ -3,12 +3,16 @@ INCLUDE "entsys.inc"
 
 SECTION "ENTSYS", ROM0
 
-; Execution code prototyping.
-; Passes entity pointer in DE to step functions.
+; Execute code for all active entities.  
+; Passes entity pointer in DE to step functions.  
 ; Lives in ROM0.
 ; 
 ; Destroys: all
 entsys_step::
+    push af
+    ld [w_entsys_exit], sp
+    pop af
+
     ld hl, w_entsys
     .loop
 
@@ -647,4 +651,22 @@ entsys_clear::
 
     ;Return
     ret
+;
+
+
+
+; This entity is destroyed, stop executing its code.  
+; should be jumped to instead of called.  
+; Lives in ROM0.
+entsys_exit::
+    
+    ;Restore stack position
+    ld hl, w_entsys_exit
+    ld a, [hl+]
+    ld h, [hl]
+    ld l, a
+    ld sp, hl
+
+    ;Jump back to entity loop
+    jp entsys_step.exited
 ;
