@@ -678,6 +678,7 @@ knightling_engage:
 
     .find_player
         ;Get its collision data
+        ld de, w_buffer+4
         call entsys_collision_prepare_8
         ld bc, w_buffer
         ld de, w_buffer+4

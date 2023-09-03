@@ -9,11 +9,12 @@ SECTION "ENTSYS COLLISION", ROM0
 ; Lives in ROM0.
 ;
 ; Input:
-; - `bc`: rect 1 ptr [XxYy]
-; - `de`: rect 2 ptr [XxYy]
+; - `bc`: Rect 1 ptr [XxYy]
+; - `de`: Rect 2 ptr [XxYy]
 ;
 ; Returns:
-; - `a`: collision or not (true/false)
+; - `fZ`: Collision or not (z = no, nz = yes)
+; - `a`: Collision or not (true/false)
 entsys_collision_rr8::
     ld h, d
     ld l, e
@@ -63,8 +64,7 @@ entsys_collision_rr8::
         ;if(rect1.y < rect2.Y)
         inc c
         ld a, [bc]
-        ld d, [hl]
-        cp a, d
+        cp a, [hl]
 
         ld a, 0 ;does not change flags
         adc a, a
@@ -331,17 +331,19 @@ entsys_collision_pr16::
 
 
 ; Write a collision-enabled entity's collision data into buffer.
-; This only writes the high-byte of the position, not the low-byte.
-; This will always write to the second position in the buffer, not the first.  
+; This only writes the high-byte of the position, not the low-byte.  
 ; Lives in ROM0.
 ;
 ; Input:
+; - `de`: Buffer address
 ; - `hl`: Entity pointer (anywhere)
 ;
-; Saves: `hl`  
-; Destroys: `af`, `bc`, `de`
+; Saves: `hl`, `bc`  
+; Destroys: `af`, `de`
 entsys_collision_prepare_8::
+    push bc
     push hl
+    push de
     
     ;Get top-left corner
     entsys_relpointer_init ENTVAR_YPOS+1
@@ -361,10 +363,10 @@ entsys_collision_prepare_8::
     relpointer_destroy
 
     ;Debug thing
-    call entsys_boundsdraw
+    ;call entsys_boundsdraw
 
     ;Write data to buffer
-    ld hl, w_buffer+4
+    pop hl
     ld a, b
     ld [hl+], a
     ld a, d
@@ -375,6 +377,7 @@ entsys_collision_prepare_8::
 
     ;Return
     pop hl
+    pop bc
     ret
 ;
 
