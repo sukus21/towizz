@@ -490,6 +490,8 @@ knightling_attack:
     ld b, a
 
     ;Move into tower?
+    bit KNIGHTLING_FLAGB_FACING, d
+    jr z, .no_tower
     ld a, [w_camera_xpos+1]
     cp a, b
     jr c, .no_tower
