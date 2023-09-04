@@ -711,3 +711,49 @@ entsys_exit::
     ;Jump back to entity loop
     jp entsys_step.exited
 ;
+
+
+
+; Check if a (collision enabled) entity is out of bounds.  
+; Lives in ROM0.
+;
+; Input:
+; - `hl`: Entity pointer (0)
+;
+; Returns:
+; - `fZ`: OOB or not (z = no, nz = yes)
+;
+; Saves: `hl`
+entsys_oob::
+    ld e, l
+    relpointer_init l
+    relpointer_move ENTVAR_XPOS+1
+    ld a, [w_camera_xpos+1]
+    cpl
+    add a, [hl]
+    cp a, 160
+    jr c, .checky
+
+    ;Getting warmer
+    cp a, 240
+    jr nc, .checky
+
+    ;Yup, destroy this one
+    .destroy
+    ld l, e
+    or a, h
+    ret
+
+    ;Check Y-position
+    .checky
+    relpointer_move ENTVAR_YPOS+1
+    ld a, [hl]
+    cp a, 160
+    jr nc, .destroy
+
+    ;Nah, we good
+    relpointer_destroy
+    ld l, e
+    xor a
+    ret
+;

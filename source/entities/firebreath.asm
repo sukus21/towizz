@@ -101,28 +101,8 @@ entity_firebreath:
     relpointer_init l
 
     ;Outside map?
-    relpointer_move ENTVAR_XPOS+1
-    ld a, [w_camera_xpos+1]
-    cpl
-    add a, [hl]
-    cp a, 160
-    jr c, .checky
-
-    ;Getting warmer
-    cp a, 240
-    jr nc, .checky
-
-    ;Yup, destroy this one
-    .destroy
-    ld l, e
-    jp entsys_free
-
-    ;Check Y-position
-    .checky
-    relpointer_move ENTVAR_YPOS+1
-    ld a, [hl]
-    cp a, 160
-    jr nc, .destroy
+    call entsys_oob
+    jp nz, entsys_free
 
     ;Get X-position -> BC
     relpointer_move ENTVAR_FIREBREATH_XSPEED
