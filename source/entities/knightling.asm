@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
+INCLUDE "macros/farcall.inc"
 INCLUDE "macros/relpointer.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/entity/knightling.inc"
@@ -805,7 +806,7 @@ knightling_destroy:
         push bc
 
         ;Create smoke particle
-        ;TODO: smoke particle
+        farcall_x entity_particle_create
 
         ;Create coin(s)
         pop bc

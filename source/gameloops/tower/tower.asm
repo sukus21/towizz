@@ -31,6 +31,8 @@ gameloop_tower_setup:
     farcall rectangle_points_load
     farcall entity_player_load
     farcall entity_knightling_load
+    ld de, VT_TOWER_PARTICLE
+    farcall entity_particle_load
     call gameloop_loading
 
     ld a, bank(tower_vprep)
