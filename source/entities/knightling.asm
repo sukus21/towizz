@@ -174,6 +174,18 @@ knightling_update:
         ld b, h ;non-zero
         jp z, knightling_destroy
 
+        ;No more speed?
+        relpointer_move ENTVAR_KNIGHTLING_STATE
+        ld a, [hl]
+        cp a, KNIGHTLING_STATE_WALK
+        jr nz, :+
+            ld e, l
+            relpointer_push ENTVAR_KNIGHTLING_XSPEED, 0
+            ld [hl], 0
+            relpointer_pop 0
+            ld l, e
+        :
+
         ;Set stun
         relpointer_move ENTVAR_KNIGHTLING_STUN
         ld [hl], KNIGHTLING_STUN_TIME
@@ -204,7 +216,15 @@ knightling_walk:
     push hl
     entsys_relpointer_init ENTVAR_KNIGHTLING_FLAGS
     ld b, [hl]
+    relpointer_move ENTVAR_KNIGHTLING_STUN
+    ld c, [hl]
     relpointer_move ENTVAR_KNIGHTLING_XSPEED
+
+    ;Stop if stunned (briefly)
+    ld a, c
+    cp a, KNIGHTLING_STUN_PERIOD
+    ld a, 0
+    jr nc, .xspeed_add
 
     ;Add speed
     bit KNIGHTLING_FLAGB_FACING, b

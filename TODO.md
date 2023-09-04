@@ -20,7 +20,7 @@
     * [ ] Adventurous boomerang
     * [ ] ...
 * [ ] Enemies
-    * [ ] Knightling
+    * [x] Knightling
     * [ ] Citizen
     * [ ] Masked hero-man
     * [ ] Blummber
