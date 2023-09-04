@@ -697,7 +697,7 @@ entsys_do_dmgcall::
 
 
 ; This entity is destroyed, stop executing its code.  
-; should be jumped to instead of called.  
+; Does not return.  
 ; Lives in ROM0.
 entsys_exit::
     

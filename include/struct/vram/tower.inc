@@ -30,6 +30,10 @@ RSSET $80
     DEF VT_TOWER_PLATFORM EQU EQRB
     DEF VTI_TOWER_PLATFORM RB $20
 
+    ; Location of coin tileset.
+    DEF VT_TOWER_COIN EQU EQRB
+    DEF VTI_TOWER_COIN RB $08
+
     ; Location of particle tileset.
     DEF VT_TOWER_PARTICLE EQU EQRB
     DEF VTI_TOWER_PARTICLE RB $08

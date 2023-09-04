@@ -208,6 +208,12 @@ var_w0:
         w_knightling_count:: db $00
         w_knightling_sprite:: db $00
 
+        ; How many active coin entities are there?
+        ; This is NOT how much money the player has.
+        w_coin_count:: db $00
+        w_coin_sprite:: db $00
+        w_coin_animate:: db $00
+
     ENDL
     var_w0_end:
 ;

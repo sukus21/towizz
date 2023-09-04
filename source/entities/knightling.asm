@@ -810,7 +810,10 @@ knightling_destroy:
 
         ;Create coin(s)
         pop bc
-        ;TODO: coins
+        ld a, b
+        add a, ((KNIGHTLING_WIDTH - 8) / 2)
+        ld b, a
+        farcall_x entity_coin_create
 
         ;Alrighty
         relpointer_pop

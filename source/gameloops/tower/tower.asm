@@ -33,6 +33,8 @@ gameloop_tower_setup:
     farcall entity_knightling_load
     ld de, VT_TOWER_PARTICLE
     farcall entity_particle_load
+    ld de, VT_TOWER_COIN
+    farcall entity_coin_load
     call gameloop_loading
 
     ld a, bank(tower_vprep)
@@ -399,36 +401,9 @@ tower_draw_byte::
 ;
 ; Saves: none
 draw_hud:
-    /*
-    ;Get a couple sprites
-    ld b, 4*8
-    ld h, high(w_oam_hud)
-    call sprite_get
-
-    ;Draw platform positions
-    ld a, [w_platform_xpos]
-    ld bc, $11_10
-    call draw_byte
-    ld a, [w_platform_ypos]
-    ld bc, $22_10
-    call draw_byte
-
-    ;Draw tower positions
-    ld a, [w_tower_ypos]
-    ld bc, $42_10
-    call draw_byte
-    ld a, [w_tower_height]
-    ld bc, $53_10
-    call draw_byte
-
-    ;Draw background positions
-    ld a, [w_background_xpos]
-    ld bc, $73_10
-    call draw_byte
-    ld a, [w_background_ypos]
-    ld bc, $84_10
-    call draw_byte
-    */
+    ;Update coin animation
+    ld hl, w_coin_animate
+    inc [hl]
     
     ;Get current background
     ld b, 8
