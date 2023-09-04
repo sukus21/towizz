@@ -100,8 +100,7 @@ entsys_find_continue::
 ;
 ; Destroys: all
 entsys_find_collision::
-    ld de, w_buffer
-    call entsys_collision_prepare_8
+    call entsys_collision_prepare1
 
     ;Find entity with these flags
     call entsys_find
@@ -111,13 +110,10 @@ entsys_find_collision::
     .collide
     push bc
     push hl
-    ld de, w_buffer+4
-    call entsys_collision_prepare_8
+    call entsys_collision_prepare2
 
     ;Perform collision call
-    ld bc, w_buffer
-    ld de, w_buffer+4
-    call entsys_collision_rr8
+    call entsys_collision_rr8f
 
     ;Did we find anything?
     pop hl
@@ -129,7 +125,7 @@ entsys_find_collision::
     ; Low-precision collision check.
     ; Only tests using high-bytes of positions.
     ; Check more entities of needed.  
-    ; Assumes `w_buffer` is unchanged.  
+    ; Assumes `h_colbuf` is unchanged.  
     ; Lives in ROM0.
     ;
     ; Input:

@@ -693,7 +693,7 @@ knightling_engage:
 
     ;Write these to buffer
     relpointer_destroy
-    ld hl, w_buffer
+    ld hl, h_colbuf1
     ld a, b
     ld [hl+], a
     ld a, d
@@ -711,11 +711,8 @@ knightling_engage:
 
     .find_player
         ;Get its collision data
-        ld de, w_buffer+4
-        call entsys_collision_prepare_8
-        ld bc, w_buffer
-        ld de, w_buffer+4
-        call entsys_collision_rr8
+        call entsys_collision_prepare2
+        call entsys_collision_rr8f
         pop hl
         ld b, h
         ld c, l

@@ -89,6 +89,67 @@ entsys_collision_rr8::
 
 
 ; Checks for collision between two rectangles.  
+; Input should be placed at `h_colbuf`, in the following format: `[x1 x2 y1 y2], [x1 x2 y1 y2]`  
+; Always assumes x2 >= x1 and y2 >= y1 for both boxes.  
+; Lives in ROM0.
+;
+; Returns:
+; - `fZ`: Collision or not (z = no, nz = yes)
+; - `a`: Collision or not (true/false)
+entsys_collision_rr8f::
+    ld hl, h_colbuf2
+
+    ;rect1.x1 < rect2.x1
+    ld a, [h_colbuf1+0]
+    cp a, [hl]
+    jr nc, .higherX
+
+        ;rect1.x2 < rect2.x1
+        ld a, [h_colbuf1+1]
+        cp a, [hl]
+        inc l
+        inc l
+        jr nc, .ycheck
+        xor a
+        ret
+
+    .higherX
+
+        ;rect1.x1 > rect2.x2
+        inc l
+        cp a, [hl]
+        inc l
+        jr c, .ycheck
+        xor a
+        ret
+    ;
+
+    .ycheck
+
+    ;rect1.y1 < rect2.y1
+    ldh a, [h_colbuf1+2]
+    cp a, [hl]
+    jr nc, .higherY
+
+        ;rect1.y2 < rect2.y1
+        ldh a, [h_colbuf1+3]
+        cp a, [hl]
+        sbc a, a ;turns nc into z
+        ret 
+
+    .higherY
+
+        ;if(rect1.Y > rect2.y)
+        inc l
+        cp a, [hl]
+        sbc a, a
+        ret 
+    ;
+;
+
+
+
+; Checks for collision between two rectangles.  
 ; Always assumes x2 >= x1 and y2 >= y1 for both boxes.  
 ; Expects 3-bit alignment on `bc` and `de`.  
 ; Lives in ROM0.
@@ -330,55 +391,81 @@ entsys_collision_pr16::
 
 
 
-; Write a collision-enabled entity's collision data into buffer.
-; This only writes the high-byte of the position, not the low-byte.  
-; Lives in ROM0.
+; Creates code for initializing rectangles from entities.
 ;
 ; Input:
-; - `de`: Buffer address
-; - `hl`: Entity pointer (anywhere)
-;
-; Saves: `hl`, `bc`  
-; Destroys: `af`, `de`
-entsys_collision_prepare_8::
+; - `1`: HRAM location to use (label/address/n8)
+MACRO prepare
     push bc
     push hl
-    push de
-    
-    ;Get top-left corner
-    entsys_relpointer_init ENTVAR_YPOS+1
-    ld e, [hl]
-    relpointer_move ENTVAR_XPOS+1
-    ld b, [hl]
 
-    ;Get bottom-right
-    relpointer_move ENTVAR_HEIGHT
-    ld a, e
-    sub a, [hl]
-    ld c, a
-    relpointer_move ENTVAR_WIDTH
-    ld a, b
-    add a, [hl]
-    ld d, a
+    ;This ONLY WORKS under these conditions:
+    STATIC_ASSERT ENTVAR_YPOS+2 == ENTVAR_XPOS
+    STATIC_ASSERT ENTVAR_XPOS+2 == ENTVAR_HEIGHT
+    STATIC_ASSERT ENTVAR_HEIGHT+1 == ENTVAR_WIDTH
+
+    ;Start
+    entsys_relpointer_init ENTVAR_YPOS+1, $F0
     relpointer_destroy
 
-    ;Debug thing
-    ;call entsys_boundsdraw
+    ;Y-position
+    ld a, [hl+]
+    inc l
+    ld c, a
+    ldh [\1+3], a
 
-    ;Write data to buffer
-    pop hl
-    ld a, b
-    ld [hl+], a
-    ld a, d
-    ld [hl+], a
+    ;X-position
+    ld a, [hl+]
+    ld b, a
+    ldh [\1+0], a
+
+    ;Subtract height
     ld a, c
-    ld [hl+], a
-    ld [hl], e
+    sub a, [hl]
+    inc l
+    ldh [\1+2], a
+
+    ;Add width
+    ld a, b
+    add a, [hl]
+    ldh [\1+1], a
 
     ;Return
     pop hl
     pop bc
     ret
+ENDM
+
+
+
+; Write a collision-enabled entity's collision data into buffer.
+; This only writes the high-byte of the position, not the low-byte.  
+; Always writes to `h_colbuf1`. Use `entsys_collision_prepare2` to use `h_colbuf2`.  
+; Lives in ROM0.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`, `bc`, `de`  
+; Destroys: `af`
+entsys_collision_prepare1::
+    prepare h_colbuf1
+;
+
+
+
+; Write a collision-enabled entity's collision data into buffer.
+; This only writes the high-byte of the position, not the low-byte.  
+; Always writes to `h_colbuf2`. Use `entsys_collision_prepare1` to use `h_colbuf1`.  
+; Lives in ROM0.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`, `bc`, `de`  
+; Destroys: `af`
+entsys_collision_prepare2::
+    prepare h_colbuf2
 ;
 
 

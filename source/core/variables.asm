@@ -221,6 +221,11 @@ var_h:
     LOAD "HRAM VARIABLES", HRAM
         h_variables::
 
+        ; Collision buffer for faster collision routines.
+        h_colbuf::
+        h_colbuf1:: ds 4
+        h_colbuf2:: ds 4
+
         ; Run OAM DMA with a pre-specified input.  
         ; Interrupts should be disabled while this runs.  
         ; Assumes OAM access.
