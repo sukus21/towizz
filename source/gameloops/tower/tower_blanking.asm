@@ -27,7 +27,7 @@ tower_vblank::
     ldh [rWY], a
 
     ;Set the correct LCDC flags
-    ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON | LCDCF_OBJ16
+    ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_OBJON
     ldh [rLCDC], a
 
     ;Execute VRAM transfers

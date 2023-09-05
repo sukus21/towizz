@@ -26,10 +26,6 @@ RSSET $80
     DEF VT_TOWER_ENEMIES2 EQU EQRB
     DEF VTI_TOWER_ENEMIES2 RB $30
 
-    ; Location of platform tileset.
-    DEF VT_TOWER_PLATFORM EQU EQRB
-    DEF VTI_TOWER_PLATFORM RB $20
-
     ; Location of coin tileset.
     DEF VT_TOWER_COIN EQU EQRB
     DEF VTI_TOWER_COIN RB $08
@@ -44,7 +40,16 @@ RSSET $80
 
     ; HUD tiles.
     DEF VT_TOWER_HUD EQU EQRB
-    DEF VTI_TOWER_HUD RB $10
+    DEF VTI_TOWER_HUD RB $0C
+
+    ; HUD font tiles.
+    DEF VT_TOWER_FONT EQU EQRB
+    DEF VTI_TOWER_FONT RB $0A
+
+    ; Location of platform tileset.
+    DEF VT_TOWER_PLATFORM EQU EQRB
+    DEF VTI_TOWER_PLATFORM RB $1A
+    DEF VTI_TOWER_PLATFORM_END RB 0
 ASSERT _RS <= $100
 
 ;Block 2 (backgrounds only)

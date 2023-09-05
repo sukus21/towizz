@@ -40,7 +40,7 @@ gameloop_tower_setup:
     ld a, bank(tower_vprep)
     ld [rROMB0], a
     ld de, tower_vprep
-    ld b, 7
+    ld b, 6
     call vqueue_enqueue_multi
     call gameloop_loading
 
@@ -325,7 +325,7 @@ tower_buffer_prepare:
     add a, 16
     ld c, a ;sprite Y-position
     ld a, d ;sprite X-position
-    ld e, VTI_TOWER_PLATFORM + $1E ;sprite tile
+    ld e, VTI_TOWER_PLATFORM_END - 2 ;sprite tile
 
     ;Write data
     .loop
@@ -407,31 +407,27 @@ draw_hud:
     ;Update coin animation
     ld hl, w_coin_animate
     inc [hl]
-    
-    ;Get current background
-    ld b, 8
-    ld h, high(w_oam_hud)
-    call sprite_get
-    ld a, [w_tower_flags]
-    bit TOWERMODEB_WINDOW_TILEMAP, a
-    ld a, high(_SCRN0)
-    jr z, :+
-        ld a, high(_SCRN1)
-    :
-    ld bc, $4010
-    call tower_draw_byte
 
     ;Cover up window layer on HUD
     ld h, high(w_oam_hud)
-    ld b, 4
+    ld b, 8
     call sprite_get
-    ld [hl], $10
-    inc l
-    ld [hl], $A0
-    inc l
-    ld [hl], VTI_TOWER_HUD
-    inc l
-    ld [hl], $00
+    ld a, $10
+    ld [hl+], a
+    ld a, $A0
+    ld [hl+], a
+    ld a, VTI_TOWER_HUD
+    ld [hl+], a
+    xor a
+    ld [hl+], a
+    ld a, $18
+    ld [hl+], a
+    ld a, $A0
+    ld [hl+], a
+    ld a, VTI_TOWER_HUD
+    ld [hl+], a
+    xor a
+    ld [hl+], a
 
     ;That's it, we are done drawing the HUD
     call sprite_finish

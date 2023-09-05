@@ -28,6 +28,23 @@ tower_asset_platform_grassy::
     INCBIN "graphics/platform_grass.tls"
 .end::
 
+; HUD tilemap.
+tower_tlm_hud:
+    ds 6, VTI_TOWER_HUD
+    db VTI_TOWER_HUD+4, VTI_TOWER_HUD+6
+    ds 3, VTI_TOWER_HUD
+    db VTI_TOWER_HUD+8, VTI_TOWER_HUD+10
+    ds 7, VTI_TOWER_HUD
+
+    ds 6, VTI_TOWER_HUD
+    db VTI_TOWER_HUD+5, VTI_TOWER_HUD+7
+    ds 3, VTI_TOWER_HUD
+    db VTI_TOWER_HUD+9, VTI_TOWER_HUD+11
+    ds 7, VTI_TOWER_HUD
+
+    ds 20, VTI_TOWER_HUD+1
+.end
+
 ; Repeated tower tilemap.
 ; It is easier to generate it this way.
 tower_tilemap_tower::
@@ -46,12 +63,12 @@ tower_tilemap_tower::
 ; Platform tilemap.
 ; It is easier to generate it this way.
 tower_tilemap_platform::
-    DEF TOWER_TILE = VTI_TOWER_PLATFORM+0
+    DEF TOWER_TILE = VTI_TOWER_PLATFORM-6
     REPT 16
         db TOWER_TILE
         DEF TOWER_TILE += 2
     ENDR
-    DEF TOWER_TILE = VTI_TOWER_PLATFORM+1
+    DEF TOWER_TILE = VTI_TOWER_PLATFORM-5
     REPT 16
         db TOWER_TILE
         DEF TOWER_TILE += 2
@@ -96,17 +113,11 @@ tower_vprep_hud:
         tower_asset_hud
     ;
 
-    vqueue_prepare_set \
-        VQUEUE_TYPE_DIRECT, \
-        4, \
-        VM_TOWER_HUD  + $00, \
-        VTI_TOWER_HUD + $00
-    ;
-
-    vqueue_prepare_set \
-        VQUEUE_TYPE_DIRECT, \
-        2, \
-        VM_TOWER_HUD  + $40, \
-        VTI_TOWER_HUD + $02
+    vqueue_prepare_copy \
+        VQUEUE_TYPE_SCREENROW, \
+        VM_TOWER_HUD, \
+        tower_tlm_hud, \
+        0, \
+        20
     ;
 ;
