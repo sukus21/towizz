@@ -41,6 +41,25 @@ tower_vblank::
     ld a, TOWER_HUD_LYC
     ldh [rLYC], a
     LYC_set_jumppoint tower_hblank_gui
+
+    ; Dirty, DIRTY hack to get background working.
+    ; The background code is BEYOND broken:
+    ; - Writeback is not being utilized properly.
+    ; - Writing to the active tilemap(?).
+    ; - I am out of time to properly fix it.
+    ; This is the easiest way to fix the issue right now.
+    ld a, [w_background_writeback_target]
+    or a, a
+    jr z, :+
+        ld hl, w_tower_buffer + TOWER_BUFFER_TLCDC
+        ld a, [hl]
+        xor a, LCDCF_WIN9C00
+        ld [hl], a
+        ld hl, w_tower_buffer + TOWER_BUFFER_PLCDC
+        ld a, [hl]
+        xor a, LCDCF_WIN9C00
+        ld [hl], a
+    :
     
     ;Copy buffered scroll positions
     ld hl, w_tower_buffer
