@@ -429,9 +429,59 @@ draw_hud:
     xor a
     ld [hl+], a
 
+    ;Draw equipment durability
+    ld a, [w_durability_equipment]
+    ld c, a
+    ld b, 6*4
+    call sprite_get
+    ld b, 9*8
+    ld e, 3
+    call .durability
+
+    ;Draw weapon durability
+    ld a, [w_durability_weapon]
+    ld c, a
+    ld b, 6*4
+    call sprite_get
+    ld b, 14*8
+    ld e, 3
+    call .durability
+
     ;That's it, we are done drawing the HUD
     call sprite_finish
     ret
+
+    .durability
+        ld a, $10
+        ld [hl+], a
+        ld a, b
+        ld [hl+], a
+        dec c
+        bit 7, c
+        ld a, VTI_TOWER_HUD+3
+        jr z, :+
+            dec a
+        :
+        ld d, a
+        ld [hl+], a
+        xor a
+        ld [hl+], a
+
+        ld a, $18
+        ld [hl+], a
+        ld a, b
+        ld [hl+], a
+        add a, 5
+        ld b, a
+        ld a, d
+        ld [hl+], a
+        ld a, OAMF_YFLIP
+        ld [hl+], a
+
+        dec e
+        jr nz, .durability
+        ret
+    ;
 ;
 
 
