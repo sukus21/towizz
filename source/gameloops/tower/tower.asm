@@ -49,7 +49,7 @@ gameloop_tower_setup:
     farcall entity_player_create
     ld bc, $8050
     farcall entity_knightling_create
-    farcall entity_towerdemo_create
+    ;farcall entity_towerdemo_create
 
     ;Call regular V-blank routine
     call tower_buffer_prepare
