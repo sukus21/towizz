@@ -3,15 +3,25 @@
 ; and can therefore not be used as function arguments.
 ; Does not switch banks back when returning.
 ;
-; Input:
+; Input (1):
 ; - `1`: Symbol to call (label)
+;
+; Input (2):
+; - `1`: Condition code
+; - `2`: Symbol to call (label)
 ;
 ; Destroys: `a`, unknown
 MACRO farcall
     ASSERT bank(@) == 0, "farcall - can only do non-returning farcall from ROM0"
-    ld a, bank(\1)
-    ld [rROMB0], a
-    call \1
+    IF _NARG == 1
+        ld a, bank(\1)
+        ld [rROMB0], a
+        call \1
+    ELSE
+        ld a, bank(\2)
+        ld [rROMB0], a
+        call \1, \2
+    ENDC
 ENDM
 
 
