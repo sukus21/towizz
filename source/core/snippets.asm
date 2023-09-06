@@ -800,7 +800,7 @@ bin2bcd::
 
     ;Do the conversion
     push bc
-    ld b, 0
+    ld b, $FF
     .loop
         inc b
         sub a, 10
