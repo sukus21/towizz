@@ -99,6 +99,7 @@ entity_coin_load::
     rra
     srl b
     rra
+    set 0, a
     ld [w_coin_sprite], a
 
     ;Add VQUEUE transfer

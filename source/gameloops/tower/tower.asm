@@ -447,6 +447,52 @@ draw_hud:
     ld e, 3
     call .durability
 
+    ;Draw coin
+    ld de, $0408
+    call coin_draw
+
+    ;Draw amount of monee
+    ld a, [w_money]
+    call bin2bcd
+    ld c, a
+    ld e, $14
+
+    swap a
+    and a, %00001111
+    jr z, :+
+        add a, VTI_TOWER_FONT
+        ld d, a
+        ld b, 4
+        call sprite_get
+        ld a, $11
+        ld [hl+], a
+        ld a, e
+        ld [hl+], a
+        add a, 6
+        ld e, a
+        ld a, d
+        ld [hl+], a
+        ld [hl], 0
+    :
+
+    ld b, 4
+    call sprite_get
+    ld a, $11
+    ld [hl+], a
+    ld a, e
+    ld [hl+], a
+    ld a, c
+    and a, %00001111
+    add a, VTI_TOWER_FONT
+    ld [hl+], a
+    ld [hl], 0
+
+
+    and a, %00001111
+    add a, VTI_TOWER_FONT
+    ld c, a
+
+
     ;That's it, we are done drawing the HUD
     call sprite_finish
     ret
