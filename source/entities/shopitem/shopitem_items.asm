@@ -8,7 +8,9 @@ SECTION FRAGMENT "SHOPITEM", ROMX
 ; Each sprite is 4 tiles (64 bytes) of data.
 ; A sprite can be looked up using ab `ITEM_ID_*` constant.
 item_sprites::
-    INCBIN "graphics/items/ball.tls"
+    INCBIN "graphics/items/jump.tls"
+    INCBIN "graphics/items/firebreath.tls"
+    INCBIN "graphics/items/heart.tls"
 ;
 
 
@@ -16,7 +18,9 @@ item_sprites::
 ; Contains a list of `ITEM` structs.
 ; Data can be looked up using an `ITEM_ID_*` constant.
 item_data::
-    item_define ITEM_ID_BALL, "BALL", 5, item_preview_ball_init, item_preview_ball_run
+    item_define ITEM_ID_JUMP,       "JUMP",         0, item_preview_jump_init,          item_preview_jump_run
+    item_define ITEM_ID_FIREBREATH, "FIREBREATH",   0, item_preview_firebreath_init,    item_preview_firebreath_run
+    item_define ITEM_ID_HEART,      "+1 HEALTH",    5, 0, 0
 ;
 
 

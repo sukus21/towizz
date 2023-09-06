@@ -23,7 +23,9 @@ DEF ITEM_PREVIEW_STEP RB 2
 DEF ITEM RB 0
 
 RSRESET
-DEF ITEM_ID_BALL RB 1
+DEF ITEM_ID_JUMP RB 1
+DEF ITEM_ID_FIREBREATH RB 1
+DEF ITEM_ID_HEART RB 1
 
 
 
@@ -37,6 +39,10 @@ DEF ITEM_ID_BALL RB 1
 ; - `4`: Preview init (address/label)
 ; - `5`: Preview step (address/label)
 MACRO item_define
+    IF !DEF(__ITEM_ID)
+        DEF __ITEM_ID = 0
+    ENDC
+    STATIC_ASSERT __ITEM_ID == \1, "items defined out of order"
     STATIC_ASSERT STRLEN(\2) <= 10, "item name must be <= 10 characters"
     db \1
     db \2
@@ -46,4 +52,6 @@ MACRO item_define
     db \3
     dw \4
     dw \5
+
+    DEF __ITEM_ID += 1
 ENDM

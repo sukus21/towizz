@@ -2,6 +2,7 @@ INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
 INCLUDE "macros/farcall.inc"
 INCLUDE "macros/relpointer.inc"
+INCLUDE "struct/item.inc"
 INCLUDE "struct/entity/firebreath.inc"
 INCLUDE "struct/entity/player.inc"
 
@@ -51,7 +52,7 @@ player_state_grounded::
         ld a, [w_player_equipment]
 
         ;Jump
-        cp a, PLAYER_EQUIP_JUMP
+        cp a, ITEM_ID_JUMP
         jr nz, :+
             relpointer_push ENTVAR_PLAYER_STATE, 0
             ld [hl], PLAYER_STATE_JUMPSQUAT

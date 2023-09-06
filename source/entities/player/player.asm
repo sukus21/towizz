@@ -2,6 +2,7 @@ INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
 INCLUDE "macros/memcpy.inc"
 INCLUDE "macros/relpointer.inc"
+INCLUDE "struct/item.inc"
 INCLUDE "struct/entity/player.inc"
 INCLUDE "struct/vram/tower.inc"
 
@@ -556,7 +557,7 @@ player_use_weapon::
     ld a, [w_player_weapon]
 
     ;Fire breath
-    cp a, PLAYER_WEAPON_FIREBREATH
+    cp a, ITEM_ID_FIREBREATH
     jr nz, :+
         relpointer_push ENTVAR_PLAYER_STATE, 0
         ld [hl], PLAYER_STATE_FIREBREATH

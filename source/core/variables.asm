@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "entsys.inc"
 INCLUDE "macros/color.inc"
+INCLUDE "struct/item.inc"
 INCLUDE "struct/oam_mirror.inc"
 INCLUDE "struct/tower_buffer.inc"
 INCLUDE "struct/vqueue.inc"
@@ -196,10 +197,10 @@ var_w0:
 
         w_money:: db $00
         w_player_health:: db $03
-        w_player_equipment:: db PLAYER_EQUIP_JUMP
-        w_player_weapon:: db PLAYER_WEAPON_FIREBREATH
-        w_durability_equipment:: db $00
-        w_durability_weapon:: db $00
+        w_player_equipment:: db ITEM_ID_JUMP
+        w_player_weapon:: db ITEM_ID_FIREBREATH
+        w_durability_equipment:: db $03
+        w_durability_weapon:: db $03
         w_player_woffset:: db $00
 
         ; What sprite slots have been occupied?

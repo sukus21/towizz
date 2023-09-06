@@ -93,13 +93,13 @@ gameloop_shop_setup:
     xor a
     ld [w_shop_itemsprite], a
     ld b, $08
-    ld c, ITEM_ID_BALL
+    ld c, ITEM_ID_JUMP
     farcall entity_shopitem_create
     ld b, $28
-    ld c, ITEM_ID_BALL
+    ld c, ITEM_ID_FIREBREATH
     farcall entity_shopitem_create
     ld b, $48
-    ld c, ITEM_ID_BALL
+    ld c, ITEM_ID_JUMP
     farcall entity_shopitem_create
 
     ;Prepare a couple vqueue transfers
