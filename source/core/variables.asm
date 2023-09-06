@@ -195,6 +195,7 @@ var_w0:
         w_background_writeback_target:: db $00
 
         w_money:: db $00
+        w_player_health:: db $03
         w_player_equipment:: db PLAYER_EQUIP_JUMP
         w_player_weapon:: db PLAYER_WEAPON_FIREBREATH
         w_durability_equipment:: db $00

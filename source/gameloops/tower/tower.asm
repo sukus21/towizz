@@ -456,49 +456,32 @@ draw_hud:
     call bin2bcd
     ld c, a
     ld e, $14
+    ld d, $11
+    call .number
 
-    swap a
-    and a, %00001111
-    jr z, :+
-        add a, VTI_TOWER_FONT
-        ld d, a
-        ld b, 4
-        call sprite_get
-        ld a, $11
-        ld [hl+], a
-        ld a, e
-        ld [hl+], a
-        add a, 6
-        ld e, a
-        ld a, d
-        ld [hl+], a
-        ld [hl], 0
-    :
-
+    ;Draw health
     ld b, 4
     call sprite_get
-    ld a, $11
+    ld a, $18
     ld [hl+], a
-    ld a, e
+    ld a, $0C
     ld [hl+], a
-    ld a, c
-    and a, %00001111
-    add a, VTI_TOWER_FONT
+    ld a, VTI_TOWER_HUD+12
     ld [hl+], a
     ld [hl], 0
-
-
-    and a, %00001111
-    add a, VTI_TOWER_FONT
+    ld a, [w_player_health]
+    call bin2bcd
     ld c, a
-
+    ld e, $14
+    ld d, $19
+    call .number
 
     ;That's it, we are done drawing the HUD
     call sprite_finish
     ret
 
     .durability
-        ld a, $10
+        ld a, $0E
         ld [hl+], a
         ld a, b
         ld [hl+], a
@@ -513,7 +496,7 @@ draw_hud:
         xor a
         ld [hl+], a
 
-        ld a, $18
+        ld a, $16
         ld [hl+], a
         ld a, b
         ld [hl+], a
@@ -526,6 +509,45 @@ draw_hud:
 
         dec e
         jr nz, .durability
+        ret
+    ;
+
+    .number
+
+        ;Draw highest digit maybe
+        ld a, c
+        and a, %11110000
+        jr z, :+
+            ld b, 4
+            call sprite_get
+            ld a, d
+            ld [hl+], a
+            ld a, e
+            ld [hl+], a
+            add a, 6
+            ld e, a
+            ld a, c
+            swap a
+            and a, %00001111
+            add a, VTI_TOWER_FONT
+            ld [hl+], a
+            ld [hl], 0
+        :
+
+        ;Draw lowest digit
+        ld b, 4
+        call sprite_get
+        ld a, d
+        ld [hl+], a
+        ld a, e
+        ld [hl+], a
+        ld a, c
+        and a, %00001111
+        add a, VTI_TOWER_FONT
+        ld [hl+], a
+        ld [hl], 0
+
+        ;Return
         ret
     ;
 ;
