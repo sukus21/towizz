@@ -355,8 +355,7 @@ gameloop_error:
 
 
 error_wait:
-    ldh a, [rIF]
-    xor a, 2
+    xor a
     ldh [rIF], a
     halt
     ;Falls into `int_stat`
@@ -376,18 +375,17 @@ int_stat:
     sub a, $08
     ld b, a
 
-
-
     ;VBLANK CHECK
     ;Check scanline number
     ldh a, [rLY]
-    cp a, $8F
-    jr z, .vwait
     cp a, $86
-    jp nz, error_wait
-    ldh a, [h_setup]
-    or a, a
-    jp z, error_wait
+    jr nz, :+
+        ldh a, [h_setup]
+        or a, a
+        jr z, error_wait
+    :
+    cp a, $8F
+    jr c, error_wait
 
     ;Show error message
     .vwait
@@ -503,7 +501,7 @@ int_stat:
     ;Reenable interupts
     xor a
     ldh [rIF], a
-    ld a, 2
+    ld a, IEF_STAT
     ldh [rIE], a
     jp error_wait
 ;
