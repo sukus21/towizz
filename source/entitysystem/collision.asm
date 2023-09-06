@@ -450,8 +450,7 @@ ENDM
 ; Destroys: `af`
 entsys_collision_prepare1::
     prepare h_colbuf1
-
-    call entsys_boundsdraw1
+    ;call entsys_boundsdraw1
     ret
 ;
 
@@ -469,8 +468,7 @@ entsys_collision_prepare1::
 ; Destroys: `af`
 entsys_collision_prepare2::
     prepare h_colbuf2
-
-    call entsys_boundsdraw2
+    ;call entsys_boundsdraw2
     ret
 ;
 
