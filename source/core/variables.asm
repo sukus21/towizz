@@ -76,7 +76,7 @@ variables_init::
 
 ; Contains the initial values of all variables in WRAM0.
 var_w0:
-    LOAD "WRAM0 VARIABLES", WRAM0, ALIGN[8]
+    LOAD "WRAM0 INITIALIZED", WRAM0, ALIGN[8]
         w_variables:
 
         ; 256 bytes of memory that can be used for anything.
@@ -217,6 +217,9 @@ var_w0:
         w_coin_sprite:: db $00
         w_coin_animate:: db $00
 
+        ; Current painter position.
+        w_painter_position:: dw w_paint
+
     ENDL
     var_w0_end:
 ;
@@ -303,32 +306,33 @@ var_h:
 
 
 
-SECTION "ENTITY STORAGE", WRAMX, ALIGN[8]
-
-; Enitity system.  
-; Check out `source/entitysystem/entsys.md` for documentation.
-w_entsys::
-    DEF entity_current = 0
-    REPT ENTSYS_CHUNK_COUNT
-        w_entsys_bank_{d:entity_current}: ds 1
-        w_entsys_next_{d:entity_current}: ds 1
-        w_entsys_step_{d:entity_current}: ds 2
-        w_entsys_flags_{d:entity_current}: ds 1
-        w_entsys_ypos_{d:entity_current}: ds 2
-        w_entsys_xpos_{d:entity_current}: ds 2
-        w_entsys_height_{d:entity_current}: ds 1
-        w_entsys_width_{d:entity_current}: ds 1
-        w_entsys_dmgcall_{d:entity_current}: ds 2
-        w_entsys_vars_{d:entity_current}: ds 3
-        DEF entity_current += 1
-    ENDR
-    PURGE entity_current
+SECTION "WRAMX UNINITIALIZED", WRAMX, ALIGN[8]
+    ; Entity system.
+    w_entsys::
+        DEF entity_current = 0
+        REPT ENTSYS_CHUNK_COUNT
+            w_entsys_bank_{d:entity_current}: ds 1
+            w_entsys_next_{d:entity_current}: ds 1
+            w_entsys_step_{d:entity_current}: ds 2
+            w_entsys_flags_{d:entity_current}: ds 1
+            w_entsys_ypos_{d:entity_current}: ds 2
+            w_entsys_xpos_{d:entity_current}: ds 2
+            w_entsys_height_{d:entity_current}: ds 1
+            w_entsys_width_{d:entity_current}: ds 1
+            w_entsys_dmgcall_{d:entity_current}: ds 2
+            w_entsys_vars_{d:entity_current}: ds 3
+            DEF entity_current += 1
+        ENDR
+        PURGE entity_current
     w_entsys_end::
+
+    ; Paint buffer.
+    w_paint:: ds $400
 ;
 
 
 
-SECTION "OAM MIRRORS", WRAM0, ALIGN[8]
+SECTION "WRAM0 UNITITIALIZED", WRAM0, ALIGN[8]
     ; OAM mirror, used for DMA.
     ; Use this label to communicate no need for double buffering.
     ; Overlaps with `w_oam1`.
