@@ -142,6 +142,8 @@ entity_player_update:
 
     ;Collect the coinz
     .collect
+    pop hl
+    push hl
     relpointer_set 0
     ld c, ENTSYS_FLAGF_COIN | ENTSYS_FLAGF_COLLISION
     call entsys_find_collision

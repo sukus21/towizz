@@ -134,15 +134,16 @@ entsys_collision_rr8f::
         ;rect1.y2 < rect2.y1
         ldh a, [h_colbuf1+3]
         cp a, [hl]
+        ccf
         sbc a, a ;turns nc into z
         ret 
 
     .higherY
 
-        ;if(rect1.Y > rect2.y)
+        ;rect1.y1 > rect2.y2
         inc l
         cp a, [hl]
-        sbc a, a
+        sbc a, a ;turns nc into z
         ret 
     ;
 ;
@@ -433,7 +434,6 @@ MACRO prepare
     ;Return
     pop hl
     pop bc
-    ret
 ENDM
 
 
@@ -450,6 +450,9 @@ ENDM
 ; Destroys: `af`
 entsys_collision_prepare1::
     prepare h_colbuf1
+
+    call entsys_boundsdraw1
+    ret
 ;
 
 
@@ -466,6 +469,9 @@ entsys_collision_prepare1::
 ; Destroys: `af`
 entsys_collision_prepare2::
     prepare h_colbuf2
+
+    call entsys_boundsdraw2
+    ret
 ;
 
 
@@ -474,27 +480,58 @@ entsys_collision_prepare2::
 ; Assumes rectangle tiles are loaded.  
 ; Lives in ROM0.
 ;
-; Input:
-; - `b`: Left X-pos
-; - `c`: Top Y-pos
-; - `d`: Right X-pos
-; - `e`: Bottom Y-pos
-;
 ; Saves: `bc`, `de`
-;
-entsys_boundsdraw::
+entsys_boundsdraw1::
     push bc
     push de
 
     ;Adjust X-coordinates
     ld a, [w_camera_xpos+1]
     ld h, a
-    ld a, b
+    ldh a, [h_colbuf1+0]
     sub a, h
     ld b, a
-    ld a, d
+    ldh a, [h_colbuf1+1]
     sub a, h
     ld d, a
+    ldh a, [h_colbuf1+2]
+    ld c, a
+    ldh a, [h_colbuf1+3]
+    ld e, a
+
+    ;Draw thing
+    call rectangle_points_draw
+
+    ;Return
+    pop de
+    pop bc
+    ret
+;
+
+
+
+; Draw a test rectangle.  
+; Assumes rectangle tiles are loaded.  
+; Lives in ROM0.
+;
+; Saves: `bc`, `de`
+entsys_boundsdraw2::
+    push bc
+    push de
+
+    ;Adjust X-coordinates
+    ld a, [w_camera_xpos+1]
+    ld h, a
+    ldh a, [h_colbuf2+0]
+    sub a, h
+    ld b, a
+    ldh a, [h_colbuf2+1]
+    sub a, h
+    ld d, a
+    ldh a, [h_colbuf2+2]
+    ld c, a
+    ldh a, [h_colbuf2+3]
+    ld e, a
 
     ;Draw thing
     call rectangle_points_draw
