@@ -95,8 +95,8 @@ gameloop_tower::
     ; This is where the gameloop repeats.
     .main::
     call input
-    bit PADB_SELECT, b
-    ld bc, $8030
+    bit PADB_SELECT, c
+    ld bc, $8028
     farcall nz, entity_coin_create
     call entsys_step
     call draw_hud

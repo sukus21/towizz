@@ -125,7 +125,7 @@ entity_player_update:
     .animate
     pop hl
     ld a, [hl]
-    ld bc, .return
+    ld bc, .collect
     push bc
     cp a, PLAYER_STATE_GROUNDED
     jp z, player_animate_grounded
@@ -139,6 +139,29 @@ entity_player_update:
 
     ;Unknown state found
     jr .unknown_state
+
+    ;Collect the coinz
+    .collect
+    relpointer_set 0
+    ld c, ENTSYS_FLAGF_COIN | ENTSYS_FLAGF_COLLISION
+    call entsys_find_collision
+    jr z, .no_collision
+    .coin_loop
+        push hl
+        call entsys_free
+        ld hl, w_money
+        ld a, [hl]
+        inc a
+        cp a, 100
+        jr c, :+
+            ld a, 99
+        :
+        ld [hl], a
+        ld c, ENTSYS_FLAGF_COIN | ENTSYS_FLAGF_COLLISION
+        pop hl
+        call entsys_find_collision_continue
+        jr nz, .coin_loop
+    .no_collision
 
     ;Return
     .return

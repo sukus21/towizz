@@ -78,6 +78,9 @@ DEF ENTSYS_FLAGB_DAMAGE RB 1
 DEF ENTSYS_FLAGF_DMGCALL EQU 1 << _RS
 DEF ENTSYS_FLAGB_DMGCALL RB 1
 
+; This entity is a coin.
+DEF ENTSYS_FLAGF_COIN EQU 1 << _RS
+
 
 
 ; Allocate new entity, set bank and step-pointer.  

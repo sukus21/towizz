@@ -107,7 +107,7 @@ var_w0:
         w_tower_flags:: db $00
 
         ; Added to tower Y-position every frame.
-        w_tower_yspeed:: dw $FE50
+        w_tower_yspeed:: dw $0000
 
         ; Tower scroll position.
         ; Call `tower_ypos_truncate` after modifying.
@@ -129,7 +129,7 @@ var_w0:
         w_platform_height:: db $10
 
         ; Background Y-position changes by this value every frame.
-        w_background_yspeed:: dw $0040
+        w_background_yspeed:: dw $0000
         w_background_ypos:: dw $0000
 
         ; Added to camera X-position every frame.
