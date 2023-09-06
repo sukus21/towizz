@@ -150,3 +150,52 @@ painter_paint::
     pop de
     ret
 ;
+
+
+
+; Paint equipment and weapon tiles, and queue them for transfer.  
+; Switches banks.  
+; Lives in ROM0.
+;
+; Destroys: all
+painter_item_slots::
+
+    ;Get template bank
+    ld a, bank(tower_asset_hud)
+    ld [rROMB0], a
+
+    ;Fill templates
+    call painter_reset
+    ld bc, tower_asset_hud + $40
+    ld de, $40
+    call painter_fill
+    ld de, $40
+    call painter_fill
+
+    ;Get item bank
+    call painter_reset
+    ld a, bank(item_sprites)
+    ld [rROMB0], a
+
+    ;Paint equipment sprite
+    ld a, [w_player_equipment]
+    call item_get_sprite
+    ld b, d
+    ld c, e
+    ld de, $40
+    call painter_paint
+
+    ;Paint weapon sprite
+    ld a, [w_player_weapon]
+    call item_get_sprite
+    ld b, d
+    ld c, e
+    ld de, $40
+    call painter_paint
+
+    ;Add VQUEUE transfer
+    vqueue_add VQUEUE_TYPE_DIRECT, 8, VT_TOWER_HUD+$40, w_paint
+
+    ;Return
+    ret
+;
