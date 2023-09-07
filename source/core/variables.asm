@@ -210,6 +210,8 @@ var_w0:
 
         w_knightling_count:: db $00
         w_knightling_sprite:: db $00
+        w_pajamaman_count:: db $00
+        w_pajamaman_sprite:: db $00
 
         ; How many active coin entities are there?
         ; This is NOT how much money the player has.
