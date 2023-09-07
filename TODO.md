@@ -4,7 +4,6 @@
     * [x] Airborne state
     * [x] Platform interaction
     * [x] Animation system
-* [ ] Player back-item modification
 * [ ] Player movement
     * [x] Jump
     * [ ] Jetpack
@@ -48,6 +47,10 @@
 * [x] Create relative pointer system
     * [x] Create auto-performance macros
 * [ ] Sound effects system
+* [x] Tile painter system
+* [x] HUD drawing
+* [x] Coin entity
+* [x] Smoke entity
 
 ### Nice to have (prioritized)
 * [ ] Intro cutscene
