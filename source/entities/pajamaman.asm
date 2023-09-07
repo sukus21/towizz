@@ -117,5 +117,225 @@ entity_pajamaman_create::
 ; Input:
 ; - `de`: Entity pointer
 entity_pajamaman:
+    ld h, d
+    ld l, e
+
+    ;Do some crazy stuff
+    call pajamaman_update
+    call pajamaman_draw
+
+    ;Return
+    ret
+;
+
+
+
+; Main update function for pajamaman.
+;
+; Input:
+; - `hl`: Entity pointer (0)
+;
+; Saves: `hl`
+pajamaman_update:
+    push hl
+    relpointer_init l
+
+    ;Increment animate
+    relpointer_move ENTVAR_PAJAMAMAN_ANIMATE
+    inc [hl]
+
+    ;Decrement stun (maybe)
+    relpointer_move ENTVAR_PAJAMAMAN_STUN
+    ld a, [hl]
+    or a, a
+    jr z, :+
+        dec [hl]
+    :
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Draw call for pajamaman enemy.
+;
+; Input:
+; - `hl`: Entity pointer (0)
+;
+; Saves: `hl`
+pajamaman_draw:
+    push hl
+    relpointer_init l
+
+    ;Don't draw if stun thing
+    relpointer_move ENTVAR_PAJAMAMAN_STUN
+    ld a, [hl]
+    and a, %00000110
+    cp a, %00000110
+    jr nz, :+
+        pop hl
+        ret
+    :
+
+    ;Flags -> B
+    relpointer_move ENTVAR_PAJAMAMAN_FLAGS
+    ld a, [hl]
+    ld b, 0
+    bit PAJAMAMAN_FLAGB_FACING, a
+    jr z, :+
+        ld b, OAMF_XFLIP
+    :
+
+    ;X/Y-position -> stack
+    relpointer_move ENTVAR_XPOS+1
+    ld a, [w_camera_xpos+1]
+    cpl
+    add a, [hl]
+    add a, 9
+    bit OAMB_XFLIP, b
+    jr nz, :+
+        add a, 8
+    :
+    ld d, a
+    relpointer_move ENTVAR_YPOS+1
+    ld e, [hl]
+    push de
+
+    ;Flags -> E
+    ld e, b
+
+    ;Animate var -> D
+    relpointer_move ENTVAR_PAJAMAMAN_ANIMATE
+    ld d, [hl]
+
+    ;State -> C
+    relpointer_move ENTVAR_PAJAMAMAN_STATE
+    ld c, [hl]
+
+    ;Get sprites
+    relpointer_destroy
+    ld b, 4*2
+    ldh a, [h_oam_active]
+    ld h, a
+    call sprite_get
+
+    ;Switch by state
+    ld a, c
+    pop bc
+    cp a, PAJAMAMAN_STATE_SIT
+    jr z, .sit
+    cp a, PAJAMAMAN_STATE_FLY
+    jr z, .fly
+    cp a, PAJAMAMAN_STATE_LAND
+    jr z, .land
+    cp a, PAJAMAMAN_STATE_TAKEOFF
+    jr z, .takeoff
+    cp a, PAJAMAMAN_STATE_TIRED
+    jr z, .tired
+
+    ;I don't know?
+    jr .return
+
+    .sit
+        ld a, PAJAMAMAN_SPRITE_IDLE
+        jr .capeflash
+
+    .fly
+        ld a, PAJAMAMAN_SPRITE_FLY
+        jr .capeflash
+
+    .land
+        ld a, PAJAMAMAN_SPRITE_LAND
+        jr .capeflash
+
+    .takeoff
+        ld d, PAJAMAMAN_SPRITE_TAKEOFF
+        jr .straight
+
+    .tired
+        bit 4, d
+        jr z, :+
+            ld d, PAJAMAMAN_SPRITE_INHALE
+            jr .straight
+        :
+        ld d, PAJAMAMAN_SPRITE_EXHALE
+        jr .straight
+
+    .capeflash
+        ld [hl], c
+        inc l
+        ld [hl], b
+        inc l
+        ld [hl], a
+        ld a, [w_pajamaman_sprite]
+        add a, [hl]
+        ld [hl+], a
+        ld [hl], e
+        inc l
+        ld [hl], c
+        inc l
+
+        ;Second X-position
+        ld c, a
+        ld a, b
+        add a, 8
+        bit OAMB_XFLIP, e
+        jr nz, :+
+            sub a, 16
+        :
+        ld [hl+], a
+
+        ;Second tile ID
+        inc c
+        inc c
+        bit 3, d
+        jr z, :+
+            ld a, c
+            sub a, 4
+            ld c, a
+        :
+        ld [hl], c
+        inc l
+        ld [hl], e
+        jr .return
+
+    .straight
+        ld a, [w_pajamaman_sprite]
+        add a, d
+        add a, 2
+        ld d, a
+
+        ld a, c
+        ld [hl+], a
+        ld a, b
+        ld [hl+], a
+        add a, 8
+        bit OAMB_XFLIP, e
+        jr nz, :+
+            sub a, 16
+        :
+        ld b, a
+        ld a, d
+        ld [hl+], a
+        ld a, e
+        ld [hl+], a
+
+        ld a, c
+        ld [hl+], a
+        ld a, b
+        ld [hl+], a
+        ld a, d
+        sub a, 2
+        ld [hl+], a
+        ld [hl], e
+
+        jr .return
+    ;
+
+    .return
+    pop hl
     ret
 ;

@@ -119,7 +119,7 @@ var_w0:
 
         ; Platform Y-position changes by this volume every frame.
         w_platform_yspeed:: dw $0000
-        w_platform_ypos:: dw $4000
+        w_platform_ypos:: dw $5000
 
         ; Platform X-position changes by this volume every frame.
         w_platform_xspeed:: dw $0000

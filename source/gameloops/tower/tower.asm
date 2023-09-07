@@ -31,6 +31,7 @@ gameloop_tower_setup:
     farcall rectangle_points_load
     farcall entity_player_load
     farcall entity_knightling_load
+    farcall entity_pajamaman_load
     ld de, VT_TOWER_PARTICLE
     farcall entity_particle_load
     ld de, VT_TOWER_COIN
@@ -51,8 +52,8 @@ gameloop_tower_setup:
     ;Initialize entity system
     call entsys_clear
     farcall entity_player_create
-    ;ld bc, $8050
-    ;farcall entity_knightling_create
+    ld bc, $8050
+    farcall entity_pajamaman_create
     ;farcall entity_towerdemo_create
 
     ;Call regular V-blank routine
