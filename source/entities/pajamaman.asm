@@ -7,7 +7,7 @@ INCLUDE "struct/entity/pajamaman.inc"
 
 SECTION "ENTITY PAJAMAMAN", ROMX
 
-; Knightling tileset.
+; Pajamaman tileset.
 pajamaman_tls: INCBIN "graphics/enemy_pajamaman.tls"
 .end
 
@@ -112,7 +112,7 @@ entity_pajamaman_create::
 
 
 
-; Knightling step function.
+; Pajamaman step function.
 ;
 ; Input:
 ; - `de`: Entity pointer
