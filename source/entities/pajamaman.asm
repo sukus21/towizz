@@ -152,7 +152,99 @@ pajamaman_update:
         dec [hl]
     :
 
+    ;Prepare state-machine1
+    relpointer_move ENTVAR_PAJAMAMAN_STATE
+    ld a, [hl]
+    ld bc, .return
+    push bc
+
+    ;State machine nonsense
+    cp a, PAJAMAMAN_STATE_SIT
+    jp z, pajamaman_sit
+
+    ;Unknown state
+    ld hl, error_invst_pjamaman
+    rst v_error
+
     .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_sit:
+    push hl
+    entsys_relpointer_init ENTVAR_PAJAMAMAN_TIMER1
+
+    ;Stay on platform
+    call pajamaman_move_platform
+
+    ;Tick tha timers
+    inc [hl]
+    jr nz, .no_force
+        ld e, l
+        relpointer_push ENTVAR_PAJAMAMAN_TIMER2, 0
+        inc [hl]
+        ld a, [hl]
+        cp a, PAJAMAMAN_SIT_TIME
+        jr c, .skip_force
+
+            ;Alrighty, force hero-guy to fly off
+            relpointer_move ENTVAR_PAJAMAMAN_STATE
+            ld [hl], PAJAMAMAN_STATE_TAKEOFF
+            relpointer_move ENTVAR_PAJAMAMAN_TIMER1
+            xor a
+            ld [hl+], a
+            ld [hl-], a
+
+            ;Now what
+            jr .return
+
+        .skip_force
+        relpointer_pop 0
+        ld l, e
+    .no_force
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Move pajamaman with platform.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_move_platform:
+    push hl
+
+    ;Do Y-position first (because it is easy)
+    entsys_relpointer_init ENTVAR_YPOS
+    xor a
+    ld [hl+], a
+    ld a, [w_platform_ypos+1]
+    ld [hl-], a
+
+    ;Now do X-position
+    relpointer_move ENTVAR_XPOS
+    ld a, [w_platform_xspeed]
+    add a, [hl]
+    ld [hl+], a
+    ld a, [w_platform_xspeed+1]
+    adc a, [hl]
+    ld [hl-], a
+
+    ;Wow really, that was it?
     relpointer_destroy
     pop hl
     ret
