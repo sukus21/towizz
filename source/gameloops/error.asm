@@ -62,34 +62,49 @@ sine:
 
 
 ;Background tileset
-error_tiles:
-    INCBIN "errorscreen/face.tls"
-    .end
-;
+error_tiles: INCBIN "errorscreen/face.tls"
+.end
 
 ;Sprite tiles
-error_sprites:
-    INCBIN "errorscreen/sprites.tls"
-    .end
-;
+error_sprites: INCBIN "errorscreen/sprites.tls"
+.end
 
 ;Font tiles
-error_font:
-    INCBIN "errorscreen/font.tls"
-    .end
-;
+error_font: INCBIN "errorscreen/font.tls"
+.end
 
 ;Tilemap data
-error_map:
-    INCBIN "errorscreen/tilemap.tlm"
-    .end
-;
+error_map: INCBIN "errorscreen/tilemap.tlm"
+.end
 
 ;Sprite initialization data
 error_spritedata:
-    INCBIN "errorscreen/objdata.bin"
-    .end
-;
+    db $C0, $10, $02, $00,   $C0, $18, $04, $00
+    db $D0, $10, $06, $00,   $D0, $18, $08, $00
+    db $E0, $10, $0A, $00,   $E0, $18, $0C, $00
+    db $F0, $10, $0E, $00,   $F0, $18, $10, $00
+    db $00, $14, $00, $00
+    
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00
+
+    db $C0, $90, $02, $00,   $C0, $98, $04, $00
+    db $D0, $90, $06, $00,   $D0, $98, $08, $00
+    db $E0, $90, $0A, $00,   $E0, $98, $0C, $00
+    db $F0, $90, $0E, $00,   $F0, $98, $10, $00
+    db $00, $94, $00, $00
+
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00,   $00, $E0, $00, $00
+    db $00, $E0, $00, $00
+.end
 
 ;Background palette
 error_palette_bg:
