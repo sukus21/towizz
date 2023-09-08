@@ -165,6 +165,8 @@ pajamaman_update:
     jp z, pajamaman_takeoff
     cp a, PAJAMAMAN_STATE_FLY
     jp z, pajamaman_fly
+    cp a, PAJAMAMAN_STATE_OFFSCREEN
+    jp z, pajamaman_offscreen
 
     ;Unknown state
     ld hl, error_invst_pjamaman
@@ -379,6 +381,66 @@ pajamaman_fly:
 
 
 
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_offscreen:
+    push hl
+    entsys_relpointer_init ENTVAR_PAJAMAMAN_TIMER1
+    inc [hl]
+    ld a, [hl]
+    cp a, PAJAMAMAN_OFFSCREEN_TIME
+    jr c, .return
+
+        ;Reset timer
+        ld [hl], 0
+
+        ;Find player to target
+        relpointer_move ENTVAR_YPOS
+        relpointer_push ENTVAR_YPOS, 0
+        ld d, h
+        ld e, l
+        ld c, ENTSYS_FLAGF_PLAYER
+        call entsys_find_all
+        jr z, .return
+        relpointer_set 0
+        relpointer_move ENTVAR_YPOS+1
+        ld c, [hl]
+
+        ;Move to that position
+        ld h, d
+        ld l, e
+        xor a
+        ld [hl+], a
+        ld a, c
+        ld [hl-], a
+
+        ;Flip direction
+        relpointer_move ENTVAR_PAJAMAMAN_FLAGS
+        ld a, [hl]
+        xor a, PAJAMAMAN_FLAGF_FACING
+        ld [hl], a
+
+        ;Reset Y-speed
+        relpointer_move ENTVAR_PAJAMAMAN_YSPEED
+        xor a
+        ld [hl+], a
+        ld [hl-], a
+
+        ;Change state
+        relpointer_move ENTVAR_PAJAMAMAN_STATE
+        ld [hl], PAJAMAMAN_STATE_WARNING
+    ;
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
 ; Move pajamaman with platform.
 ;
 ; Input:
@@ -514,7 +576,15 @@ pajamaman_draw:
 
     ;State -> C
     relpointer_move ENTVAR_PAJAMAMAN_STATE
-    ld c, [hl]
+    ld a, [hl]
+    cp a, PAJAMAMAN_STATE_OFFSCREEN
+    jr z, .early
+    cp a, PAJAMAMAN_STATE_WARNING
+    jr nz, :+
+        bit 4, d
+        jr z, .early
+    :
+    ld c, a
 
     ;Get sprites
     relpointer_destroy
@@ -538,6 +608,9 @@ pajamaman_draw:
     jr z, .tired
 
     ;I don't know?
+    jr .return
+    .early
+    pop hl
     jr .return
 
     .sit
@@ -564,6 +637,7 @@ pajamaman_draw:
         :
         ld d, PAJAMAMAN_SPRITE_EXHALE
         jr .straight
+    ;
 
     .capeflash
         ld [hl], c
