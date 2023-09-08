@@ -163,6 +163,8 @@ pajamaman_update:
     jp z, pajamaman_sit
     cp a, PAJAMAMAN_STATE_TAKEOFF
     jp z, pajamaman_takeoff
+    cp a, PAJAMAMAN_STATE_FLY
+    jp z, pajamaman_fly
 
     ;Unknown state
     ld hl, error_invst_pjamaman
@@ -275,13 +277,101 @@ pajamaman_takeoff:
 
         ;Set new Y-speed
         relpointer_move ENTVAR_PAJAMAMAN_YSPEED
-        ld a, low(PAJAMAMAN_YSPEED_TAKEOFF)
+        ld a, low(-PAJAMAMAN_YSPEED_TAKEOFF)
         ld [hl+], a
-        ld a, high(PAJAMAMAN_YSPEED_TAKEOFF)
+        ld a, high(-PAJAMAMAN_YSPEED_TAKEOFF)
         ld [hl-], a
     .no_fly
 
     ;My job here is done
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_fly:
+    push hl
+    push hl
+
+    ;Find a player
+    ld c, ENTSYS_FLAGF_PLAYER | ENTSYS_FLAGF_COLLISION
+    call entsys_find_all
+    jr nz, :+
+        pop hl
+        jr .speed_modified
+    :
+
+    ;Grab player Y-position -> C
+    relpointer_init l
+    relpointer_move ENTVAR_YPOS+1
+    ld c, [hl]
+    relpointer_destroy
+
+    ;Compare with my Y-position
+    pop hl
+    entsys_relpointer_init ENTVAR_YPOS+1
+    ld b, [hl]
+    relpointer_move ENTVAR_PAJAMAMAN_YSPEED
+    ld a, b
+    cp a, c
+    jr c, :+
+        ld a, [hl]
+        sub a, low(PAJAMAMAN_XSPEED_ADJUST)
+        ld [hl+], a
+        ld a, [hl]
+        sbc a, high(PAJAMAMAN_XSPEED_ADJUST)
+        ld [hl-], a
+        jr .speed_modified
+    :
+        ld a, [hl]
+        add a, low(PAJAMAMAN_XSPEED_ADJUST)
+        ld [hl+], a
+        ld a, [hl]
+        adc a, high(PAJAMAMAN_XSPEED_ADJUST)
+        ld [hl-], a
+    .speed_modified
+    relpointer_destroy
+    
+    ;Schmooves
+    call pajamaman_move_speed
+
+    ;Go offscreen?
+    entsys_relpointer_init ENTVAR_PAJAMAMAN_FLAGS
+    ld b, [hl]
+    relpointer_move ENTVAR_XPOS+1
+    bit PAJAMAMAN_FLAGB_FACING, b
+    ld a, [w_camera_xpos+1]
+    jr z, :+
+        sub a, 16
+        cp a, [hl]
+        jr c, .return
+
+        ;Make buddy go off-screen
+        .offscreen
+        relpointer_move ENTVAR_PAJAMAMAN_STATE
+        ld [hl], PAJAMAMAN_STATE_OFFSCREEN
+        relpointer_move ENTVAR_FLAGS
+        ld [hl], 0
+        
+        ;Reset timers
+        relpointer_move ENTVAR_PAJAMAMAN_TIMER1
+        xor a
+        ld [hl+], a
+        ld [hl-], a
+
+        ;Return
+        jr .return
+    :
+        add a, SCRN_X
+        cp a, [hl]
+        jr c, .offscreen
+    .return
     relpointer_destroy
     pop hl
     ret
@@ -315,6 +405,55 @@ pajamaman_move_platform:
     ld [hl-], a
 
     ;Wow really, that was it?
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Move pajamaman according to speed variables.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_move_speed:
+    push hl
+
+    ;X-speed -> DE
+    entsys_relpointer_init ENTVAR_PAJAMAMAN_XSPEED
+    ld a, [hl+]
+    ld e, a
+    ld a, [hl-]
+    ld d, a
+
+    ;Y-speed -> BC
+    relpointer_move ENTVAR_PAJAMAMAN_YSPEED
+    ld a, [hl+]
+    ld c, a
+    ld a, [hl-]
+    ld b, a
+
+    ;Apply X-speed
+    relpointer_move ENTVAR_XPOS
+    ld a, e
+    add a, [hl]
+    ld [hl+], a
+    ld a, d
+    adc a, [hl]
+    ld [hl-], a
+
+    ;Apply Y-speed
+    relpointer_move ENTVAR_YPOS
+    ld a, c
+    add a, [hl]
+    ld [hl+], a
+    ld a, b
+    adc a, [hl]
+    ld [hl-], a
+
+    ;Yup, we are done now
     relpointer_destroy
     pop hl
     ret
