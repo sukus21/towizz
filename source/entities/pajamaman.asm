@@ -161,6 +161,8 @@ pajamaman_update:
     ;State machine nonsense
     cp a, PAJAMAMAN_STATE_SIT
     jp z, pajamaman_sit
+    cp a, PAJAMAMAN_STATE_TAKEOFF
+    jp z, pajamaman_takeoff
 
     ;Unknown state
     ld hl, error_invst_pjamaman
@@ -204,6 +206,10 @@ pajamaman_sit:
             ld [hl+], a
             ld [hl-], a
 
+            ;Face away from tower
+            relpointer_move ENTVAR_PAJAMAMAN_FLAGS
+            res PAJAMAMAN_FLAGB_FACING, [hl]
+
             ;Now what
             jr .return
 
@@ -234,6 +240,48 @@ pajamaman_sit:
     jr nz, .takeoff
 
     .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_takeoff:
+    push hl
+    call pajamaman_move_platform
+
+    ;Tick timer
+    entsys_relpointer_init ENTVAR_PAJAMAMAN_TIMER1
+    inc [hl]
+    ld a, [hl]
+    cp a, PAJAMAMAN_TAKEOFF_TIME
+    jr c, .no_fly
+
+        ;Start flyin'
+        relpointer_move ENTVAR_PAJAMAMAN_STATE
+        ld [hl], PAJAMAMAN_STATE_FLY
+
+        ;Set new X-speed
+        relpointer_move ENTVAR_PAJAMAMAN_XSPEED
+        ld a, low(PAJAMAMAN_XSPEED_FLY)
+        ld [hl+], a
+        ld a, high(PAJAMAMAN_XSPEED_FLY)
+        ld [hl-], a
+
+        ;Set new Y-speed
+        relpointer_move ENTVAR_PAJAMAMAN_YSPEED
+        ld a, low(PAJAMAMAN_YSPEED_TAKEOFF)
+        ld [hl+], a
+        ld a, high(PAJAMAMAN_YSPEED_TAKEOFF)
+        ld [hl-], a
+    .no_fly
+
+    ;My job here is done
     relpointer_destroy
     pop hl
     ret
