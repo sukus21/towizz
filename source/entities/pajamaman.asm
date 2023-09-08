@@ -167,6 +167,8 @@ pajamaman_update:
     jp z, pajamaman_fly
     cp a, PAJAMAMAN_STATE_OFFSCREEN
     jp z, pajamaman_offscreen
+    cp a, PAJAMAMAN_STATE_WARNING
+    jp z, pajamaman_warning
 
     ;Unknown state
     ld hl, error_invst_pjamaman
@@ -324,18 +326,18 @@ pajamaman_fly:
     cp a, c
     jr c, :+
         ld a, [hl]
-        sub a, low(PAJAMAMAN_XSPEED_ADJUST)
+        sub a, low(PAJAMAMAN_YSPEED_ADJUST)
         ld [hl+], a
         ld a, [hl]
-        sbc a, high(PAJAMAMAN_XSPEED_ADJUST)
+        sbc a, high(PAJAMAMAN_YSPEED_ADJUST)
         ld [hl-], a
         jr .speed_modified
     :
         ld a, [hl]
-        add a, low(PAJAMAMAN_XSPEED_ADJUST)
+        add a, low(PAJAMAMAN_YSPEED_ADJUST)
         ld [hl+], a
         ld a, [hl]
-        adc a, high(PAJAMAMAN_XSPEED_ADJUST)
+        adc a, high(PAJAMAMAN_YSPEED_ADJUST)
         ld [hl-], a
     .speed_modified
     relpointer_destroy
@@ -409,6 +411,7 @@ pajamaman_offscreen:
         ld c, [hl]
 
         ;Move to that position
+        relpointer_pop 0
         ld h, d
         ld l, e
         xor a
@@ -428,9 +431,69 @@ pajamaman_offscreen:
         ld [hl+], a
         ld [hl-], a
 
+        ;Reset animation counter
+        relpointer_move ENTVAR_PAJAMAMAN_ANIMATE
+        ld [hl], 0
+
         ;Change state
         relpointer_move ENTVAR_PAJAMAMAN_STATE
         ld [hl], PAJAMAMAN_STATE_WARNING
+    ;
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_warning:
+    push hl
+    entsys_relpointer_init ENTVAR_PAJAMAMAN_TIMER1
+    inc [hl]
+    ld a, [hl]
+    cp a, PAJAMAMAN_WARNING_TIME
+    jr c, .return
+
+        ;Restore flags
+        relpointer_move ENTVAR_FLAGS
+        ld [hl], PAJAMAMAN_FLAGS
+
+        ;Get X-position -> B
+        relpointer_move ENTVAR_PAJAMAMAN_FLAGS
+        ld a, [w_camera_xpos+1]
+        sub a, PAJAMAMAN_WIDTH
+        ld c, [hl]
+        bit PAJAMAMAN_FLAGB_FACING, c
+        jr z, :+
+            add a, SCRN_X + PAJAMAMAN_WIDTH
+        :
+        ld b, a
+
+        ;Set X-position
+        relpointer_move ENTVAR_XPOS+1
+        ld [hl], b
+
+        ;Set state
+        relpointer_move ENTVAR_PAJAMAMAN_STATE
+        ld [hl], PAJAMAMAN_STATE_FLY
+
+        ;Set X-speed
+        relpointer_move ENTVAR_PAJAMAMAN_XSPEED
+        bit PAJAMAMAN_FLAGB_FACING, c
+        ld de, PAJAMAMAN_XSPEED_FLY
+        jr z, :+
+            ld de, -PAJAMAMAN_XSPEED_FLY
+        :
+        ld a, e
+        ld [hl+], a
+        ld a, d
+        ld [hl-], a
     ;
 
     .return
@@ -582,7 +645,11 @@ pajamaman_draw:
     cp a, PAJAMAMAN_STATE_WARNING
     jr nz, :+
         bit 4, d
-        jr z, .early
+        jr nz, :+
+        .early
+        pop hl
+        pop hl
+        ret
     :
     ld c, a
 
@@ -606,12 +673,12 @@ pajamaman_draw:
     jr z, .takeoff
     cp a, PAJAMAMAN_STATE_TIRED
     jr z, .tired
+    cp a, PAJAMAMAN_STATE_WARNING
+    jr z, .warning
 
     ;I don't know?
-    jr .return
-    .early
     pop hl
-    jr .return
+    ret
 
     .sit
         ld a, PAJAMAMAN_SPRITE_IDLE
@@ -637,6 +704,35 @@ pajamaman_draw:
         :
         ld d, PAJAMAMAN_SPRITE_EXHALE
         jr .straight
+    
+    .warning
+        ld b, $08
+        bit OAMB_XFLIP, e
+        jr z, :+
+            ld b, SCRN_X-16
+        :
+        ld a, [w_pajamaman_sprite]
+        add a, PAJAMAMAN_SPRITE_WARNING
+        ld e, a
+        
+        ;Write sprite
+        ld a, c
+        ld [hl+], a
+        ld a, b
+        ld [hl+], a
+        ld a, e
+        ld [hl+], a
+        xor a
+        ld [hl+], a
+        ld a, c
+        ld [hl+], a
+        ld a, b
+        add a, 8
+        ld [hl+], a
+        ld a, e
+        ld [hl+], a
+        ld [hl], OAMF_XFLIP
+        jr .return
     ;
 
     .capeflash
