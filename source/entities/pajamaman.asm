@@ -130,6 +130,52 @@ entity_pajamaman:
 
 
 
+; Call when pajamaman is defeated/flies off.
+; Does NOT return, exits entity code execution entirely.
+;
+; Input:
+; - `b`: Death effects (0 = no)
+; - `hl`: Entity pointer (anywhere)
+pajamaman_destroy:
+    entsys_relpointer_init 0
+
+    ;Spawn death effects + coin(s)
+    ld a, b
+    or a, a ;cp a, 0
+    jr z, .no_effects
+        relpointer_push ENTVAR_XPOS+1
+        ld b, [hl]
+        relpointer_move ENTVAR_YPOS+1
+        ld c, [hl]
+
+        ;Create smoke particle
+        farcall_x entity_particle_create
+
+        ;Create coin(s)
+        ld a, b
+        add a, ((PAJAMAMAN_WIDTH - 8) / 2)
+        ld b, a
+        farcall_x entity_coin_create
+        farcall_x entity_coin_create
+
+        ;Alrighty
+        relpointer_pop
+    .no_effects
+
+    ;Free the entity
+    call entsys_free
+
+    ;Decrement entity count
+    ld hl, w_pajamaman_count
+    dec [hl]
+
+    ;Exit
+    relpointer_destroy
+    jp entsys_exit
+;
+
+
+
 ; Main update function for pajamaman.
 ;
 ; Input:
@@ -169,6 +215,8 @@ pajamaman_update:
     jp z, pajamaman_offscreen
     cp a, PAJAMAMAN_STATE_WARNING
     jp z, pajamaman_warning
+    cp a, PAJAMAMAN_STATE_LAND
+    jp z, pajamaman_land
 
     ;Unknown state
     ld hl, error_invst_pjamaman
@@ -355,26 +403,79 @@ pajamaman_fly:
         sub a, 16
         cp a, [hl]
         jr c, .return
+        jr .offscreen
+    :
+        add a, SCRN_X
+        cp a, [hl]
+        jr nc, .return
+    ;
 
-        ;Make buddy go off-screen
-        .offscreen
+    ;Make buddy go off-screen
+    .offscreen
         relpointer_move ENTVAR_PAJAMAMAN_STATE
         ld [hl], PAJAMAMAN_STATE_OFFSCREEN
         relpointer_move ENTVAR_FLAGS
         ld [hl], 0
         
-        ;Reset timers
+        ;Reset timer
         relpointer_move ENTVAR_PAJAMAMAN_TIMER1
         xor a
         ld [hl+], a
-        ld [hl-], a
+        inc [hl]
+        ld a, [hl-]
+        ld b, a
 
-        ;Return
-        jr .return
-    :
-        add a, SCRN_X
-        cp a, [hl]
-        jr c, .offscreen
+        ;Start landing?
+        call rng_run_single
+        and a, %00000111
+        add a, 2
+        cp a, b
+        jr nc, .return
+    ;
+
+    ;Start landing sequence
+    .landing
+
+        ;Sometimes we just vanish
+        call rng_run_single
+        ld d, a
+        and a, %11000000
+        ld b, 0
+        jp z, pajamaman_destroy
+
+        ;Get landing position -> B
+        ld a, d
+        and a, %00011111
+        ld b, a
+        ld a, [w_platform_xpos+1]
+        sub a, PAJAMAMAN_WIDTH
+        sub a, b
+        ld b, a
+
+        ;Set positions
+        relpointer_move ENTVAR_YPOS
+        xor a
+        ld [hl+], a
+        ld [hl-], a
+        relpointer_move ENTVAR_XPOS+1
+        ld [hl], b
+
+        ;Set state
+        relpointer_move ENTVAR_PAJAMAMAN_STATE
+        ld [hl], PAJAMAMAN_STATE_LAND
+
+        ;Set speeds
+        relpointer_move ENTVAR_PAJAMAMAN_XSPEED
+        xor a
+        ld [hl+], a
+        ld [hl-], a
+        relpointer_move ENTVAR_PAJAMAMAN_YSPEED
+        ld a, low(PAJAMAMAN_YSPEED_FALL)
+        ld [hl+], a
+        ld a, high(PAJAMAMAN_YSPEED_FALL)
+        ld [hl-], a
+    ;
+    
     .return
     relpointer_destroy
     pop hl
@@ -496,6 +597,41 @@ pajamaman_warning:
         ld [hl-], a
     ;
 
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_land:
+    push hl
+    call pajamaman_move_speed
+
+    ;Are we on the ground yet?
+    entsys_relpointer_init ENTVAR_YPOS+1
+    ld a, [w_platform_ypos+1]
+    cp a, [hl]
+    jr nc, .return
+        ld [hl], a
+
+        ;Yes we are, switch state!
+        relpointer_move ENTVAR_PAJAMAMAN_STATE
+        ld [hl], PAJAMAMAN_STATE_TIRED
+
+        ;Reset animation and timer
+        relpointer_move ENTVAR_PAJAMAMAN_TIMER1
+        ld [hl], 0
+        relpointer_move ENTVAR_PAJAMAMAN_ANIMATE
+        ld [hl], 0
+    ;
+
+    ;Return
     .return
     relpointer_destroy
     pop hl

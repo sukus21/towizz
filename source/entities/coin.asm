@@ -126,11 +126,12 @@ entity_coin_load::
 ; - `b`: X-position (high)
 ; - `c`: Y-position (high)
 ;
-; Destroys: all
+; Saves: `bc`
 entity_coin_create::
     ld hl, w_coin_count
     inc [hl]
 
+    push bc
     push bc
     entsys_new 16, entity_coin, COIN_FLAGS
     pop bc
@@ -173,6 +174,7 @@ entity_coin_create::
     ld [hl-], a
 
     ;That was it
+    pop bc
     relpointer_destroy
     ret
 ;

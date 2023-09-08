@@ -41,8 +41,9 @@ entity_particle_load::
 ; - `b`: X-position (high)
 ; - `c`: Y-position (high)
 ;
-; Destroys: all
+; Saves: `bc`
 entity_particle_create::
+    push bc
     push bc
     entsys_new 16, entity_particle, PARTICLE_FLAGS
 
@@ -60,6 +61,7 @@ entity_particle_create::
     ld [hl], 0
 
     ;That was it
+    pop bc
     relpointer_destroy
     ret
 ;
