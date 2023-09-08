@@ -196,6 +196,7 @@ pajamaman_sit:
         jr c, .skip_force
 
             ;Alrighty, force hero-guy to fly off
+            .takeoff
             relpointer_move ENTVAR_PAJAMAMAN_STATE
             ld [hl], PAJAMAMAN_STATE_TAKEOFF
             relpointer_move ENTVAR_PAJAMAMAN_TIMER1
@@ -210,6 +211,27 @@ pajamaman_sit:
         relpointer_pop 0
         ld l, e
     .no_force
+
+    ;Prepare collision buffer
+    relpointer_move ENTVAR_XPOS+1
+    ld a, [hl]
+    sub a, PAJAMAMAN_FLEE_RANGE
+    ldh [h_colbuf1+0], a
+    add a, PAJAMAMAN_FLEE_RANGE*2 + PAJAMAMAN_WIDTH
+    ldh [h_colbuf1+1], a
+    relpointer_move ENTVAR_YPOS+1
+    ld a, [hl]
+    ldh [h_colbuf1+3], a
+    sub a, PAJAMAMAN_HEIGHT*2
+    ldh [h_colbuf1+2], a
+
+    ;Find dangerous entity
+    relpointer_move ENTVAR_PAJAMAMAN_TIMER2
+    push hl
+    ld c, ENTSYS_FLAGF_PLAYER | ENTSYS_FLAGF_DAMAGE
+    call entsys_collision_any.prepared
+    pop hl
+    jr nz, .takeoff
 
     .return
     relpointer_destroy
