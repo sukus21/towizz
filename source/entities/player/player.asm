@@ -146,7 +146,7 @@ entity_player_update:
     push hl
     relpointer_set 0
     ld c, ENTSYS_FLAGF_COIN | ENTSYS_FLAGF_COLLISION
-    call entsys_find_collision
+    call entsys_collision_all
     jr z, .no_collision
     .coin_loop
         push hl
@@ -161,7 +161,7 @@ entity_player_update:
         ld [hl], a
         ld c, ENTSYS_FLAGF_COIN | ENTSYS_FLAGF_COLLISION
         pop hl
-        call entsys_find_collision_continue
+        call entsys_collision_all.continue
         jr nz, .coin_loop
     .no_collision
 

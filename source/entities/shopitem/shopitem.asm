@@ -123,7 +123,7 @@ entity_shopitem::
 
     ;Find player
     ld c, ENTSYS_FLAGF_PLAYER
-    call entsys_find
+    call entsys_find_all
     ret z
 
     ;We found a player, find its position

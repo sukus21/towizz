@@ -163,7 +163,7 @@ knightling_update:
     relpointer_move ENTVAR_XPOS+1
     push hl
     ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_DAMAGE
-    call entsys_find_collision
+    call entsys_collision_all
     ld a, bank(@)
     call nz, entsys_do_dmgcall
     pop hl
@@ -726,7 +726,7 @@ knightling_engage:
 
     ;Get player entity
     ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_PLAYER
-    call entsys_find
+    call entsys_find_all
     jr z, .return
     push hl
 
@@ -741,7 +741,7 @@ knightling_engage:
 
         ;Find next entity
         ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_PLAYER
-        call entsys_find_continue
+        call entsys_find_all.continue
         jr z, .return
         push hl
         jr .find_player

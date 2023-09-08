@@ -92,7 +92,7 @@ entity_shopdoor:
 
     ;Get player entity -> HL
     ld c, ENTSYS_FLAGF_PLAYER
-    call entsys_find
+    call entsys_find_all
     pop bc
     ret z
     relpointer_init l
