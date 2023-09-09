@@ -56,7 +56,7 @@ gameloop_tower_setup:
     call entsys_clear
     farcall entity_player_create
     ld bc, $8050
-    farcall entity_pajamaman_create
+    farcall entity_citizen_create
     ;farcall entity_towerdemo_create
 
     ;Call regular V-blank routine
