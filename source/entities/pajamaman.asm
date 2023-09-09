@@ -198,7 +198,7 @@ pajamaman_update:
         dec [hl]
     :
 
-    ;Prepare state-machine1
+    ;Prepare state-machine
     relpointer_move ENTVAR_PAJAMAMAN_STATE
     ld a, [hl]
     ld bc, .poststate
