@@ -161,6 +161,8 @@ citizen_update:
     jp z, citizen_wait
     cp a, CITIZEN_STATE_AWAKE
     jp z, citizen_awake
+    cp a, CITIZEN_STATE_AIRBORNE
+    jp z, citizen_airborne
 
     ;Unknown state
     ld hl, error_invst_citizen
@@ -245,6 +247,107 @@ citizen_awake:
     ;Update state
     relpointer_move ENTVAR_CITIZEN_STATE
     ld [hl], CITIZEN_STATE_AIRBORNE
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+citizen_airborne:
+    push hl
+
+    ;Set animation
+    entsys_relpointer_init ENTVAR_CITIZEN_ANIMATE
+    ld [hl], $FF
+
+    ;Get X-speed -> BC
+    relpointer_move ENTVAR_CITIZEN_XSPEED
+    ld a, [hl+]
+    ld c, a
+    ld a, [hl-]
+    ld b, a
+
+    ;Add X-speed to X-position -> BC
+    relpointer_move ENTVAR_XPOS
+    ld a, c
+    add a, [hl]
+    ld c, a
+    ld [hl+], a
+    ld a, b
+    adc a, [hl]
+    ld b, a
+    ld [hl-], a
+
+    ;Do gravity and Y-speed -> DE
+    relpointer_move ENTVAR_CITIZEN_YSPEED
+    ld a, low(CITIZEN_YSPEED_GRAVITY)
+    add a, [hl]
+    ld e, a
+    ld [hl+], a
+    ld a, high(CITIZEN_YSPEED_GRAVITY)
+    adc a, [hl]
+    ld d, a
+    ld [hl-], a
+
+    ;Add Y-speed to Y-position -> DE
+    relpointer_move ENTVAR_YPOS
+    ld a, e
+    add a, [hl]
+    ld e, a
+    ld [hl+], a
+    ld a, d
+    adc a, [hl]
+    ld d, a
+    ld [hl-], a
+
+    ;Do we collide with the platform?
+    ld a, [w_platform_xpos+1]
+    cp a, b
+    jr c, .return
+    ld a, [w_platform_ypos+1]
+    cp a, d
+    jr nc, .return
+
+        ;Ok, there is ground collision
+        ld [hl], 0
+        inc l
+        ld [hl-], a
+
+        ;How do we handle this information?
+        relpointer_move ENTVAR_CITIZEN_TYPE
+        ld a, [hl]
+        cp a, CITIZEN_TYPE_BOUNCE
+        jr nz, .no_bounce
+            
+            ;Bouncy goes BOING!
+            relpointer_push ENTVAR_CITIZEN_YSPEED, 0
+            ld a, [hl]
+            cpl
+            inc a
+            ld [hl+], a
+            ld a, [hl]
+            jr nz, :+
+                dec a
+            :
+            cpl
+            ld [hl-], a
+            jr .return
+            relpointer_pop 0
+
+        ;Just Enter groundes state
+        .no_bounce
+        relpointer_move ENTVAR_CITIZEN_STATE
+        ld [hl], CITIZEN_STATE_GROUNDED
+        relpointer_move ENTVAR_CITIZEN_TIMER
+        ld [hl], 0
+    ;
 
     .return
     relpointer_destroy
