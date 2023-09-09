@@ -92,6 +92,13 @@ entity_citizen_create::
     ld [hl+], a
     ld [hl-], a
 
+    ;Give the timer some temporary love
+    relpointer_move ENTVAR_CITIZEN_TIMER
+    call rng_run_single
+    and a, %00001111
+    add a, CITIZEN_WAIT_TIME
+    ld [hl], a
+
     ;Set health and stun
     relpointer_move ENTVAR_CITIZEN_HEALTH
     ld [hl], CITIZEN_HEALTH
@@ -119,8 +126,129 @@ entity_citizen_step:
     ld h, d
     ld l, e
 
+    call citizen_update
     call citizen_draw
 
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+citizen_update:
+    push hl
+    relpointer_init l
+
+    ;Decrement stun
+    relpointer_move ENTVAR_CITIZEN_STUN
+    ld a, [hl]
+    or a, a
+    jr z, :+
+        dec [hl]
+    :
+
+    ;You'll never guess what I'm preparing here
+    relpointer_move ENTVAR_CITIZEN_STATE
+    ld a, [hl]
+    ld bc, .poststate
+    push bc
+
+    ;That's right, a good ol' reliable state machine
+    cp a, CITIZEN_STATE_WAIT
+    jp z, citizen_wait
+    cp a, CITIZEN_STATE_AWAKE
+    jp z, citizen_awake
+
+    ;Unknown state
+    ld hl, error_invst_citizen
+    rst v_error
+
+    .poststate
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+citizen_wait:
+    push hl
+
+    ;Do we tick down the timer?
+    entsys_relpointer_init ENTVAR_CITIZEN_TIMER
+    ld a, [hl]
+    or a, a
+    jr z, .return
+
+    ;Yes we do!
+    dec [hl]
+    jr nz, .return
+
+    ;Uh oh, time to awaken
+    relpointer_move ENTVAR_CITIZEN_STATE
+    ld [hl], CITIZEN_STATE_AWAKE
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+citizen_awake:
+    push hl
+
+    ;Animate
+    entsys_relpointer_init ENTVAR_CITIZEN_ANIMATE
+    ld a, [hl]
+    add a, 13
+    ld [hl], a
+
+    ;Tick timer
+    relpointer_move ENTVAR_CITIZEN_TIMER
+    inc [hl]
+    ld a, [hl]
+
+    ;Do we start moving'?
+    cp a, CITIZEN_AWAKE_TIME
+    jr c, .return
+
+    ;Set speeds
+    relpointer_move ENTVAR_CITIZEN_YSPEED
+    call rng_run_single
+    ld [hl+], a
+    call rng_run_single
+    or a, %11111110
+    inc a
+    ld [hl-], a
+    relpointer_move ENTVAR_CITIZEN_XSPEED
+    call rng_run_single
+    or a, %10000000
+    ld [hl+], a
+    xor a
+    ld [hl-], a
+
+    ;Update state
+    relpointer_move ENTVAR_CITIZEN_STATE
+    ld [hl], CITIZEN_STATE_AIRBORNE
+
+    .return
+    relpointer_destroy
+    pop hl
     ret
 ;
 
@@ -148,7 +276,7 @@ citizen_draw:
     relpointer_move ENTVAR_CITIZEN_ANIMATE
     bit 5, [hl]
     jr z, :+
-        set 3, b
+        set 2, b
     :
     ld a, [w_citizen_sprite]
     add a, b
