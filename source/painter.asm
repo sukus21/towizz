@@ -30,11 +30,12 @@ painter_reset::
 ; - `bc`: Tile data
 ; - `de`: Length in bytes
 ;
-; Saves: `de`, `hl`
+; Saves: `bc`, `de`, `hl`
 painter_fill::
     ld a, d
     or a, e
     ret z
+    push bc
     push de
     push hl
 
@@ -54,6 +55,7 @@ painter_fill::
     ;Return
     pop hl
     pop de
+    pop bc
     ret
 ;
 
@@ -130,8 +132,8 @@ painter_paint::
         ;
 
         ;One iteration over
-        inc hl
         inc l
+        inc hl
         pop bc
         pop de
         ld a, d
@@ -148,6 +150,52 @@ painter_paint::
     ;Return
     pop hl
     pop de
+    ret
+;
+
+
+
+; Clears part of the paint buffer.  
+; Lives in ROM0.
+;
+; Input:
+; - `de`: Length in bytes
+;
+; Saves: `bc`, `de`, `hl`
+painter_clear::
+    ld a, d
+    or a, e
+    ret z
+    push bc
+    push de
+    push hl
+
+    ;Get buffer position
+    ld hl, w_painter_position
+    ld a, [hl+]
+    ld h, [hl]
+    ld l, a
+
+    ;Start going
+    .loop
+        xor a
+        ld [hl+], a
+        dec de
+        ld a, d
+        or a, e
+        jr nz, .loop
+    ;
+
+    ;Save pointer
+    ld a, l
+    ld [w_painter_position], a
+    ld a, h
+    ld [w_painter_position+1], a
+
+    ;Return
+    pop hl
+    pop de
+    pop bc
     ret
 ;
 
