@@ -163,6 +163,8 @@ citizen_update:
     jp z, citizen_awake
     cp a, CITIZEN_STATE_AIRBORNE
     jp z, citizen_airborne
+    cp a, CITIZEN_STATE_GROUNDED
+    jp z, citizen_grounded
 
     ;Unknown state
     ld hl, error_invst_citizen
@@ -341,8 +343,23 @@ citizen_airborne:
             jr .return
             relpointer_pop 0
 
-        ;Just Enter groundes state
+        ;Just Enter grounded state
         .no_bounce
+        cp a, CITIZEN_TYPE_SKIP
+        jr z, .no_run
+            
+            ;PC speedup
+            ld e, l
+            relpointer_push ENTVAR_CITIZEN_XSPEED, 0
+            xor a ;clear carry flag
+            rl [hl]
+            inc l
+            rl [hl]
+            relpointer_pop 0
+            ld l, e
+        ;
+
+        .no_run
         relpointer_move ENTVAR_CITIZEN_STATE
         ld [hl], CITIZEN_STATE_GROUNDED
         relpointer_move ENTVAR_CITIZEN_TIMER
@@ -350,6 +367,164 @@ citizen_airborne:
     ;
 
     .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+citizen_grounded:
+    push hl
+    call citizen_move_platform
+
+    ;What do we do from here?
+    entsys_relpointer_init ENTVAR_CITIZEN_TYPE
+    ld a, [hl]
+    cp a, CITIZEN_TYPE_SKIP
+    jr nz, .no_skip
+
+        ;Absolutely do NOT animate
+        relpointer_push ENTVAR_CITIZEN_ANIMATE, 0
+        ld [hl], 0
+
+        ;Tick timer
+        relpointer_move ENTVAR_CITIZEN_TIMER
+        inc [hl]
+        ld a, [hl]
+        cp a, CITIZEN_SKIP_TIME
+        jr c, .return
+
+        ;Alright, back to jumpin'
+        relpointer_move ENTVAR_CITIZEN_STATE
+        ld [hl], CITIZEN_STATE_AIRBORNE
+
+        ;Reverse Y-speed
+        relpointer_move ENTVAR_CITIZEN_YSPEED
+        ld a, [hl]
+        cpl
+        inc a
+        ld [hl+], a
+        ld a, [hl]
+        jr nz, :+
+            dec a
+        :
+        cpl
+        ld [hl-], a
+
+        ;Return
+        jr .return
+        relpointer_pop 0
+    .no_skip
+
+    ;Do I have to do the silly little thing where it stops and goes?
+    cp a, CITIZEN_TYPE_CAREFUL
+    jr nz, .no_careful
+
+        ;Lower speed
+        ld e, l
+        relpointer_push ENTVAR_CITIZEN_XSPEED, 0
+        ld a, [hl]
+        sub a, low(CITIZEN_XSPEED_FRICTION)
+        ld [hl+], a
+        ld a, [hl]
+        sbc a, high(CITIZEN_XSPEED_FRICTION)
+        ld [hl-], a
+
+        ;did we lower it TOO much?
+        jr nc, .not_under
+            ld a, low(CITIZEN_XSPEED_CAREFUL)
+            ld [hl+], a
+            ld a, high(CITIZEN_XSPEED_CAREFUL)
+            ld [hl-], a
+        .not_under
+
+        relpointer_pop 0
+        ld l, e
+    .no_careful
+
+    ;Get X-speed -> BC
+    relpointer_move ENTVAR_CITIZEN_XSPEED
+    ld a, [hl+]
+    ld c, a
+    ld a, [hl-]
+    ld b, a
+
+    ;Update X-position -> DE
+    relpointer_move ENTVAR_XPOS
+    ld a, [hl]
+    add a, c
+    ld [hl+], a
+    ld e, a
+    ld a, [hl]
+    adc a, b
+    ld [hl-], a
+    ld d, a
+
+    ;Update animation
+    xor a
+    rl c
+    rl b
+    rl c
+    rl b
+    rl b
+    relpointer_move ENTVAR_CITIZEN_ANIMATE
+    ld a, [hl]
+    add a, b
+    ld [hl], a
+
+    ;Are we going off the platform?
+    ld a, [w_platform_xpos+1]
+    cp a, d
+    jr nc, .return
+
+        ;Yup, start fallin'
+        relpointer_move ENTVAR_CITIZEN_STATE
+        ld [hl], CITIZEN_STATE_AIRBORNE
+        relpointer_move ENTVAR_CITIZEN_YSPEED
+        xor a
+        ld [hl+], a
+        ld [hl-], a
+    ;
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Move citizen with platform.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `bc`, `de`, `hl`
+citizen_move_platform:
+    push hl
+
+    ;Set Y-position to platform position
+    entsys_relpointer_init ENTVAR_YPOS
+    xor a
+    ld [hl+], a
+    ld a, [w_platform_ypos+1]
+    ld [hl-], a
+
+    ;Add platform speed to my speed
+    relpointer_move ENTVAR_XPOS
+    ld a, [w_platform_xspeed]
+    add a, [hl]
+    ld [hl+], a
+    ld a, [w_platform_xspeed+1]
+    adc a, [hl]
+    ld [hl-], a
+
+    ;We done
     relpointer_destroy
     pop hl
     ret
@@ -390,7 +565,7 @@ citizen_draw:
     ld a, [w_camera_xpos+1]
     cpl
     add a, [hl]
-    add a, 12
+    add a, 4
     ld d, a
     relpointer_move ENTVAR_YPOS+1
     ld e, [hl]

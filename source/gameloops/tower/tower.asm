@@ -55,7 +55,7 @@ gameloop_tower_setup:
     ;Initialize entity system
     call entsys_clear
     farcall entity_player_create
-    ld bc, $8050
+    ld bc, $4050
     farcall entity_citizen_create
     ;farcall entity_towerdemo_create
 
