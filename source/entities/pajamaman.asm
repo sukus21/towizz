@@ -248,6 +248,27 @@ pajamaman_update:
         ;Set stun
         relpointer_move ENTVAR_PAJAMAMAN_STUN
         ld [hl], PAJAMAMAN_STUN_TIME
+
+        ;Should we slow speed?
+        relpointer_move ENTVAR_PAJAMAMAN_STATE
+        ld a, [hl]
+        cp a, PAJAMAMAN_STATE_FLY
+        jr nz, .no_damage
+
+        ;Get desired X-speed -> DE
+        relpointer_move ENTVAR_PAJAMAMAN_FLAGS
+        ld de, PAJAMAMAN_XSPEED_SLOWED
+        bit PAJAMAMAN_FLAGB_FACING, [hl]
+        jr z, :+
+            ld de, -PAJAMAMAN_XSPEED_SLOWED
+        :
+
+        ;Slow X-speed
+        relpointer_move ENTVAR_PAJAMAMAN_XSPEED
+        ld a, e
+        ld [hl+], a
+        ld a, d
+        ld [hl-], a
     .no_damage
 
     .return
@@ -416,13 +437,63 @@ pajamaman_fly:
         adc a, high(PAJAMAMAN_YSPEED_ADJUST)
         ld [hl-], a
     .speed_modified
-    relpointer_destroy
+
+    ;Get X-speed addition -> DE & BC
+    relpointer_move ENTVAR_PAJAMAMAN_FLAGS
+    ld b, [hl]
+    ld de, PAJAMAMAN_XSPEED_ACCEL
+    bit PAJAMAMAN_FLAGB_FACING, b
+    jr z, :+
+        ld de, -PAJAMAMAN_XSPEED_ACCEL
+    :
+
+    ;Add to X-speed
+    relpointer_move ENTVAR_PAJAMAMAN_XSPEED
+    ld a, [hl+]
+    add a, e
+    ld e, a
+    ld a, [hl-]
+    adc a, d
+    ld d, a
+
+    ;Is this above the speed limit?
+    bit PAJAMAMAN_FLAGB_FACING, b
+    jr z, :+
+        ld a, d
+        cp a, high(-PAJAMAMAN_XSPEED_FLY)
+        jr c, .cap_speed
+        ld a, e
+        cp a, low(-PAJAMAMAN_XSPEED_FLY)
+        jr c, .cap_speed
+        jr .save_speed
+    :
+        ld a, d
+        cp a, high(PAJAMAMAN_XSPEED_FLY)
+        jr c, .save_speed
+        ld a, e
+        cp a, e
+        cp a, low(PAJAMAMAN_XSPEED_FLY)
+        jr c, .save_speed
+    ;
+
+    .cap_speed
+    ld de, PAJAMAMAN_XSPEED_FLY
+    bit PAJAMAMAN_FLAGB_FACING, b
+    jr z, :+
+        ld de, -PAJAMAMAN_XSPEED_FLY
+    :
+
+    .save_speed
+    ld a, e
+    ld [hl+], a
+    ld a, d
+    ld [hl-], a
     
     ;Schmooves
     call pajamaman_move_speed
 
     ;Go offscreen?
-    entsys_relpointer_init ENTVAR_PAJAMAMAN_FLAGS
+    relpointer_move ENTVAR_PAJAMAMAN_FLAGS
     ld b, [hl]
     relpointer_move ENTVAR_XPOS+1
     bit PAJAMAMAN_FLAGB_FACING, b
@@ -470,6 +541,10 @@ pajamaman_fly:
         and a, %11000000
         ld b, 0
         jp z, pajamaman_destroy
+        
+        ;Nevermind, don't clear flags anyway
+        relpointer_move ENTVAR_FLAGS
+        ld [hl], PAJAMAMAN_FLAGS
 
         ;Get landing position -> B
         ld a, d
@@ -556,8 +631,9 @@ pajamaman_offscreen:
 
         ;Reset Y-speed
         relpointer_move ENTVAR_PAJAMAMAN_YSPEED
-        xor a
+        ld a, low(PAJAMAMAN_YSPEED_SWOOP)
         ld [hl+], a
+        ld a, high(PAJAMAMAN_YSPEED_SWOOP)
         ld [hl-], a
 
         ;Reset animation counter

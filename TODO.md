@@ -21,7 +21,7 @@
 * [ ] Enemies
     * [x] Knightling
     * [ ] Citizen
-    * [ ] Masked hero-man
+    * [x] Pajamaman
     * [ ] Blummber
     * [ ] Bear bear
     * [ ] Wrecking ball
