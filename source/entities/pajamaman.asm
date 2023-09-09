@@ -201,7 +201,7 @@ pajamaman_update:
     ;Prepare state-machine1
     relpointer_move ENTVAR_PAJAMAMAN_STATE
     ld a, [hl]
-    ld bc, .return
+    ld bc, .poststate
     push bc
 
     ;State machine nonsense
@@ -223,6 +223,32 @@ pajamaman_update:
     ;Unknown state
     ld hl, error_invst_pjamaman
     rst v_error
+
+    ;Take damage?
+    .poststate
+    relpointer_move ENTVAR_FLAGS
+    bit ENTSYS_FLAGB_COLLISION, [hl]
+    jr z, .return
+
+    ;Take damage indeed.
+    push hl
+    ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_DAMAGE
+    call entsys_collision_all
+    ld a, bank(@)
+    call nz, entsys_do_dmgcall
+    pop hl
+    jr z, .no_damage
+        
+        ;Deal damage, maybe even destroy
+        relpointer_move ENTVAR_PAJAMAMAN_HEALTH
+        dec [hl]
+        ld b, h ;non-zero
+        jp z, pajamaman_destroy
+
+        ;Set stun
+        relpointer_move ENTVAR_PAJAMAMAN_STUN
+        ld [hl], PAJAMAMAN_STUN_TIME
+    .no_damage
 
     .return
     relpointer_destroy
