@@ -212,9 +212,12 @@ var_w0:
         w_knightling_sprite:: db $00
         w_pajamaman_count:: db $00
         w_pajamaman_sprite:: db $00
+        w_citizen_count:: db $00
+        w_citizen_sprite::db $00
 
         ; How many active coin entities are there?
         ; This is NOT how much money the player has.
+        ; For that, look at `w_money`.
         w_coin_count:: db $00
         w_coin_sprite:: db $00
         w_coin_animate:: db $00

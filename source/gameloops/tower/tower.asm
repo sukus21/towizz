@@ -23,21 +23,24 @@ gameloop_tower_setup:
     ld a, high(w_oam1)
     ldh [h_oam_active], a
 
-    ;Perform VRAM transfers
+    ;Load background
     ld b, 3
     call tower_background_fullqueue
-    ld b, 1
-    call tower_sprite_alloc
-    farcall rectangle_points_load
+
+    ;Load player and enemies
     farcall entity_player_load
     farcall entity_knightling_load
     farcall entity_pajamaman_load
+    farcall entity_citizen_load
+
+    ;Load coins and particles
     ld de, VT_TOWER_PARTICLE
     farcall entity_particle_load
     ld de, VT_TOWER_COIN
     farcall entity_coin_load
     call gameloop_loading
 
+    ;Load tower tilesets + maps
     ld a, bank(tower_vprep)
     ld [rROMB0], a
     ld de, tower_vprep
@@ -45,7 +48,7 @@ gameloop_tower_setup:
     call vqueue_enqueue_multi
     call gameloop_loading
 
-    ;More loading
+    ;Paint HUD
     call painter_item_slots
     call gameloop_loading
 
