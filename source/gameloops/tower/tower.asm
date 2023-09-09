@@ -103,8 +103,8 @@ gameloop_tower::
     .main::
     call input
     bit PADB_SELECT, c
-    ld bc, $8028
-    farcall nz, entity_coin_create
+    ld bc, $4050
+    farcall nz, entity_citizen_create
     call entsys_step
     call draw_hud
     call tower_background_handler

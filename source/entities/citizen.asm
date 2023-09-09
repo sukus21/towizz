@@ -165,6 +165,8 @@ citizen_update:
     jp z, citizen_airborne
     cp a, CITIZEN_STATE_GROUNDED
     jp z, citizen_grounded
+    cp a, CITIZEN_STATE_CAREFUL
+    jp z, citizen_careful
 
     ;Unknown state
     ld hl, error_invst_citizen
@@ -200,6 +202,8 @@ citizen_wait:
     ;Uh oh, time to awaken
     relpointer_move ENTVAR_CITIZEN_STATE
     ld [hl], CITIZEN_STATE_AWAKE
+    relpointer_move ENTVAR_FLAGS
+    ld [hl], CITIZEN_FLAGS_ACTIVE
 
     .return
     relpointer_destroy
@@ -237,7 +241,7 @@ citizen_awake:
     ld [hl+], a
     call rng_run_single
     or a, %11111110
-    sub a, 2
+    dec a
     ld [hl-], a
     relpointer_move ENTVAR_CITIZEN_XSPEED
     call rng_run_single
@@ -437,10 +441,15 @@ citizen_grounded:
 
         ;did we lower it TOO much?
         jr nc, .not_under
-            ld a, low(CITIZEN_XSPEED_CAREFUL)
+            xor a
             ld [hl+], a
-            ld a, high(CITIZEN_XSPEED_CAREFUL)
             ld [hl-], a
+
+            ;Switch to careful state
+            relpointer_move ENTVAR_CITIZEN_TIMER
+            ld [hl], 0
+            relpointer_move ENTVAR_CITIZEN_STATE
+            ld [hl], CITIZEN_STATE_CAREFUL
         .not_under
 
         relpointer_pop 0
@@ -490,6 +499,44 @@ citizen_grounded:
         ld [hl+], a
         ld [hl-], a
     ;
+
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+citizen_careful:
+    push hl
+    call citizen_move_platform
+
+    ;NO animation, whatsoever
+    entsys_relpointer_init ENTVAR_CITIZEN_ANIMATE
+    ld [hl], %00011111
+
+    ;Tick timer and wait
+    relpointer_move ENTVAR_CITIZEN_TIMER
+    inc [hl]
+    ld a, [hl]
+    cp a, CITIZEN_CAREFUL_TIME
+    jr c, .return
+
+    ;Set X-speed
+    relpointer_move ENTVAR_CITIZEN_XSPEED
+    ld a, low(CITIZEN_XSPEED_CAREFUL)
+    ld [hl+], a
+    ld a, high(CITIZEN_XSPEED_CAREFUL)
+    ld [hl-], a
+
+    ;Switch state
+    relpointer_move ENTVAR_CITIZEN_STATE
+    ld [hl], CITIZEN_STATE_GROUNDED
 
     .return
     relpointer_destroy
