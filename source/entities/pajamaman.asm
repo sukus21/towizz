@@ -217,6 +217,8 @@ pajamaman_update:
     jp z, pajamaman_warning
     cp a, PAJAMAMAN_STATE_LAND
     jp z, pajamaman_land
+    cp a, PAJAMAMAN_STATE_TIRED
+    jp z, pajamaman_tired
 
     ;Unknown state
     ld hl, error_invst_pjamaman
@@ -632,6 +634,45 @@ pajamaman_land:
     ;
 
     ;Return
+    .return
+    relpointer_destroy
+    pop hl
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+pajamaman_tired:
+    push hl
+    call pajamaman_move_platform
+
+    ;Face away in shame
+    entsys_relpointer_init ENTVAR_PAJAMAMAN_FLAGS
+    ld [hl], 0
+
+    ;Wait out the timer
+    relpointer_move ENTVAR_PAJAMAMAN_TIMER1
+    inc [hl]
+    ld a, [hl]
+    cp a, PAJAMAMAN_TIRED_TIME
+    jr c, .return
+
+        ;Go back to sitting state
+        xor a
+        ld [hl+], a
+        ld [hl-], a
+        relpointer_move ENTVAR_PAJAMAMAN_STATE
+        ld [hl], PAJAMAMAN_STATE_SIT
+
+        ;Face the tower
+        relpointer_move ENTVAR_PAJAMAMAN_FLAGS
+        ld [hl], PAJAMAMAN_FLAGF_FACING
+    ;
+
     .return
     relpointer_destroy
     pop hl
