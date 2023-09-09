@@ -20,7 +20,7 @@
     * [ ] ...
 * [ ] Enemies
     * [x] Knightling
-    * [ ] Citizen
+    * [x] Citizen
     * [x] Pajamaman
     * [ ] Blummber
     * [ ] Bear bear

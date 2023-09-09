@@ -1,4 +1,5 @@
 INCLUDE "entsys.inc"
+INCLUDE "macros/farcall.inc"
 INCLUDE "macros/relpointer.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/entity/citizen.inc"
@@ -118,6 +119,51 @@ entity_citizen_create::
 
 
 
+; Call when citizen is defeated/jumps off.
+; Does NOT return, exits entity code execution entirely.
+;
+; Input:
+; - `b`: Death effects (0 = no)
+; - `hl`: Entity pointer (anywhere)
+citizen_destroy:
+    entsys_relpointer_init 0
+
+    ;Spawn death effects + coin(s)
+    ld a, b
+    or a, a ;cp a, 0
+    jr z, .no_effects
+        relpointer_push ENTVAR_XPOS+1
+        ld b, [hl]
+        relpointer_move ENTVAR_YPOS+1
+        ld c, [hl]
+
+        ;Create smoke particle
+        farcall_x entity_particle_create
+
+        ;Create coin(s)
+        ld a, b
+        add a, ((CITIZEN_WIDTH - 8) / 2)
+        ld b, a
+        farcall_x entity_coin_create
+
+        ;Alrighty
+        relpointer_pop
+    .no_effects
+
+    ;Free the entity
+    call entsys_free
+
+    ;Decrement entity count
+    ld hl, w_citizen_count
+    dec [hl]
+
+    ;Exit
+    relpointer_destroy
+    jp entsys_exit
+;
+
+
+
 ; Main step function for citizen entity.
 ;
 ; Input:
@@ -151,7 +197,7 @@ citizen_update:
     :
 
     ;You'll never guess what I'm preparing here
-    relpointer_move ENTVAR_CITIZEN_STATE
+    relpointer_push ENTVAR_CITIZEN_STATE
     ld a, [hl]
     ld bc, .poststate
     push bc
@@ -172,7 +218,32 @@ citizen_update:
     ld hl, error_invst_citizen
     rst v_error
 
+    ;Take damage?
     .poststate
+    relpointer_pop
+    relpointer_move ENTVAR_FLAGS
+    bit ENTSYS_FLAGB_COLLISION, [hl]
+    jr z, .return
+
+    ;Take damage indeed.
+    push hl
+    ld c, ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_DAMAGE
+    call entsys_collision_all
+    ld a, bank(@)
+    call nz, entsys_do_dmgcall
+    pop hl
+    jr z, .no_damage
+        
+        ;Deal damage, maybe even destroy
+        relpointer_move ENTVAR_CITIZEN_HEALTH
+        dec [hl]
+        ld b, h ;non-zero
+        jp z, citizen_destroy
+
+        ;Set stun
+        relpointer_move ENTVAR_CITIZEN_STUN
+        ld [hl], CITIZEN_STUN_TIME
+    .no_damage
 
     .return
     relpointer_destroy
@@ -312,6 +383,13 @@ citizen_airborne:
     adc a, [hl]
     ld d, a
     ld [hl-], a
+    
+    ;Did it hurt when you fell from heaven?
+    cp a, 180
+    jp c, :+
+        ld b, 0
+        jp citizen_destroy
+    :
 
     ;Do we collide with the platform?
     ld a, [w_platform_xpos+1]
