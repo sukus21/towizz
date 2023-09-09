@@ -235,11 +235,11 @@ citizen_awake:
     ld [hl+], a
     call rng_run_single
     or a, %11111110
-    inc a
+    sub a, 2
     ld [hl-], a
     relpointer_move ENTVAR_CITIZEN_XSPEED
     call rng_run_single
-    or a, %10000000
+    or a, %11000000
     ld [hl+], a
     xor a
     ld [hl-], a
