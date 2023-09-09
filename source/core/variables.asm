@@ -201,7 +201,6 @@ var_w0:
         w_player_weapon:: db ITEM_ID_FIREBREATH
         w_durability_equipment:: db $03
         w_durability_weapon:: db $03
-        w_player_woffset:: db $00
 
         ; What sprite slots have been occupied?
         ; This is a bitfield.

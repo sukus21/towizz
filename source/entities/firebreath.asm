@@ -80,9 +80,7 @@ entity_firebreath_create::
 
     ;Get sprite
     relpointer_move ENTVAR_FIREBREATH_SPRITE
-    ld a, [w_player_woffset]
-    add a, PLAYER_SPRITE_FIREBREATH_BALL1
-    ld [hl], a
+    ld [hl], PLAYER_SPRITE_FIREBREATH_BALL1
 
     ;That was it
     relpointer_destroy

@@ -4,139 +4,6 @@ INCLUDE "struct/vram/tower.inc"
 
 SECTION FRAGMENT "PLAYER", ROMX
 
-; Loads the sprites needed for the player entity.
-; These sprites include base-, equipment- and weapon sprites.  
-; Assumes player equipment- and weapon IDs are set correctly.
-entity_player_load::
-    ld de, player_vprep_base
-    call vqueue_enqueue
-
-    ;Get equipment spritetable address
-    ld hl, player_spritetable
-    ld a, [w_player_equipment]
-    add a, a
-    add a, a
-    add a, l
-    ld l, a
-    jr nc, :+
-        inc h
-    :
-    
-    ;Read source data pointer + length
-    ld a, [hl+]
-    ld c, a
-    ld a, [hl+]
-    ld b, a
-    ld d, [hl]
-
-    ;Write VQUEUE transfer
-    call vqueue_get
-    ld a, VQUEUE_TYPE_DIRECT
-    ld [hl+], a
-    ld a, d
-    ld [hl+], a
-    xor a
-    ld [hl+], a
-
-    ;Write destination
-    ld a, low(VT_TOWER_PLAYER + 16*(PLAYER_SPRITE_VAR - VTI_TOWER_PLAYER))
-    ld [hl+], a
-    ld a, high(VT_TOWER_PLAYER + 16*(PLAYER_SPRITE_VAR - VTI_TOWER_PLAYER))
-    ld [hl+], a
-
-    ;Write source
-    ld a, bank(@)
-    ld [hl+], a
-    ld a, c
-    ld [hl+], a
-    ld a, b
-    ld [hl+], a
-
-    ;Set writeback
-    xor a
-    ld [hl+], a
-    ld [hl+], a
-
-    ;Get destination -> stack
-    ld hl, VT_TOWER_PLAYER + 16*(PLAYER_SPRITE_VAR - VTI_TOWER_PLAYER)
-    ld a, d
-    ld [w_player_woffset], a
-    add a, a
-    add a, a
-    add a, a
-    add a, a
-    jr nc, :+
-        inc h
-    :
-    add a, l
-    ld l, a
-    jr nc, :+
-        inc h
-    :
-    push hl
-
-    ;Get weapon spritetable address
-    ld hl, player_spritetable
-    ld a, [w_player_weapon]
-    add a, a
-    add a, a
-    add a, l
-    ld l, a
-    jr nc, :+
-        inc h
-    :
-
-    ;Read source data pointer + length
-    ld a, [hl+]
-    ld c, a
-    ld a, [hl+]
-    ld b, a
-    ld d, [hl]
-
-    ;Write VQUEUE transfer
-    call vqueue_get
-    ld a, VQUEUE_TYPE_DIRECT
-    ld [hl+], a
-    ld a, d
-    ld [hl+], a
-    xor a
-    ld [hl+], a
-
-    ;Write destination
-    pop de
-    ld a, e
-    ld [hl+], a
-    ld a, d
-    ld [hl+], a
-
-    ;Write source
-    ld a, bank(@)
-    ld [hl+], a
-    ld a, c
-    ld [hl+], a
-    ld a, b
-    ld [hl+], a
-
-    ;Set writeback
-    xor a
-    ld [hl+], a
-    ld [hl+], a
-
-    ;Return
-    ret
-;
-
-
-
-; Prepared vqueue transfer for base player base sprites.
-player_vprep_base:: vqueue_prepare_copy \
-    VQUEUE_TYPE_DIRECT, \
-    VT_TOWER_PLAYER, \
-    player_sprite_base
-;
-
-
-
 ; This macro `INCBIN`'s the given file, and adds a `.end` label.  
 ; Automatically prepends player graphics folder location.
 ;
@@ -158,14 +25,129 @@ player_sprite_firebreath:   incspr "player_weapon_firebreath.tls"
 ;
 ; Input:
 ; - `1`: Sprite data (label)
+; - `2`: Can be modified (bitmask)
 MACRO sprtable
-    dw \1
-    db (\1.end - \1) >> 4
-    db $00
+    IF _NARG == 0
+        db $FF, $FF, $FF, $FF
+    ELSE
+        dw \1
+        db (\1.end - \1) >> 4
+        db \2
+    ENDC
 ENDM
 
 ; Address table for player sprites.
 player_spritetable:
-    sprtable player_sprite_jump
-    sprtable player_sprite_firebreath
+    sprtable player_sprite_jump,        %00000001
+    sprtable player_sprite_firebreath,  %00000011
+;
+
+
+
+; Loads the sprites needed for the player entity.
+; These sprites include base-, equipment- and weapon sprites.  
+; Assumes player equipment- and weapon IDs are set correctly.  
+; Uses painter.
+entity_player_load::
+
+    ;Some serious painter shenanigans are about to go down.
+    call painter_reset
+    
+    ;Push weapon table entry
+    ld a, [w_player_weapon]
+    ld e, a
+    add a, a
+    add a, a
+    add a, low(player_spritetable)
+    ld l, a
+    ld a, high(player_spritetable)
+    adc a, 0
+    ld h, a
+    push hl
+    ld a, l
+    add a, 3
+    ld l, a
+    jr nc, :+
+        inc h
+    :
+    ld a, [hl]
+    rlca
+    rlca
+    rlca
+    ld c, a
+
+    ;Push equipment table entry
+    ld a, [w_player_equipment]
+    ld d, a
+    add a, a
+    add a, a
+    add a, low(player_spritetable)
+    ld l, a
+    ld a, high(player_spritetable)
+    adc a, 0
+    ld h, a
+    push hl
+    ld a, l
+    add a, 3
+    ld l, a
+    jr nc, :+
+        inc h
+    :
+    ld a, [hl]
+    or a, c
+    ld h, a
+
+    ;What underlay should we use?
+    ld a, d
+
+    ;Nope, no overlay. Just clear paint buffer
+    ld de, $0300
+    call painter_clear
+    jr .underlay_done
+
+    .underlay_go
+        ;Paint for all base-sprites
+        ld de, $40
+        REPT (player_sprite_base.end - player_sprite_base) >> 6
+            call painter_fill
+        ENDR
+
+        ;Paint for individual equipment things
+        ld l, 7
+        :   bit 0, h
+            call z, painter_clear
+            bit 0, h
+            call nz, painter_fill
+            rr h
+            dec l
+            jr nz, :-
+        ;
+    .underlay_done
+
+    ;Start drawing real player sprites on top
+    call painter_reset
+    ld bc, player_sprite_base
+    ld de, $140
+    call painter_paint
+    pop hl
+    ld a, [hl+]
+    ld b, [hl]
+    ld c, a
+    ld de, $C0
+    call painter_paint
+    pop hl
+    ld a, [hl+]
+    ld b, [hl]
+    ld c, a
+    ld de, $100
+    call painter_paint
+
+    ;Ok, now prepare VQUEUE transfer to get this mess into VRAM
+    vqueue_add VQUEUE_TYPE_DIRECT, $300 / $10, VT_TOWER_PLAYER, w_paint
+    xor a
+    ld [hl+], a
+    ld [hl+], a
+
+    ;Return
+    ret
 ;
