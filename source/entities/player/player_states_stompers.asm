@@ -1,3 +1,4 @@
+INCLUDE "hardware.inc"
 INCLUDE "macros/farcall.inc"
 INCLUDE "macros/relpointer.inc"
 INCLUDE "struct/entity/player.inc"
@@ -14,6 +15,10 @@ player_state_stompers_jump::
     call player_xspeed_accel
     call player_xspeed_apply
     call player_xspeed_commit
+
+    ;Reset grounded flag
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    res PLAYER_FLAGB_GROUNDED, [hl]
     
     ;Vertical momentum
     push de
@@ -60,7 +65,102 @@ player_state_stompers_jump::
 ; Input:
 ; - `hl`: `ENTVAR_PLAYER_STATE`
 player_state_stompers_spin::
+    relpointer_init l, ENTVAR_PLAYER_STATE
 
+    ;Tick timer
+    relpointer_move ENTVAR_PLAYER_TIMER
+    inc [hl]
+    ld a, [hl]
+
+    ;Start GOING?
+    cp a, PLAYER_STOMPERS_SPIN_TIME
+    jr c, .no_go
+
+        ;Absolutely
+        ld e, l
+        relpointer_push ENTVAR_PLAYER_YSPEED, 0
+        ld a, low(PLAYER_YSPEED_STOMPERS_STOMP)
+        ld [hl+], a
+        ld a, high(PLAYER_YSPEED_STOMPERS_STOMP)
+        ld [hl-], a
+
+        ;Set this (important)
+        relpointer_move ENTVAR_PLAYER_ATTR
+        ld [hl], 0
+
+        ;Stomp time
+        relpointer_move ENTVAR_PLAYER_STATE
+        ld [hl], PLAYER_STATE_STOMPERS_STOMP
+        relpointer_pop 0
+        ld l, e
+    .no_go
+
+    ;Check platform collision
+    relpointer_move ENTVAR_XPOS+1
+    ld a, [w_platform_xpos+1]
+    cp a, [hl]
+    jr c, .no_platform
+    relpointer_move ENTVAR_YPOS+1
+    ld a, [w_platform_ypos+1]
+    cp a, [hl]
+    jr nc, .no_platform
+
+        ;Set position
+        ld [hl-], a
+        xor a
+        ld [hl+], a
+
+        ;Set this (important)
+        relpointer_move ENTVAR_PLAYER_ATTR
+        ld [hl], 0
+
+        ;Ok, landing state it is
+        relpointer_move ENTVAR_PLAYER_TIMER
+        ld [hl], 0
+        relpointer_move ENTVAR_PLAYER_STATE
+        ld [hl], PLAYER_STATE_STOMPERS_LAND
+    .no_platform
+
+    ;Return
+    relpointer_destroy
+    ret
+;
+
+
+
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+;
+; Saves: `hl`, `de`
+player_animate_stompers_spin::
+    push hl
+
+    ;Figure out sprite and attributes
+    player_relpointer_init ENTVAR_PLAYER_TIMER
+    ld a, [hl]
+    ld b, PLAYER_SPRITE_AIRBORNE_DOWN
+    ld c, 0
+    bit 3, a
+    jr nz, .sprited
+    bit 2, a
+    jr z, :+
+        ld c, OAMF_XFLIP | OAMF_YFLIP
+    :
+    bit 1, a
+    jr z, :+
+        ld b, PLAYER_SPRITE_STOMPERS_ROTATE
+    :
+    
+    ;Apply sprite and attribute
+    .sprited
+    relpointer_move ENTVAR_PLAYER_SPRITE
+    ld [hl], b
+    relpointer_move ENTVAR_PLAYER_ATTR
+    ld [hl], c
+
+    ;Return
+    relpointer_destroy
+    pop hl
     ret
 ;
 

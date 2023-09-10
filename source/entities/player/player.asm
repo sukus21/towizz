@@ -117,6 +117,8 @@ entity_player_update:
     jp z, player_state_firebreath
     cp a, PLAYER_STATE_STOMPERS_JUMP
     jp z, player_state_stompers_jump
+    cp a, PLAYER_STATE_STOMPERS_SPIN
+    jp z, player_state_stompers_spin
 
     ;Unknown state, oops
     .unknown_state
@@ -141,6 +143,8 @@ entity_player_update:
     cp a, PLAYER_STATE_STOMPERS_JUMP
     ld b, PLAYER_SPRITE_AIRBORNE_UP
     jp z, player_animate_set
+    cp a, PLAYER_STATE_STOMPERS_SPIN
+    jp z, player_animate_stompers_spin
 
     ;Unknown state found
     ld b, VTI_TOWER_COIN
@@ -224,15 +228,21 @@ entity_player_draw:
     cp a, ITEM_ID_JETPACK
     call z, player_jetpack_draw
 
-    ;Get flags -> C
+    ;Get attributes -> C
+    relpointer_move ENTVAR_PLAYER_ATTR
+    ld c, [hl]
     relpointer_move ENTVAR_PLAYER_FLAGS
     ld b, [hl]
-    ld c, OAMF_PAL0
     bit PLAYER_FLAGB_FACING, b
     jr z, :+
-        set OAMB_XFLIP, c
+        ld a, c
+        xor a, OAMF_XFLIP
+        ld c, a
+    :
 
-        ;Scooch X-position over
+    ;Scooch X-position over
+    bit OAMB_XFLIP, c
+    jr z, :+
         ld a, d
         add a, 8
         ld d, a
