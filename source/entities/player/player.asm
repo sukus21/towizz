@@ -598,6 +598,61 @@ player_use_weapon::
         relpointer_pop 0
     :
 
+    ;Stompers
+    cp a, ITEM_ID_STOMPERS
+    jr nz, :+
+        relpointer_push ENTVAR_PLAYER_FLAGS, 0
+        ld d, [hl]
+        relpointer_move ENTVAR_PLAYER_STATE
+        bit PLAYER_FLAGB_GROUNDED, d
+        jr nz, .stompers_jump
+
+            ;Ok, start spinnin'
+            ld [hl], PLAYER_STATE_STOMPERS_SPIN
+
+            ;Set speed to no
+            relpointer_move ENTVAR_PLAYER_XSPEED
+            xor a
+            ld [hl+], a
+            ld [hl-], a
+            relpointer_move ENTVAR_PLAYER_YSPEED
+            xor a
+            ld [hl+], a
+            ld [hl-], a
+
+            ;Reset timer
+            relpointer_move ENTVAR_PLAYER_TIMER
+            ld [hl], 0
+            or a, h
+            ret
+        ;
+
+        ;We gotta reach appropriate height first
+        .stompers_jump
+            relpointer_set ENTVAR_PLAYER_STATE
+            ld [hl], PLAYER_STATE_STOMPERS_JUMP
+
+            ;Set speeds
+            relpointer_move ENTVAR_PLAYER_XSPEED
+            xor a
+            ld [hl+], a
+            ld [hl-], a
+            relpointer_move ENTVAR_PLAYER_YSPEED
+            ld a, low(PLAYER_YSPEED_STOMPERS_JUMP)
+            ld [hl+], a
+            ld a, high(PLAYER_YSPEED_STOMPERS_JUMP)
+            ld [hl-], a
+
+            ;Reset timer
+            relpointer_move ENTVAR_PLAYER_TIMER
+            ld [hl], 0
+            or a, h
+            ret
+        ;
+
+        relpointer_pop 0
+    :
+
     ;Unknown weapon
     ld hl, error_unknown_weapon
     rst v_error
