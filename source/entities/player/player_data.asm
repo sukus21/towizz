@@ -1,3 +1,4 @@
+INCLUDE "struct/item.inc"
 INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/entity/player.inc"
 INCLUDE "struct/vram/tower.inc"
@@ -17,6 +18,8 @@ ENDM
 player_sprite_base:         incspr "player_base.tls"
 player_sprite_jump:         incspr "player_equip_jump.tls"
 player_sprite_firebreath:   incspr "player_weapon_firebreath.tls"
+player_sprite_jetpack:      incspr "player_equip_jetpack.tls"
+player_bckspr_jetpack:      incspr "jetpack.tls"
 
 
 
@@ -40,6 +43,8 @@ ENDM
 player_spritetable:
     sprtable player_sprite_jump,        %00000001
     sprtable player_sprite_firebreath,  %00000011
+    sprtable
+    sprtable player_sprite_jetpack,     %00000000
 ;
 
 
@@ -99,6 +104,9 @@ entity_player_load::
 
     ;What underlay should we use?
     ld a, d
+    cp a, ITEM_ID_JETPACK
+    ld bc, player_bckspr_jetpack
+    jr z, .underlay_go
 
     ;Nope, no overlay. Just clear paint buffer
     ld de, $0300
