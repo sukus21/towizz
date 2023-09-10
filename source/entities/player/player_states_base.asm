@@ -20,6 +20,17 @@ player_state_grounded::
     relpointer_init l, ENTVAR_PLAYER_STATE
     relpointer_move ENTVAR_PLAYER_FLAGS
     set PLAYER_FLAGB_GROUNDED, [hl]
+
+    ;Set jetpack fuel?
+    ld a, [w_player_equipment]
+    cp a, ITEM_ID_JETPACK
+    jr nz, :+
+        ld e, l
+        relpointer_push ENTVAR_PLAYER_JETPACK_FUEL, 0
+        ld [hl], PLAYER_JETPACK_FUEL_MAX
+        relpointer_pop 0
+        ld l, e
+    :
     
     ;Stand on top of platform
     call player_yspeed_stand
@@ -61,6 +72,10 @@ player_state_grounded::
             ret
             relpointer_pop 0
         :
+
+        ;Jetpack
+        cp a, ITEM_ID_JETPACK
+        jp z, player_jetpack_use
 
         ;Unknown equipment
         ld hl, error_unknwn_equipmt
@@ -115,9 +130,19 @@ player_state_airborne::
     ;Do we need to react to the platform?
     ld a, PLAYER_STATE_GROUNDED
     call player_yspeed_platform
+    ret nz
 
-    ;Now do this
+    ;Use weapon
     call z, player_use_weapon
+    ret nz
+
+    ;Use jetpack
+    ldh a, [h_input]
+    bit PADB_A, a
+    ret z
+    ld a, [w_player_equipment]
+    cp a, ITEM_ID_JETPACK
+    call z, player_jetpack_use
 
     ;Return
     relpointer_destroy
