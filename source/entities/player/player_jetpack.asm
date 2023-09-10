@@ -1,3 +1,4 @@
+INCLUDE "macros/farcall.inc"
 INCLUDE "macros/relpointer.inc"
 INCLUDE "struct/entity/player.inc"
 
@@ -30,9 +31,21 @@ player_jetpack_use::
 
     ;Spawn particle?
     ld a, [hl]
-    and a, %00001000
+    and a, %00000100
     jr z, .no_particle
-        nop
+        ld [hl], 0
+        relpointer_push ENTVAR_XPOS+1
+        ld a, [w_camera_xpos+1]
+        cpl
+        add a, [hl]
+        add a, 13
+        ld b, a
+        relpointer_move ENTVAR_YPOS+1
+        ld a, [hl]
+        add a, 12
+        ld c, a
+        farcall_x entity_smoke_create
+        relpointer_pop
     .no_particle
 
     ;Set state and Y-speed

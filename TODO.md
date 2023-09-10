@@ -6,7 +6,7 @@
     * [x] Animation system
 * [ ] Player movement
     * [x] Jump
-    * [ ] Jetpack
+    * [x] Jetpack
     * [ ] Bounce
     * [ ] Teleport
     * [ ] Tornado
