@@ -213,6 +213,11 @@ entity_player_draw:
     ld e, [hl]
     inc e
 
+    ;Draw jetpack fuel indicator?
+    ld a, [w_player_equipment]
+    cp a, ITEM_ID_JETPACK
+    call z, player_jetpack_draw
+
     ;Get flags -> C
     relpointer_move ENTVAR_PLAYER_FLAGS
     ld b, [hl]
