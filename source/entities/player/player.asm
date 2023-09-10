@@ -115,6 +115,8 @@ entity_player_update:
     jp z, player_state_jumpsquat
     cp a, PLAYER_STATE_FIREBREATH
     jp z, player_state_firebreath
+    cp a, PLAYER_STATE_STOMPERS_JUMP
+    jp z, player_state_stompers_jump
 
     ;Unknown state, oops
     .unknown_state
@@ -136,9 +138,13 @@ entity_player_update:
     jp z, player_animate_set
     cp a, PLAYER_STATE_FIREBREATH
     jp z, player_animate_firebreath
+    cp a, PLAYER_STATE_STOMPERS_JUMP
+    ld b, PLAYER_SPRITE_AIRBORNE_UP
+    jp z, player_animate_set
 
     ;Unknown state found
-    jr .unknown_state
+    ld b, VTI_TOWER_COIN
+    jp player_animate_set
 
     ;Collect the coinz
     .collect

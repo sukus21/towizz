@@ -63,6 +63,9 @@ player_xspeed_movement::
 ; Input:
 ; - `hl`: Player entity pointer (anywhere)
 ;
+; Returns:
+; - `bc`: New X-speed
+;
 ; Saves: `hl`
 player_xspeed_slow::
     ld c, l
@@ -81,6 +84,54 @@ player_xspeed_slow::
     ld c, a
     jp player_speed_slow
     relpointer_destroy
+;
+
+
+
+; Speed subroutine.
+; Moves speed away from 0.
+; If 0 is passed, it is set to 0.
+;
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+; - `de`: Change
+;
+; Returns:
+; - `bc`: New X-speed
+;
+; Saves: `de`, `hl`
+player_xspeed_accel::
+    push hl
+    
+    ;Reverse speed?
+    player_relpointer_init ENTVAR_PLAYER_FLAGS
+    bit PLAYER_FLAGB_FACING, [hl]
+    jr z, .not_negative
+        ld a, e
+        cpl
+        ld e, a
+        inc e
+        jr nz, :+
+            dec d
+        :
+        ld a, d
+        cpl
+        ld d, a
+    .not_negative
+    
+    ;Add to X-position
+    relpointer_move ENTVAR_PLAYER_XSPEED
+    ld a, [hl+]
+    add a, e
+    ld c, a
+    ld a, [hl-]
+    adc a, d
+    ld b, a
+    
+    ;Return
+    relpointer_destroy
+    pop hl
+    ret
 ;
 
 
