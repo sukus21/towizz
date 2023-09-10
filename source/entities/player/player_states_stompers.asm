@@ -84,6 +84,15 @@ player_state_stompers_spin::
         ld a, high(PLAYER_YSPEED_STOMPERS_STOMP)
         ld [hl-], a
 
+        ;This is now a DMGcall entity
+        relpointer_move ENTVAR_FLAGS
+        ld [hl], PLAYER_STOMPERS_FLAGS
+        relpointer_move ENTVAR_DMGCALL
+        ld a, low(player_stompers_dmgcall)
+        ld [hl+], a
+        ld a, high(player_stompers_dmgcall)
+        ld [hl-], a
+
         ;Set this (important)
         relpointer_move ENTVAR_PLAYER_ATTR
         ld [hl], 0
@@ -199,6 +208,8 @@ player_state_stompers_stomp::
         ;Reset armor
         player_relpointer_init ENTVAR_PLAYER_FLAGS
         res PLAYER_FLAGB_ARMORED, [hl]
+        relpointer_move ENTVAR_FLAGS
+        ld [hl], PLAYER_FLAGS
 
         ;Reset timer
         relpointer_move ENTVAR_PLAYER_TIMER
@@ -262,6 +273,40 @@ player_state_stompers_land::
     relpointer_move ENTVAR_PLAYER_STATE
     ld [hl], PLAYER_STATE_GROUNDED
 
+    ;Return
+    relpointer_destroy
+    ret
+;
+
+
+
+; Called when damage is dealt by stomping.
+; Bounce and go to airborne state.
+;
+; Input:
+; - `de`: Entity pointer
+player_stompers_dmgcall:
+    ld h, d
+    ld l, e
+    relpointer_init l
+
+    ;Reset flags
+    relpointer_move ENTVAR_FLAGS
+    ld [hl], PLAYER_FLAGS
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    res PLAYER_FLAGB_ARMORED, [hl]
+
+    ;Set state
+    relpointer_move ENTVAR_PLAYER_STATE
+    ld [hl], PLAYER_STATE_AIRBORNE
+
+    ;Set Y-speed
+    relpointer_move ENTVAR_PLAYER_YSPEED
+    ld a, low(PLAYER_YSPEED_STOMPERS_BOUNCE)
+    ld [hl+], a
+    ld a, high(PLAYER_YSPEED_STOMPERS_BOUNCE)
+    ld [hl-], a
+    
     ;Return
     relpointer_destroy
     ret

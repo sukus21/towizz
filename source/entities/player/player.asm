@@ -17,24 +17,7 @@ SECTION FRAGMENT "PLAYER", ROMX
 ;
 ; Saves: none
 entity_player_create::
-    call entsys_new32
-    ld h, b
-    ld l, c
-    relpointer_init l, ENTVAR_BANK
-
-    ;Set bank
-    ld [hl], bank(@)
-
-    ;Set step function
-    relpointer_move ENTVAR_STEP
-    ld a, low(entity_player)
-    ld [hl+], a
-    ld a, high(entity_player)
-    ld [hl-], a
-
-    ;Set flags
-    relpointer_move ENTVAR_FLAGS
-    ld [hl], ENTSYS_FLAGF_COLLISION | ENTSYS_FLAGF_PLAYER
+    entsys_new 32, entity_player, PLAYER_FLAGS
 
     ;Set width and height
     relpointer_move ENTVAR_HEIGHT
@@ -46,8 +29,7 @@ entity_player_create::
     relpointer_move ENTVAR_PLAYER_START
     xor a
     ld b, ENTVAR_PLAYER_COUNT
-    :
-        ld [hl+], a
+    :   ld [hl+], a
         dec b
         jr nz, :-
     ;

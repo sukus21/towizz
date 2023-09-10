@@ -12,9 +12,9 @@
     * [ ] Tornado
     * [ ] ...
 * [ ] Player weapons
-    * [x] Flaming cough
+    * [x] Firebreath
     * [ ] Uppercuters headband
-    * [ ] Plumbing boots
+    * [x] Stompers
     * [ ] Spelunkers whip
     * [ ] Adventurous boomerang
     * [ ] ...
