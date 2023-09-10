@@ -20,6 +20,7 @@ player_sprite_jump:         incspr "player_equip_jump.tls"
 player_sprite_firebreath:   incspr "player_weapon_firebreath.tls"
 player_sprite_jetpack:      incspr "player_equip_jetpack.tls"
 player_bckspr_jetpack:      incspr "jetpack.tls"
+player_sprite_stompers:     incspr "player_weapon_stompers.tls"
 
 
 
@@ -45,6 +46,7 @@ player_spritetable:
     sprtable player_sprite_firebreath,  %00000011
     sprtable
     sprtable player_sprite_jetpack,     %00000000
+    sprtable player_sprite_stompers,    %00001111
 ;
 
 

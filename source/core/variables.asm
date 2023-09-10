@@ -198,7 +198,7 @@ var_w0:
         w_money:: db $00
         w_player_health:: db $03
         w_player_equipment:: db ITEM_ID_JETPACK
-        w_player_weapon:: db ITEM_ID_FIREBREATH
+        w_player_weapon:: db ITEM_ID_STOMPERS
         w_durability_equipment:: db $03
         w_durability_weapon:: db $03
 

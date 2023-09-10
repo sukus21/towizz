@@ -12,6 +12,7 @@ item_sprites::
     INCBIN "graphics/items/firebreath.tls"
     INCBIN "graphics/items/heart.tls"
     INCBIN "graphics/items/jetpack.tls"
+    INCBIN "graphics/items/stompers.tls"
 ;
 
 
@@ -19,10 +20,11 @@ item_sprites::
 ; Contains a list of `ITEM` structs.
 ; Data can be looked up using an `ITEM_ID_*` constant.
 item_data::
-    item_define ITEM_ID_JUMP,       "JUMP",         0, item_preview_jump_init,          item_preview_jump_run
-    item_define ITEM_ID_FIREBREATH, "FIREBREATH",   0, item_preview_firebreath_init,    item_preview_firebreath_run
-    item_define ITEM_ID_HEART,      "+1 HEALTH",    5, 0, 0
-    item_define ITEM_ID_JETPACK,    "JETPACK",      6, item_preview_jetpack_init,       item_preview_jetpack_run
+    item_define ITEM_ID_JUMP,       "JUMP",         0,  item_preview_jump_init,          item_preview_jump_run
+    item_define ITEM_ID_FIREBREATH, "FIREBREATH",   0,  item_preview_firebreath_init,    item_preview_firebreath_run
+    item_define ITEM_ID_HEART,      "+1 HEALTH",    5,  0, 0
+    item_define ITEM_ID_JETPACK,    "JETPACK",      6,  item_preview_jetpack_init,       item_preview_jetpack_run
+    item_define ITEM_ID_STOMPERS,   "STOMPERS",     7,  item_preview_stompers_init,      item_preview_stompers_run
 ;
 
 
