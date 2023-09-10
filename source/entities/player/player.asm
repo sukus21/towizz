@@ -119,6 +119,8 @@ entity_player_update:
     jp z, player_state_stompers_jump
     cp a, PLAYER_STATE_STOMPERS_SPIN
     jp z, player_state_stompers_spin
+    cp a, PLAYER_STATE_STOMPERS_STOMP
+    jp z, player_state_stompers_stomp
 
     ;Unknown state, oops
     .unknown_state
@@ -145,6 +147,8 @@ entity_player_update:
     jp z, player_animate_set
     cp a, PLAYER_STATE_STOMPERS_SPIN
     jp z, player_animate_stompers_spin
+    cp a, PLAYER_STATE_STOMPERS_STOMP
+    jp z, player_animate_stompers_stomp
 
     ;Unknown state found
     ld b, VTI_TOWER_COIN

@@ -169,6 +169,69 @@ player_animate_stompers_spin::
 ; Input:
 ; - `hl`: `ENTVAR_PLAYER_STATE`
 player_state_stompers_stomp::
+    relpointer_init l, ENTVAR_PLAYER_STATE
+
+    ;Set armor
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    set PLAYER_FLAGB_ARMORED, [hl]
+
+    ;Tick animation
+    relpointer_move ENTVAR_PLAYER_ANIMATION
+    inc [hl]
+
+    ;Vertical momentum
+    call player_yspeed_gravity
+    call player_yspeed_commit
+    call player_yspeed_fallen
+    jr nz, .quit
+    relpointer_move ENTVAR_XPOS+1
+    ld b, [hl]
+    ld c, d
+    ld a, PLAYER_STATE_GROUNDED
+    call player_yspeed_platform
+    jr nz, .quit
+
+    ;Return
+    relpointer_destroy
+    ret
+
+    .quit
+        ;Reset armor
+        player_relpointer_init ENTVAR_PLAYER_FLAGS
+        res PLAYER_FLAGB_ARMORED, [hl]
+
+        ;Reset timer
+        relpointer_move ENTVAR_PLAYER_TIMER
+        ld [hl], 0
+
+        ;Return
+        relpointer_destroy
+        ret
+    ;
+;
+
+
+
+; Input:
+; - `hl`: Player entity pointer (anywhere)
+;
+; Saves: `hl`, `de`
+player_animate_stompers_stomp::
+    push hl
+
+    ;Figure out sprite and attributes
+    player_relpointer_init ENTVAR_PLAYER_ANIMATION
+    ld b, [hl]
+    relpointer_move ENTVAR_PLAYER_SPRITE
+    ld [hl], PLAYER_SPRITE_STOMPERS_FALL1
+    bit 2, b
+    jr z, :+
+        ld [hl], PLAYER_SPRITE_STOMPERS_FALL2
+    :
+
+    ;Return
+    relpointer_destroy
+    pop hl
     ret
 ;
 
