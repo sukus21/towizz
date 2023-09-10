@@ -28,7 +28,7 @@ player_state_stompers_jump::
     pop bc
     ret nz
     ld c, d
-    ld a, PLAYER_STATE_GROUNDED
+    ld a, PLAYER_STATE_STOMPERS_LAND
     call player_yspeed_platform
     jr z, :+
         set PLAYER_FLAGB_GROUNDED, [hl]
@@ -187,7 +187,7 @@ player_state_stompers_stomp::
     relpointer_move ENTVAR_XPOS+1
     ld b, [hl]
     ld c, d
-    ld a, PLAYER_STATE_GROUNDED
+    ld a, PLAYER_STATE_STOMPERS_LAND
     call player_yspeed_platform
     jr nz, .quit
 
@@ -240,5 +240,29 @@ player_animate_stompers_stomp::
 ; Input:
 ; - `hl`: `ENTVAR_PLAYER_STATE`
 player_state_stompers_land::
+    relpointer_init l, ENTVAR_PLAYER_STATE
+    
+    ;Move with platform
+    call player_yspeed_stand
+    relpointer_move ENTVAR_XPOS
+    ld a, [hl+]
+    ld c, a
+    ld a, [hl-]
+    ld b, a
+    call player_xspeed_platform
+
+    ;Tick timer
+    relpointer_move ENTVAR_PLAYER_TIMER
+    inc [hl]
+    ld a, [hl]
+    cp a, PLAYER_STOMPERS_LAND_TIME
+    ret c
+
+    ;Landing
+    relpointer_move ENTVAR_PLAYER_STATE
+    ld [hl], PLAYER_STATE_GROUNDED
+
+    ;Return
+    relpointer_destroy
     ret
 ;
