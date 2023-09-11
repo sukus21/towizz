@@ -40,6 +40,16 @@ v_stat::
 
 
 
+SECTION "METADATA", ROM0
+
+; Contains information about the current build.  
+; Lives in ROM0.
+meta_version_string:: db "{__RGBDS_VERSION__}"
+meta_build_time_local:: db __ISO_8601_LOCAL__
+meta_build_time_utc:: db __ISO_8601_UTC__
+
+
+
 SECTION "MAIN", ROM0[$0150]
 
 ; Entrypoint of game code, jumped to after setup is complete.
