@@ -44,9 +44,16 @@ gameloop_tower_setup:
     ld a, bank(tower_vprep)
     ld [rROMB0], a
     ld de, tower_vprep
-    ld b, 6
+    ld b, 7
     call vqueue_enqueue_multi
     call gameloop_loading
+    ld hl, w_platform_spriteset_bank
+    ld a, bank(tower_tlm_platform_bricks)
+    ld [hl+], a
+    ld a, low(tower_tlm_platform_bricks+15)
+    ld [hl+], a
+    ld a, high(tower_tlm_platform_bricks+15)
+    ld [hl+], a
 
     ;Paint HUD
     call painter_item_slots
@@ -57,7 +64,7 @@ gameloop_tower_setup:
     farcall entity_player_create
     ld bc, $4050
     farcall entity_citizen_create
-    ;farcall entity_towerdemo_create
+    farcall entity_towerdemo_create
 
     ;Call regular V-blank routine
     call tower_buffer_prepare
@@ -239,7 +246,9 @@ tower_update::
 
 
 ; Prepare the tower buffer.
+; Also draws sprite-part of platform.
 ; This saves me from doing it in the middle of V-blank.  
+; Switches banks.  
 ; Lives in ROM0.
 ;
 ; Destroys: all
@@ -309,6 +318,7 @@ tower_buffer_prepare:
     jr nc, :+
         ld a, d
     :
+    push de
 
     ;Get number of required sprites
     dec a
@@ -321,6 +331,14 @@ tower_buffer_prepare:
     add a, a
     ld b, a
 
+    ;Get sprite data pointer -> DE
+    ld hl, w_platform_spriteset_bank
+    ld a, [hl+]
+    ld [rROMB0], a
+    ld a, [hl+]
+    ld d, [hl]
+    ld e, a
+
     ;Allocate sprites
     ld a, [h_oam_active]
     ld h, a
@@ -332,8 +350,7 @@ tower_buffer_prepare:
     ld a, [w_platform_ypos+1]
     add a, 16
     ld c, a ;sprite Y-position
-    ld a, d ;sprite X-position
-    ld e, VTI_TOWER_PLATFORM_END - 2 ;sprite tile
+    pop af ;sprite X-position
 
     ;Write data
     .loop
@@ -341,10 +358,11 @@ tower_buffer_prepare:
         inc l
         ld [hl+], a
         sub a, 8
-        ld [hl], e
-        dec e
-        dec e
-        inc l
+        push af
+        ld a, [de]
+        dec de
+        ld [hl+], a
+        pop af
         ld [hl], OAMF_PAL0
         inc l
         dec b

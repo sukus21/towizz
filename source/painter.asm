@@ -209,12 +209,12 @@ painter_clear::
 painter_item_slots::
 
     ;Get template bank
-    ld a, bank(tower_asset_hud)
+    ld a, bank(tower_tls_hud)
     ld [rROMB0], a
 
     ;Fill templates
     call painter_reset
-    ld bc, tower_asset_hud + $40
+    ld bc, tower_tls_hud + $40
     ld de, $40
     call painter_fill
     ld de, $40

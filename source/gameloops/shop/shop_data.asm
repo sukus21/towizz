@@ -58,7 +58,7 @@ shop_vprep_background:: vqueue_prepare_copy \
 shop_vprep_hud_tls:: vqueue_prepare_copy \
     VQUEUE_TYPE_DIRECT, \
     VT_SHOP_HUD, \
-    tower_asset_hud, \
+    tower_tls_hud, \
     w_vqueue_writeback
 ;
 

@@ -102,6 +102,11 @@ var_w0:
         ; Stack-position to exit an entity's gameloop.
         w_entsys_exit:: dw $0000
 
+        ; Pointer to platform sprite ID table + 15.
+        ; +15 is VERY important.
+        w_platform_spriteset_bank:: db $00
+        w_platform_spriteset:: dw $0000
+
         ; Tower visuals mode.
         ; Possible flags located in `tower.inc`.
         w_tower_flags:: db $00
@@ -197,8 +202,8 @@ var_w0:
 
         w_money:: db $00
         w_player_health:: db $03
-        w_player_equipment:: db ITEM_ID_JUMP
-        w_player_weapon:: db ITEM_ID_STOMPERS
+        w_player_equipment:: db ITEM_ID_JETPACK
+        w_player_weapon:: db ITEM_ID_FIREBREATH
         w_durability_equipment:: db $03
         w_durability_weapon:: db $03
 
