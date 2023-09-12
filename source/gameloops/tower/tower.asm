@@ -17,21 +17,12 @@ SECTION "GAMELOOP TOWER", ROM0
 gameloop_tower_setup:
     di
 
-    ;Set tower flags
-    ld a, 0
-    ld [w_tower_flags], a
+    ;Set OAM mirror
     ld a, high(w_oam1)
     ldh [h_oam_active], a
 
-    ;Load background
-    ld b, 3
-    call tower_background_fullqueue
-
-    ;Load player and enemies
+    ;Load player
     farcall entity_player_load
-    farcall entity_knightling_load
-    farcall entity_pajamaman_load
-    farcall entity_citizen_load
 
     ;Load coins and particles
     ld de, VT_TOWER_PARTICLE
@@ -44,7 +35,7 @@ gameloop_tower_setup:
     ld a, bank(tower_vprep)
     ld [rROMB0], a
     ld de, tower_vprep
-    ld b, 11
+    ld b, 10
     call vqueue_enqueue_multi
     call gameloop_loading
     ld hl, w_platform_spriteset_bank
@@ -61,9 +52,8 @@ gameloop_tower_setup:
 
     ;Initialize entity system
     call entsys_clear
+    farcall entity_wavecontrol_create
     farcall entity_player_create
-    ld bc, $4050
-    farcall entity_citizen_create
     ;farcall entity_towerdemo_create
 
     ;Call regular V-blank routine
@@ -80,17 +70,6 @@ gameloop_tower_setup:
     xor a
     ldh [rIF], a
     ei
-
-    ;Prepare colors
-    ld a, PALETTE_DEFAULT
-    ld [w_bgp+1], a
-    ld [w_obp0+1], a
-    ld a, COLOR_FADESTATE_IN
-    call transition_fade_init
-
-    ;Re-enable LCD
-    ld a, LCDCF_BLK21 | LCDCF_BG9800 | LCDCF_WIN9C00 | LCDCF_BGON | LCDCF_WINON | LCDCF_ON
-    ldh [rLCDC], a
 
     ;Return
     ret 
@@ -340,7 +319,7 @@ tower_buffer_prepare:
     ld e, a
 
     ;Allocate sprites
-    ld a, [h_oam_active]
+    ldh a, [h_oam_active]
     ld h, a
     call sprite_get
     srl b

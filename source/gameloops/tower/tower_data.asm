@@ -67,10 +67,7 @@ tower_tlm_hud:
 
 tower_vprep::
 
-tower_vprep_tower:
-
     ;Tower transfers
-    vqueue_prepare_copy VQUEUE_TYPE_DIRECT, VT_TOWER_TOWER, tower_tls_tower_bricks
     vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $0C0, tower_tlm_gate_close
     vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER1 + $000, tower_tlm_segment_8
     vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $000, tower_tlm_segment_8
@@ -85,4 +82,20 @@ tower_vprep_tower:
     ;HUD transfers
     vqueue_prepare_copy VQUEUE_TYPE_DIRECT, VT_TOWER_HUD, tower_tls_hud
     vqueue_prepare_copy VQUEUE_TYPE_SCREENROW, VM_TOWER_HUD, tower_tlm_hud, 0, 20
+;
+
+
+
+; Queues up brick tower tileset.
+;
+; Input:
+; - `de`: Writeback pointer
+;
+; Saves: `de`
+tower_bricks_load::
+    vqueue_add_copy VQUEUE_TYPE_DIRECT, VT_TOWER_TOWER, tower_tls_tower_bricks
+    ld a, e
+    ld [hl+], a
+    ld [hl], d
+    ret
 ;
