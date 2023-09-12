@@ -90,7 +90,7 @@ entity_coin_load::
     
     ;Get tile ID from address (somehow)
     ld b, d
-    ld a, c
+    ld a, e
     srl b
     rra 
     srl b

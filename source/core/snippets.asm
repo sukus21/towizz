@@ -539,7 +539,7 @@ _hl_::
 ; - `bc`: Address to jump to
 ;
 ; Destroys: unknown
-_bc_:
+_bc_::
     push bc
     ret 
 ;
@@ -554,7 +554,7 @@ _bc_:
 ; - `de`: Address to jump to
 ;
 ; Destroys: unknown
-_de_:
+_de_::
     push de
     ret 
 ;

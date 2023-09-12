@@ -13,8 +13,13 @@ citizen_tls: INCBIN "graphics/enemy_citizen.tls"
 
 
 ; Queues up citizen sprites.
-; Sets writeback to `w_vqueue_writeback`.
+;
+; Input:
+; - `de`: Writeback pointer
+;
+; Saves: `de`
 entity_citizen_load::
+    push de
     ld b, 2
     call tower_sprite_alloc
     ld a, b
@@ -26,9 +31,10 @@ entity_citizen_load::
     ;
 
     ;Set writeback
-    ld a, low(w_vqueue_writeback)
+    pop de
+    ld a, e
     ld [hl+], a
-    ld [hl], high(w_vqueue_writeback)
+    ld [hl], d
 
     ;Return
     ret
