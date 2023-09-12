@@ -152,14 +152,13 @@ tower_hblank_gui::
     ld b, a
 
     ;Wait for appropriate scanline
-    :
-    ldh a, [rLY]
-    cp a, TOWER_HUD_DMA_LYC
-    jr c, :-
-    :
-    ldh a, [rSTAT]
-    bit 0, a
-    jr nz, :-
+    :   ldh a, [rLY]
+        cp a, TOWER_HUD_DMA_LYC
+        jr c, :-
+    :   ldh a, [rSTAT]
+        bit 0, a
+        jr nz, :-
+    ;
 
     ;Disable window layer
     ld a, LCDCF_ON | LCDCF_BLK21 | LCDCF_BGON | LCDCF_BG9C00 | LCDCF_WINOFF | LCDCF_OBJOFF
@@ -335,6 +334,7 @@ tower_hblank_tower::
 
     ;Next thing that should happen is platform interrupt
     ld a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
+    dec a
     dec a
     ldh [rLYC], a
     LYC_set_jumppoint tower_hblank_platform
