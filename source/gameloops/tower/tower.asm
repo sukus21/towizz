@@ -18,7 +18,7 @@ gameloop_tower_setup:
     di
 
     ;Set tower flags
-    ld a, TOWERMODEF_TOWER_REPEAT
+    ld a, 0
     ld [w_tower_flags], a
     ld a, high(w_oam1)
     ldh [h_oam_active], a
@@ -44,7 +44,7 @@ gameloop_tower_setup:
     ld a, bank(tower_vprep)
     ld [rROMB0], a
     ld de, tower_vprep
-    ld b, 7
+    ld b, 11
     call vqueue_enqueue_multi
     call gameloop_loading
     ld hl, w_platform_spriteset_bank
@@ -64,7 +64,7 @@ gameloop_tower_setup:
     farcall entity_player_create
     ld bc, $4050
     farcall entity_citizen_create
-    farcall entity_towerdemo_create
+    ;farcall entity_towerdemo_create
 
     ;Call regular V-blank routine
     call tower_buffer_prepare
