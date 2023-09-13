@@ -67,14 +67,6 @@ tower_tlm_hud:
 
 tower_vprep::
 
-    ;Tower transfers
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $0C0, tower_tlm_gate_close
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER1 + $000, tower_tlm_segment_8
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $000, tower_tlm_segment_8
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $100, tower_tlm_segment_8
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $200, tower_tlm_segment_8
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $300, tower_tlm_segment_8
-
     ;Platform transfers
     vqueue_prepare_copy VQUEUE_TYPE_DIRECT, VT_TOWER_PLATFORM, tower_tls_platform_bricks
     vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_PLATFORM, tower_tlm_platform_bricks

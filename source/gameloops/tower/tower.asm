@@ -29,15 +29,16 @@ gameloop_tower_setup:
     farcall entity_particle_load
     ld de, VT_TOWER_COIN
     farcall entity_coin_load
-    call gameloop_loading
 
-    ;Load tower tilesets + maps
+    ;Put HUD and platform in place
     ld a, bank(tower_vprep)
     ld [rROMB0], a
     ld de, tower_vprep
-    ld b, 10
+    ld b, 4
     call vqueue_enqueue_multi
     call gameloop_loading
+
+    ;Save platform sprite-table pointer
     ld hl, w_platform_spriteset_bank
     ld a, bank(tower_tlm_platform_bricks)
     ld [hl+], a

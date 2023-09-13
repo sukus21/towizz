@@ -4,6 +4,7 @@ INCLUDE "macros/color.inc"
 INCLUDE "macros/relpointer.inc"
 INCLUDE "macros/farcall.inc"
 INCLUDE "struct/entity/wavecontrol.inc"
+INCLUDE "struct/vram/tower.inc"
 
 SECTION FRAGMENT "WAVECONTROL", ROMX
 
@@ -20,7 +21,8 @@ wavecontrol_wave1::
     ;Set tower flags
     ld a, [w_tower_flags]
     and a, TOWERMODEF_WINDOW_TILEMAP
-    or a, TOWERMODEF_TOWER_REPEAT | TOWERMODEF_TOWER_TILEMAP
+    or a, 0
+    ld [w_tower_flags], a
 
     ;Load background
     ld b, 3
@@ -40,6 +42,11 @@ wavecontrol_wave1::
 
     ;Load background tilesets
     farcall_x tower_bricks_load
+
+    ;Transfer tower tilemaps
+    ld de, wave1_tlm_base
+    ld b, 5
+    call vqueue_enqueue_multi
 
     ;Set checkpoint
     pop hl
@@ -66,3 +73,14 @@ wavecontrol_wave1::
     relpointer_destroy
     ret
 ;
+
+
+
+; Prepared full-tower transfer.
+wave1_tlm_base:
+    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER1 + $000, tower_tlm_segment_8
+    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $000, tower_tlm_segment_8
+    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $100, tower_tlm_segment_8
+    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $200, tower_tlm_segment_8
+    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $300, tower_tlm_segment_8
+.end
