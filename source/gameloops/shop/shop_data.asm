@@ -10,15 +10,15 @@ shop_tileset::
 .end::
 
 ; Foreground tilemap data for shop gameloop.
-shop_tilemap_foreground::
-    INCBIN "graphics/shop/foreground.tlm"
+shop_tilemap_foreground:: INCBIN "graphics/shop/foreground.tlm"
 .end::
 
 ; Background tilemap data for shop gameloop.
-shop_tilemap_background::
-    INCBIN "graphics/shop/background.tlm"
+shop_tilemap_background:: INCBIN "graphics/shop/background.tlm"
 .end::
 
+shop_player_purchase: INCBIN "graphics/player/player_purchase.tls"
+.end
 
 
 ; A list of all prepared VQUEUE transfers, required for shop startup.
@@ -52,6 +52,9 @@ shop_vprep_background:: vqueue_prepare_copy \
     w_vqueue_writeback, \
     20
 ;
+
+;Player purchase sprite.
+shop_vprep_player:: vqueue_prepare_copy VQUEUE_TYPE_DIRECT, VT_SHOP_PLAYERPURCHASE, shop_player_purchase
 
 ; 2 prepared VQUEUE transfers.
 ; Transfer HUD tileset + tilemap.

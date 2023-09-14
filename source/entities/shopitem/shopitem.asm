@@ -1,5 +1,6 @@
 INCLUDE "entsys.inc"
 INCLUDE "shop.inc"
+INCLUDE "macros/farcall.inc"
 INCLUDE "macros/memcpy.inc"
 INCLUDE "macros/relpointer.inc"
 INCLUDE "struct/item.inc"
@@ -190,10 +191,75 @@ entity_shopitem::
         inc e
         ld a, [de]
         ld b, a
+        dec e
 
         ;Do item preview
         call preview_prepare
         call preview_step
+
+        ;Buy item?
+        ldh a, [h_input_pressed]
+        bit PADB_START, a
+        ret z
+
+        ;Okidoke, check price
+        relpointer_move ENTVAR_SHOPITEM_PRICE
+        ld a, [de]
+        ld b, a
+        ld a, [w_money]
+        sub a, b
+        ret c
+        ld [w_money], a
+
+        ;Wait, is this a heart?
+        relpointer_move 0
+        push de
+        relpointer_move ENTVAR_SHOPITEM_PTR
+        relpointer_destroy
+        ld a, [de]
+        ld l, a
+        inc e
+        ld a, [de]
+        ld h, a
+        ld a, [hl]
+        cp a, ITEM_ID_HEART
+        jr nz, :+
+            ld hl, w_player_health
+            inc [hl]
+            jr .destroy
+        :
+
+        ;How to handle this
+        cp a, ITEM_ID_JETPACK
+        jr nz, .equip
+            ld [w_player_equipment], a
+            ld a, 3
+            ld [w_durability_equipment], a
+            jr .done_set
+        .equip
+            ld [w_player_weapon], a
+            ld a, 3
+            ld [w_durability_weapon], a
+        .done_set
+
+        ;Start loading item
+        farcall_x painter_item_slots
+
+        ;Set player into loading state
+        ld c, ENTSYS_FLAGF_PLAYER
+        call entsys_find_any
+        jr z, .destroy
+        relpointer_init l
+        relpointer_move ENTVAR_PLAYER_STATE
+        ld [hl], PLAYER_STATE_PURCHASE
+        relpointer_move ENTVAR_PLAYER_TIMER
+        ld [hl], 0
+
+        ;Destroy entity
+        .destroy
+        pop hl
+        call entsys_free
+        jp entsys_exit
     ;
 
     relpointer_destroy

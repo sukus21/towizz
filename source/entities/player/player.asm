@@ -5,6 +5,7 @@ INCLUDE "macros/relpointer.inc"
 INCLUDE "struct/item.inc"
 INCLUDE "struct/entity/player.inc"
 INCLUDE "struct/vram/tower.inc"
+INCLUDE "struct/vram/shop.inc"
 
 SECTION FRAGMENT "PLAYER", ROMX
 
@@ -105,6 +106,8 @@ entity_player_update:
     jp z, player_state_stompers_stomp
     cp a, PLAYER_STATE_STOMPERS_LAND
     jp z, player_state_stompers_land
+    cp a, PLAYER_STATE_PURCHASE
+    jp z, player_state_purchase
 
     ;Unknown state, oops
     .unknown_state
@@ -135,6 +138,9 @@ entity_player_update:
     jp z, player_animate_stompers_stomp
     cp a, PLAYER_STATE_STOMPERS_LAND
     ld b, PLAYER_SPRITE_STOMPERS_LAND
+    jp z, player_animate_set
+    cp a, PLAYER_STATE_PURCHASE
+    ld b, VTI_SHOP_PLAYERPURCHASE
     jp z, player_animate_set
 
     ;Unknown state found
@@ -664,4 +670,27 @@ player_use_weapon::
     ld hl, error_unknown_weapon
     rst v_error
     relpointer_destroy
+;
+
+
+
+; Input:
+; - `hl`: Player entity pointer (state)
+player_state_purchase:
+    call vqueue_empty
+    ret nz
+
+    player_relpointer_init ENTVAR_PLAYER_TIMER
+    ld a, [hl]
+    or a, a
+    jr z, :+
+        relpointer_push ENTVAR_PLAYER_STATE, 0
+        ld [hl], PLAYER_STATE_AIRBORNE
+        relpointer_pop 0
+        ret
+    :
+
+    ;Ok, start re-loading player sprites
+    ld [hl], 1
+    jp entity_player_load
 ;

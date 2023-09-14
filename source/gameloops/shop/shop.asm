@@ -110,7 +110,7 @@ gameloop_shop_setup:
     ld a, bank(shop_vprep)
     ld [rROMB0], a
     ld de, shop_vprep
-    ld b, 5
+    ld b, 6
     call vqueue_enqueue_multi
     call gameloop_loading
 
