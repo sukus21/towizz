@@ -172,6 +172,31 @@ entity_player_update:
         jr nz, .coin_loop
     .no_collision
 
+    ;How about you touch some enemies instead?
+    pop hl
+    relpointer_move ENTVAR_PLAYER_FLAGS
+    push hl
+    ld a, [hl]
+    and a, PLAYER_FLAGF_ARMORED | PLAYER_FLAGF_INVINCIBLE
+    jr nz, .no_hurt
+
+    ;Yeah, do thing
+    ld c, ENTSYS_FLAGF_HURT
+    call entsys_collision_all
+    jr z, .no_hurt
+    .hurt_loop
+        pop de
+        push de
+        push hl
+        ld h, d
+        ld l, e
+        call player_hurt
+        pop hl
+        ld c, ENTSYS_FLAGF_HURT
+        call entsys_collision_all.continue
+        jr nz, .hurt_loop
+    .no_hurt
+
     ;Return
     .return
     relpointer_destroy
