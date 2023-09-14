@@ -84,6 +84,7 @@ wavecontrol_update::
     push bc
     push de
     push hl
+    push de
 
     ;Push early return pointer to stack
     ld bc, .return_forced
@@ -122,6 +123,9 @@ wavecontrol_update::
     pop bc
     .return_forced
 
+    pop hl
+    call wavecontrol_dragdown
+
     ;Return
     pop hl
     pop de
@@ -138,7 +142,92 @@ wavecontrol_update::
 ; Saves: `hl`
 wavecontrol_dragdown:
     push hl
+    wavecontrol_relpointer_init ENTVAR_WAVECONTROL_DRAGDOWN
+    relpointer_destroy
+
+    ;Loopies
+    ld d, 4
+    .loop
+
+        ;Get entity pointer -> HL
+        ld a, [hl+]
+        ld c, a
+        ld a, [hl+]
+        push hl
+        ld h, a
+        ld l, c
+        or a, l
+        jr z, .iterate
+        relpointer_init l
+
+        ;Drag this thing down
+        relpointer_move ENTVAR_YPOS
+        ld a, [w_tower_yspeed]
+        add a, [hl]
+        ld [hl+], a
+        ld a, [w_tower_yspeed+1]
+        adc a, [hl]
+        ld [hl-], a
+
+        ;Loop count
+        .iterate
+        relpointer_destroy
+        pop hl
+        dec d
+        jr nz, .loop
+    ;
     
+    pop hl
+    ret
+;
+
+
+
+; Release all dragdown entities.
+;
+; Input:
+; - `hl`: Entity pointer (anywhere)
+;
+; Saves: `hl`
+wavecontrol_dragdown_release::
+    push hl
+    wavecontrol_relpointer_init ENTVAR_WAVECONTROL_DRAGDOWN
+    relpointer_destroy
+    ld d, 4
+    .loop
+
+        ;Get and clear entity pointer
+        xor a
+        ld c, [hl]
+        ld [hl+], a
+        ld b, [hl]
+        ld [hl+], a
+        ld a, c
+        ld e, c
+        add a, ENTVAR_FLAGS
+        ld c, a
+
+        ;Check flags
+        ld a, [bc]
+        and a, ENTSYS_FLAGF_DMGCALL
+        ld a, ENTVAR_COL_VAR
+        jr z, .foundvar
+        ld a, ENTVAR_DMGCALL_VAR
+
+        ;Increment state
+        .foundvar
+        add a, e
+        ld c, a
+        ld a, [bc]
+        inc a
+        ld [bc], a
+
+        ;Loop count
+        dec d
+        jr nz, .loop
+    ;
+
+    ;Return
     pop hl
     ret
 ;
