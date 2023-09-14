@@ -215,8 +215,8 @@ wavecontrol_block_vspeed_sub::
     ld [hl+], a
     ld a, [hl]
     sbc a, d
+    ld [hl-], a
     jr c, .limit
-    ld [hl+], a
 
     ;Also do background speed
     ld hl, w_background_yspeed
