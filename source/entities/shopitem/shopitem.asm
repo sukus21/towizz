@@ -20,6 +20,9 @@ SECTION FRAGMENT "SHOPITEM", ROMX
 ; Returns:
 ; - `hl`: Shopitem entity pointer
 entity_shopitem_create::
+    ld a, c
+    inc a
+    ret z
 
     ;Allocate new entity
     push bc
