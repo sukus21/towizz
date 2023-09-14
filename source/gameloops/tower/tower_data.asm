@@ -48,7 +48,7 @@ tower_tls_hud:: INCBIN "graphics/hud.tls"
 .end::
 
 ; HUD tilemap.
-tower_tlm_hud:
+tower_tlm_hud::
     ds 6, VTI_TOWER_HUD
     db VTI_TOWER_HUD+4, VTI_TOWER_HUD+6
     ds 3, VTI_TOWER_HUD
@@ -62,7 +62,7 @@ tower_tlm_hud:
     ds 7, VTI_TOWER_HUD
 
     ds 20, VTI_TOWER_HUD+1
-.end
+.end::
 
 
 

@@ -6,41 +6,57 @@ INCLUDE "macros/tilemap.inc"
 
 ;Block 0 (sprites only)
 RSSET $00
+    IF DEF(EQRB)
+        PURGE EQRB
+    ENDC
+    DEF EQRB EQUS "$8000 + $10 * _RS"
 
     ; Player tileset.
-    DEF VT_SHOP_PLAYER EQU $8000 + $10 * _RS
+    DEF VT_SHOP_PLAYER EQU EQRB
     DEF VTI_SHOP_PLAYER RB $30
 
     ; Preview tileset.
-    DEF VT_SHOP_PREVIEW EQU $8000 + $10 * _RS
+    DEF VT_SHOP_PREVIEW EQU EQRB
     DEF VTI_SHOP_PREVIEW RB $40
 
     ; Shopdoor tiles
-    DEF VT_SHOP_SHOPDOOR EQU $8000 + $10 * _RS
+    DEF VT_SHOP_SHOPDOOR EQU EQRB
     DEF VTI_SHOP_SHOPDOOR RB $02
 ASSERT _RS <= $80
 
 ;Block 1 (sprites + background)
 RSSET $80
-
-    ; HUD tileset.
-    DEF VT_SHOP_HUD EQU $8000 + $10 * _RS
-    DEF VTI_SHOP_HUD RB $10
+    PURGE EQRB
+    DEF EQRB EQUS "$8000 + $10 * _RS"
 
     ; Shop item tiles.
-    DEF VT_SHOP_ITEMS EQU $8000 + $10 * _RS
-    DEF VTI_SHOP_ITEMS RB $10
+    DEF VT_SHOP_ITEMS EQU EQRB
+    DEF VTI_SHOP_ITEMS RB $30
+
+    ; Location of coin tileset.
+    DEF VT_SHOP_COIN EQU EQRB
+    DEF VTI_SHOP_COIN RB $08
+
+    ; Location of particle tileset.
+    DEF VT_SHOP_PARTICLE EQU EQRB
+    DEF VTI_SHOP_PARTICLE RB $08
+
+    ; HUD tiles.
+    DEF VT_SHOP_HUD EQU EQRB
+    DEF VTI_SHOP_HUD RB $1A
 ASSERT _RS <= $100
 
 ;Block 2 (backgrounds only)
 RSSET $00
+    PURGE EQRB
+    DEF EQRB EQUS "$9000 + $10 * _RS"
 
     ; Background tileset.
-    DEF VT_SHOP_TILESET EQU $9000 + $10 * _RS
+    DEF VT_SHOP_TILESET EQU EQRB
     DEF VTI_SHOP_TILESET RB $20
 
     ; Shop font tileset.
-    DEF VT_SHOP_FONT EQU $9000 + $10 * _RS
+    DEF VT_SHOP_FONT EQU EQRB
     DEF VTI_SHOP_FONT RB $60
 ASSERT _RS <= $80
 

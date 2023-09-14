@@ -44,19 +44,41 @@ shop_vblank::
 shop_hblank_hud::
     push af
 
-    ;Next interrupt should be the preview
-    LYC_set_jumppoint shop_hblank_preview
-    ld a, SHOP_LYC_PREVIEW
+    ;Next interrupt should be posthud
+    LYC_set_jumppoint shop_hblank_posthud
+    ld a, SHOP_LYC_HUD+8
     ldh [rLYC], a
 
     ;Wait for H-blank
     LYC_wait_hblank
 
     ;Show the background
-    ld a, SHOP_LCDC_BACKGROUND
+    ld a, SHOP_LCDC_POSTHUD
     ldh [rLCDC], a
     ld a, SHOP_SCY_BACKGROUND
     ldh [rSCY], a
+
+    ;Return
+    ei
+    pop af
+    ret
+;
+
+
+
+; Simply enabled 8x16 sprites.  
+; Lives in ROM0.
+shop_hblank_posthud::
+    push af
+
+    ;Set LCDC
+    ld a, SHOP_LCDC_BACKGROUND
+    ldh [rLCDC], a
+
+    ;Next interrupt should be the preview
+    LYC_set_jumppoint shop_hblank_preview
+    ld a, SHOP_LYC_PREVIEW
+    ldh [rLYC], a
 
     ;Return
     ei

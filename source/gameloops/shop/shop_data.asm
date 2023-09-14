@@ -53,31 +53,9 @@ shop_vprep_background:: vqueue_prepare_copy \
     20
 ;
 
-; Prepared VQUEUE transfer.  
-; Transfers HUD tileset
-shop_vprep_hud_tls:: vqueue_prepare_copy \
-    VQUEUE_TYPE_DIRECT, \
-    VT_SHOP_HUD, \
-    tower_tls_hud, \
-    w_vqueue_writeback
-;
-
-; A set of 2 prepared VQUEUE transfers.  
-; Draws the HUD how I like it.
-shop_vprep_hud_tlm::
-    vqueue_prepare_set \
-        VQUEUE_TYPE_SCREENROW, \
-        2, \
-        VM_SHOP_HUD  + $00, \
-        VTI_SHOP_HUD + $00, \
-        w_vqueue_writeback
-    ;
-
-    vqueue_prepare_set \
-        VQUEUE_TYPE_SCREENROW, \
-        1, \
-        VM_SHOP_HUD  + $40, \
-        VTI_SHOP_HUD + $02, \
-        w_vqueue_writeback
-    ;
+; 2 prepared VQUEUE transfers.
+; Transfer HUD tileset + tilemap.
+shop_vprep_hud::
+    vqueue_prepare_copy VQUEUE_TYPE_DIRECT, VT_SHOP_HUD, tower_tls_hud
+    vqueue_prepare_copy VQUEUE_TYPE_SCREENROW, VM_SHOP_HUD, tower_tlm_hud, 0, 20
 ;
