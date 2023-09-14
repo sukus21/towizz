@@ -188,6 +188,9 @@ var_w0:
         ; 16 tiles wide buffer for item name.
         w_shop_namebuffer:: ds $10, " "
 
+        ; Current items in stock
+        w_shop_stock:: db ITEM_ID_HEART, ITEM_ID_FIREBREATH, ITEM_ID_JETPACK
+
         ; Number of waves passed.
         w_waves_passed:: db $00
 
