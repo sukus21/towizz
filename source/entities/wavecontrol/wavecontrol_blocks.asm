@@ -197,3 +197,77 @@ wavecontrol_block_vspeed_add::
         jp wavecontrol_block_return
     ;
 ;
+
+
+
+; Decreases tower speed until a certain speed is reached.
+;
+; Input:
+; - `bc`: Target speed
+; - `de`: Change
+;
+; Saves: `hl`
+wavecontrol_block_vspeed_sub::
+    push hl
+    ld hl, w_tower_yspeed
+    ld a, [hl]
+    sub a, e
+    ld [hl+], a
+    ld a, [hl]
+    sbc a, d
+    jr c, .limit
+    ld [hl+], a
+
+    ;Also do background speed
+    ld hl, w_background_yspeed
+    sra d
+    rr e
+    sra d
+    rr e
+    sra d
+    rr e
+    ld a, [hl]
+    sub a, e
+    ld [hl+], a
+    ld a, [hl]
+    sbc a, d
+    ld [hl+], a
+
+    ;Did we go over the Speed Limit?
+    ld hl, w_tower_yspeed+1
+    ld a, [hl-]
+    cp a, b
+    jr z, :+
+    jr nc, .exit
+    :
+    ld a, [hl]
+    cp a, c
+    jr z, .limit
+    jr nc, .exit
+
+        ;Yes we did, limit speeds
+        .limit
+        ld a, c
+        ld [hl+], a
+        ld [hl], b
+        ld hl, w_background_yspeed
+        sra b
+        rr c
+        sra b
+        rr c
+        sra b
+        rr c
+        ld a, c
+        ld [hl+], a
+        ld [hl], b
+    ;
+
+    ;Return
+    pop hl
+    ret
+
+    .exit
+        pop hl
+        jp wavecontrol_block_return
+    ;
+;
