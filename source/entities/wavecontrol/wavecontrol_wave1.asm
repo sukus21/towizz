@@ -68,9 +68,135 @@ wavecontrol_wave1::
 
     ;Alrighty, wait for gameloop to begin
     call wavecontrol_block_checkpoint
-    call wavecontrol_block_begun
+    ldh a, [h_input_pressed]
+    bit PADB_START, a
+    jp z, wavecontrol_block_return
+    call wavecontrol_block_checkpoint
+    ld bc, $0280
+    ld de, $0008
+    call wavecontrol_block_vspeed_add
+    
+    ;Round 1 (single knightling)
+    wavecontrol_writeback_reset
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $340, tower_tlm_gate_middle, de
+    call wavecontrol_block_checkpoint
+    ld b, 1
+    call wavecontrol_block_vqueue
+    wavecontrol_set16 w_tower_ypos, $0000
+    ld a, [w_tower_flags]
+    and a, TOWERMODEF_WINDOW_TILEMAP
+    ld [w_tower_flags], a
+    wavecontrol_create_dragdown entity_knightling_create, $4C, $FC, 0
+    wavecontrol_set16 w_platform_xspeed, $0050
+    call wavecontrol_block_checkpoint
+    wavecontrol_moveto w_platform_ypos, $5F00, $0080
+    wavecontrol_moveto w_camera_xpos, $3000, $0080
+    ld bc, 0
+    ld de, $0008
+    call wavecontrol_block_vspeed_sub
+    call wavecontrol_block_checkpoint
+    call wavecontrol_dragdown_release
+    wavecontrol_set16 w_platform_xspeed, $0000
 
-    ;Ok, that's all the time I've got.
+    ;Round 2 (dual knightlings)
+    wavecontrol_writeback_reset
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $140, tower_tlm_gate_double, de
+    call wavecontrol_block_checkpoint
+    wavecontrol_waitval w_knightling_count, 0
+    ld b, 1
+    call wavecontrol_block_vqueue
+    wavecontrol_create_dragdown entity_knightling_create, $26, $DE, 0
+    wavecontrol_create_dragdown entity_knightling_create, $55, $DE, 1
+    call wavecontrol_block_checkpoint
+    wavecontrol_moveto w_camera_xpos, $1000, $0060
+    wavecontrol_set16 w_platform_xspeed, -$00D0
+    ld bc, $0300
+    ld de, $0010
+    call wavecontrol_block_vspeed_add
+    call wavecontrol_block_checkpoint
+    wavecontrol_moveto w_camera_xpos, $1000, $0060
+    wavecontrol_moveto w_platform_ypos, $6C00, $0080
+    wavecontrol_set16 w_platform_xspeed, 0
+    ld bc, $0000
+    ld de, $0010
+    call wavecontrol_block_vspeed_sub
+    call wavecontrol_dragdown_release
+    wavecontrol_waitval w_knightling_count, 0
+
+    ;Round 3 (single pajamaman)
+    wavecontrol_writeback_reset
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $300, tower_tlm_segment_8, de
+    call wavecontrol_block_checkpoint
+    ld b, 1
+    call wavecontrol_block_vqueue
+    wavecontrol_set16 w_platform_xspeed, $0080
+    call wavecontrol_block_checkpoint
+    wavecontrol_moveto w_camera_xpos, $5000, $0100
+    ld bc, $0380
+    ld de, $0010
+    call wavecontrol_block_vspeed_add
+    wavecontrol_set16 w_platform_xspeed, 0
+    wavecontrol_create_dragdown entity_pajamaman_create, $00, $00
+    ld a, [w_tower_flags]
+    and a, TOWERMODEF_WINDOW_TILEMAP
+    or a, TOWERMODEF_TOWER_REPEAT | TOWERMODEF_TOWER_TILEMAP
+    ld [w_tower_flags], a
+    wavecontrol_set16 w_tower_ypos, 0
+    call wavecontrol_block_checkpoint
+    ld bc, $0060
+    ld de, $0008
+    call wavecontrol_block_vspeed_sub
+    call wavecontrol_block_checkpoint
+    wavecontrol_waitval w_pajamaman_count, 0
+
+    ;Round 4 (knightlings + pajamaman)
+    wavecontrol_create_dragdown entity_pajamaman_create, 0, 0
+    wavecontrol_writeback_reset
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $340, tower_tlm_gate_double, de
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $100, tower_tlm_segment_8, de
+    call wavecontrol_block_checkpoint
+    ld bc, $0280
+    ld de, $0008
+    call wavecontrol_block_vspeed_add
+    ld b, 2
+    call wavecontrol_block_vqueue
+    wavecontrol_set16 w_tower_ypos, $0000
+    ld a, [w_tower_flags]
+    and a, TOWERMODEF_WINDOW_TILEMAP
+    ld [w_tower_flags], a
+    wavecontrol_create_dragdown entity_knightling_create, $26, $FC, 0
+    wavecontrol_create_dragdown entity_knightling_create, $55, $FC, 1
+    wavecontrol_set16 w_platform_xspeed, -$001C
+    call wavecontrol_block_checkpoint
+    wavecontrol_moveto w_platform_ypos, $5F00, $0080
+    wavecontrol_moveto w_camera_xpos, $0F00, $0080
+    ld bc, 0
+    ld de, $0008
+    call wavecontrol_block_vspeed_sub
+    call wavecontrol_block_checkpoint
+    call wavecontrol_dragdown_release
+    wavecontrol_set16 w_platform_xspeed, $0000
+    call wavecontrol_block_checkpoint
+    wavecontrol_waitval w_pajamaman_count, 0
+    wavecontrol_waitval w_knightling_count, 0
+
+    ;End of wave. Go to shop
+    relpointer_move ENTVAR_WAVECONTROL_TIMER
+    ld [hl], 50
+    call wavecontrol_block_checkpoint
+    dec [hl]
+    jp nz, wavecontrol_block_return
+    ld a, COLOR_FADESTATE_OUT
+    push hl
+    call transition_fade_init
+    pop hl
+    relpointer_move ENTVAR_WAVECONTROL_TIMER
+    ld [hl], 50
+    call wavecontrol_block_checkpoint
+    dec [hl]
+    jp nz, wavecontrol_block_return
+
+    ;Alright, we are officially done here.
     relpointer_destroy
-    ret
+    jp gameloop_shop
 ;

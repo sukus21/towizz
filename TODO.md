@@ -26,7 +26,7 @@
     * [ ] Bear bear
     * [ ] Wrecking ball
     * [ ] Flame floor
-* [ ] Wave system
+* [x] Wave system
 * [x] Tower gameloop
     * [x] Non-repeat mode (get rid of non-platform interrupts)
     * [x] Window layer update system
