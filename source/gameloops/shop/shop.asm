@@ -73,6 +73,8 @@ gameloop_shop_setup:
     relpointer_destroy
 
     ;Create shop door
+    ld de, VT_SHOP_COIN
+    farcall entity_coin_load
     ld de, VT_SHOP_SHOPDOOR
     farcall entity_shopdoor_load
     ld b, VTI_SHOP_SHOPDOOR
@@ -151,6 +153,7 @@ gameloop_shop_setup:
 ; Main entrypoint of the shop gameloop.  
 ; Lives in ROM0.
 gameloop_shop::
+    ld sp, w_stack
     call gameloop_shop_setup
 
     ;This is where the gameloop repeats

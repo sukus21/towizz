@@ -19,6 +19,13 @@ SECTION FRAGMENT "WAVECONTROL", ROMX
 wavecontrol_wave1::
     push hl
 
+    ;Set a lot of tower variables
+    wavecontrol_set16 w_platform_xpos, $9800
+    wavecontrol_set16 w_platform_ypos, $5800
+    wavecontrol_set16 w_tower_ypos, 0
+    wavecontrol_set16 w_background_ypos, 0
+    wavecontrol_set16 w_camera_xpos, $4000
+
     ;Set tower flags
     ld a, [w_tower_flags]
     and a, TOWERMODEF_WINDOW_TILEMAP
@@ -67,10 +74,11 @@ wavecontrol_wave1::
     pop hl
 
     ;Alrighty, wait for gameloop to begin
+    relpointer_move ENTVAR_WAVECONTROL_COUNT
+    ld [hl], 20
     call wavecontrol_block_checkpoint
-    ldh a, [h_input_pressed]
-    bit PADB_START, a
-    jp z, wavecontrol_block_return
+    dec [hl]
+    jp nz, wavecontrol_block_return
     call wavecontrol_block_checkpoint
     ld bc, $0280
     ld de, $0008

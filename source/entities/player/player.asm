@@ -252,7 +252,7 @@ entity_player_draw:
     ld a, [w_camera_xpos+1]
     cpl
     add a, [hl]
-    add a, 9
+    add a, 6
     ld d, a
     relpointer_move ENTVAR_YPOS+1
     ld e, [hl]

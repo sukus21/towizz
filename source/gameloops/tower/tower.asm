@@ -86,6 +86,7 @@ gameloop_tower_setup:
 ;
 ; Saves: none
 gameloop_tower::
+    ld sp, w_stack
     call gameloop_tower_setup
 
     ; This is where the gameloop repeats.
