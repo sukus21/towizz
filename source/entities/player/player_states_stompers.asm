@@ -295,6 +295,7 @@ player_stompers_dmgcall:
     ld [hl], PLAYER_FLAGS
     relpointer_move ENTVAR_PLAYER_FLAGS
     res PLAYER_FLAGB_ARMORED, [hl]
+    set PLAYER_FLAGB_GRACE, [hl]
 
     ;Set state
     relpointer_move ENTVAR_PLAYER_STATE
@@ -306,6 +307,10 @@ player_stompers_dmgcall:
     ld [hl+], a
     ld a, high(PLAYER_YSPEED_STOMPERS_BOUNCE)
     ld [hl-], a
+
+    ;Set grace time
+    relpointer_move ENTVAR_PLAYER_GRACETIME
+    ld [hl], PLAYER_GRACE_TIME
     
     ;Return
     relpointer_destroy

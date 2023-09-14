@@ -18,7 +18,7 @@ SECTION FRAGMENT "PLAYER", ROMX
 ;
 ; Saves: none
 entity_player_create::
-    entsys_new 32, entity_player, PLAYER_FLAGS
+    entsys_new 64, entity_player, PLAYER_FLAGS
 
     ;Set width and height
     relpointer_move ENTVAR_HEIGHT
@@ -177,7 +177,7 @@ entity_player_update:
     relpointer_move ENTVAR_PLAYER_FLAGS
     push hl
     ld a, [hl]
-    and a, PLAYER_FLAGF_ARMORED | PLAYER_FLAGF_INVINCIBLE
+    and a, PLAYER_FLAGF_ARMORED | PLAYER_FLAGF_INVINCIBLE | PLAYER_FLAGF_GRACE
     jr nz, .no_hurt
 
     ;Yeah, do thing
@@ -196,6 +196,19 @@ entity_player_update:
         call entsys_collision_all.continue
         jr nz, .hurt_loop
     .no_hurt
+
+    ;Decrement grace time
+    pop hl
+    relpointer_move ENTVAR_PLAYER_GRACETIME
+    push hl
+    ld a, [hl]
+    or a, a
+    jr z, :+
+        dec [hl]
+        jr nz, :+
+        relpointer_move ENTVAR_PLAYER_FLAGS
+        res PLAYER_FLAGB_GRACE, [hl]
+    :
 
     ;Return
     .return
