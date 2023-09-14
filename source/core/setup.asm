@@ -45,6 +45,9 @@ setup::
     ldh [h_setup], a
 
     ;Do my intro with the logo
+    xor a
+    ldh [rSCX], a
+    ldh [rSCY], a
     farcall intro
 
     ; Skip GBC detection and RNG reset.

@@ -455,7 +455,7 @@ int_stat:
     :
 
     bit PADB_START, c
-    jp nz, setup
+    jp nz, setup.partial
 
     ;Save things on the stack
     push hl
