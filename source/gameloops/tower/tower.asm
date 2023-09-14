@@ -98,6 +98,15 @@ gameloop_tower::
     call tower_buffer_prepare
     call tower_update
 
+    ;Shuffle RNG a tiny bit
+    ld hl, h_rng_seed
+    ldh a, [rDIV]
+    xor a, [hl]
+    ld [hl+], a
+    ldh a, [rDIV]
+    xor a, [hl]
+    ld [hl+], a
+
     ;Wait for Vblank
     ldh a, [h_oam_active]
     ld h, a
