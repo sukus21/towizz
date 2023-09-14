@@ -3,6 +3,7 @@ INCLUDE "tower.inc"
 INCLUDE "macros/color.inc"
 INCLUDE "macros/relpointer.inc"
 INCLUDE "macros/farcall.inc"
+INCLUDE "struct/vqueue.inc"
 INCLUDE "struct/entity/wavecontrol.inc"
 INCLUDE "struct/vram/tower.inc"
 
@@ -21,7 +22,7 @@ wavecontrol_wave1::
     ;Set tower flags
     ld a, [w_tower_flags]
     and a, TOWERMODEF_WINDOW_TILEMAP
-    or a, 0
+    or a, TOWERMODEF_TOWER_TILEMAP | TOWERMODEF_TOWER_REPEAT
     ld [w_tower_flags], a
 
     ;Load background
@@ -44,16 +45,16 @@ wavecontrol_wave1::
     farcall_x tower_bricks_load
 
     ;Transfer tower tilemaps
-    ld de, wave1_tlm_base
-    ld b, 5
-    call vqueue_enqueue_multi
-
-    ;Set checkpoint
-    pop hl
-    call wavecontrol_block_checkpoint
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER1 + $000, tower_tlm_segment_8, de
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $000, tower_tlm_segment_8, de
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $100, tower_tlm_segment_8, de
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $200, tower_tlm_segment_8, de
+    vqueue_addw VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $300, tower_tlm_segment_8, de
 
     ;Wait for transfers to complete
-    ld b, 4
+    pop hl
+    call wavecontrol_block_checkpoint
+    ld b, 9
     call wavecontrol_block_vqueue
     
     ;Fade screen in
@@ -73,14 +74,3 @@ wavecontrol_wave1::
     relpointer_destroy
     ret
 ;
-
-
-
-; Prepared full-tower transfer.
-wave1_tlm_base:
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER1 + $000, tower_tlm_segment_8
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $000, tower_tlm_segment_8
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $100, tower_tlm_segment_8
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $200, tower_tlm_segment_8
-    vqueue_prepare_copy VQUEUE_TYPE_HALFROW, VM_TOWER_TOWER0 + $300, tower_tlm_segment_8
-.end

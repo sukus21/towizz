@@ -312,3 +312,25 @@ MACRO vqueue_add_set
     inc l
     inc l
 ENDM
+
+
+
+; Macro that adds a direct-type copy-mode transfer to the VRAM transfer queue.
+; Assumes the source label has an exported `.end` sublabel.
+;
+; Input:
+; - `1`: Transfer type (`VQUEUE_TYPE_*`)
+; - `2`: Destination (address/label/r16)
+; - `3`: Source (label)
+; - `4*`: Writeback pointer (address/label/r16, default: 0)
+;
+; Destroys: `af`  
+; Saves: `bc`, `de`, `hl`
+MACRO vqueue_addw
+    push hl
+    vqueue_add_copy \1, \2, \3
+    ld a, low(\4)
+    ld [hl+], a
+    ld [hl], high(\4)
+    pop hl
+ENDM
