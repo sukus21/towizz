@@ -20,6 +20,8 @@ gameloop_tower_setup:
     ;Set OAM mirror
     ld a, high(w_oam1)
     ldh [h_oam_active], a
+    xor a
+    ld [w_tower_spriteslots], a
 
     ;Load player
     farcall entity_player_load
