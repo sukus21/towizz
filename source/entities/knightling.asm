@@ -84,7 +84,7 @@ entity_knightling_create::
 
     ;Set state and flags
     relpointer_move ENTVAR_KNIGHTLING_STATE
-    ld [hl], KNIGHTLING_STATE_WALK
+    ld [hl], KNIGHTLING_STATE_WAIT
     relpointer_move ENTVAR_KNIGHTLING_FLAGS
     ld [hl], 0
 
@@ -875,8 +875,11 @@ knightling_draw:
     :
 
     ;Walk sprite
+    cp a, KNIGHTLING_STATE_WAIT
+    jr z, .walk
     cp a, KNIGHTLING_STATE_WALK
     jr nz, :+
+        .walk
         bit 7, b
         jr z, .sprited
         ld a, c
