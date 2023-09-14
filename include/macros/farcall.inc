@@ -1,3 +1,6 @@
+    IF !DEF(FARCALL_INC)
+    DEF FARCALL_INC EQU 1
+
 ; Switches banks, and jumps to the given symbol.
 ; `a` will be clobbered before the jump,
 ; and can therefore not be used as function arguments.
@@ -43,3 +46,5 @@ MACRO farcall_x
     ld hl, \1
     call farcall_handler_x
 ENDM
+
+    ENDC

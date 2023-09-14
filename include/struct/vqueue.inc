@@ -1,3 +1,6 @@
+    IF !DEF(VQUEUE_INC)
+    DEF VQUEUE_INC EQU 1
+
 ; Determines if set mode is enabled or not.
 ; Used on `VQUEUE_TYPE`.
 DEF VQUEUEB_MODEFLAG EQU 7
@@ -334,3 +337,5 @@ MACRO vqueue_addw
     ld [hl], high(\4)
     pop hl
 ENDM
+
+    ENDC
