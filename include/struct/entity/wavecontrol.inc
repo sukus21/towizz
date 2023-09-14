@@ -31,7 +31,7 @@ ENDM
 ; - `1`: Entity creation routine (label)
 ; - `2`: Entity X-position (n8)
 ; - `3`: Entity Y-position (n8)
-; - `4`: Dragdown slot (n8, 0-3)
+; - `4*`: Dragdown slot (n8, 0-3)
 ;
 ; Saves: relpointer
 MACRO wavecontrol_create_dragdown
@@ -41,11 +41,13 @@ MACRO wavecontrol_create_dragdown
     ld d, h
     ld e, l
     pop hl
-    relpointer_move ENTVAR_WAVECONTROL_DRAGDOWN + (\4 * 2)
-    ld a, e
-    ld [hl+], a
-    ld a, d
-    ld [hl-], a
+    IF _NARG == 4
+        relpointer_move ENTVAR_WAVECONTROL_DRAGDOWN + (\4 * 2)
+        ld a, e
+        ld [hl+], a
+        ld a, d
+        ld [hl-], a
+    ENDC
 ENDM
 
 ; Sets writeback to 0.
