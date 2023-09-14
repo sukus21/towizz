@@ -48,4 +48,37 @@ MACRO wavecontrol_create_dragdown
     ld [hl-], a
 ENDM
 
+; Sets writeback to 0.
+;
+; Output:
+; - `de`: Pointer to writeback
+MACRO wavecontrol_writeback_reset
+    relpointer_move ENTVAR_WAVECONTROL_WRITEBACK
+    ld [hl], 0
+    ld d, h
+    ld e, l
+ENDM
+
+MACRO wavecontrol_moveto
+    push hl
+    ld hl, \1
+    ld bc, \2
+    ld de, \3
+    call wavecontrol_block_moveto
+    pop hl
+ENDM
+
+MACRO wavecontrol_set16
+    ld a, low(\2)
+    ld [\1], a
+    ld a, high(\2)
+    ld [\1+1], a
+ENDM
+
+MACRO wavecontrol_waitval
+    ld a, [\1]
+    cp a, \2
+    ret nz
+ENDM
+
     ENDC
