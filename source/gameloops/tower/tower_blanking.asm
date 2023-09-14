@@ -125,7 +125,6 @@ tower_hblank_gui::
     ;platform end -> c
     ldh a, [h_tower_buffer + TOWER_BUFFER_PHEIGHT]
     add a, b
-    ld c, a
 
     ;Skip platform?
     cp a, TOWER_HUD_HEIGHT
@@ -265,21 +264,20 @@ tower_hblank_platform::
     bit TOWERMODEB_TOWER_REPEAT, a
     jr z, :+
         LYC_set_jumppoint tower_hblank_segment
+        
+        ;Set next segment interrupt
+        ldh a, [h_tower_buffer + TOWER_BUFFER_LYC]
+        .loop
+            add a, l
+            cp a, h
+            jr z, .loop
+            jr c, .loop
+        sub a, l
+        ldh [h_tower_buffer + TOWER_BUFFER_LYC], a
         jr :++
     :
         LYC_set_jumppoint tower_hblank_tower
     :
-
-    ;Set next segment interrupt
-    ldh a, [h_tower_buffer + TOWER_BUFFER_LYC]
-    .loop
-        add a, l
-        cp a, h
-        jr z, .loop
-        jr c, .loop
-    :
-    sub a, l
-    ldh [h_tower_buffer + TOWER_BUFFER_LYC], a
 
     ;Calculate background position
     ldh a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
@@ -334,7 +332,6 @@ tower_hblank_tower::
 
     ;Next thing that should happen is platform interrupt
     ld a, [h_tower_buffer + TOWER_BUFFER_PYPOS]
-    dec a
     dec a
     ldh [rLYC], a
     LYC_set_jumppoint tower_hblank_platform
