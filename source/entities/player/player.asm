@@ -570,7 +570,14 @@ player_hurt::
     relpointer_move ENTVAR_PLAYER_INVINCIBLE
     ld [hl], PLAYER_INVINCIBLE_TIME
     
-    ;TODO: health
+    ;Decrease health
+    ld a, [w_player_health]
+    dec a
+    jr nz, :+
+        ld hl, error_gameover
+        rst v_error
+    :
+    ld [w_player_health], a
 
     ;Return
     relpointer_destroy

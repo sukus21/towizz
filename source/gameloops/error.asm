@@ -454,6 +454,9 @@ int_stat:
         ldh [rLCDC], a
     :
 
+    bit PADB_START, c
+    jp nz, setup
+
     ;Save things on the stack
     push hl
 
@@ -699,5 +702,7 @@ error_messages:
     error_unknwn_equipmt::  create_message "UNKNOWN EQUIPMENT"
     error_unknown_weapon::  create_message "UNKNOWN WEAPON"
     error_not_enogh_vram::  create_message "NOT ENOUGH VRAM"
+    error_gameover::        create_message "     GAME  OVER"
+    error_thanksforplay::   create_message "THANKS FOR PLAYING"
     POPC
 ;
