@@ -271,3 +271,72 @@ wavecontrol_block_vspeed_sub::
         jp wavecontrol_block_return
     ;
 ;
+
+
+
+; Move a 16-bit value somewhere at some speed.
+; Does not exit when condition is met.
+;
+; Input:
+; - `hl`: Pointer to value
+; - `bc`: Value target
+; - `de`: Change speed
+;
+; Saves: none
+wavecontrol_block_moveto::
+    inc hl
+    ld a, [hl-]
+    cp a, b
+    jr nz, .compare
+    ld a, [hl]
+    cp a, c
+    ret z
+
+    .compare
+    jr c, .lower
+    jr .higher
+
+    .lower
+        ld a, [hl]
+        add a, e
+        ld [hl+], a
+        ld a, [hl]
+        adc a, d
+        ld [hl-], a
+        jr c, .correct
+
+        ;Do we need to correct?
+        ld a, [hl+]
+        sub a, c
+        ld a, [hl-]
+        sbc a, b
+        jr nc, .correct
+        ret
+    ;
+
+    .higher
+        ld a, [hl]
+        sub a, e
+        ld [hl+], a
+        ld a, [hl]
+        sbc a, d
+        ld [hl-], a
+        jr c, .correct
+
+        ;Do we need to correct?
+        ld a, [hl+]
+        sub a, c
+        ld a, [hl-]
+        sbc a, c
+        jr c, .correct
+        ret
+    ;
+
+    .correct
+        ld a, c
+        ld [hl+], a
+        ld a, b
+        ld [hl-], a
+        ret
+    ;
+;
