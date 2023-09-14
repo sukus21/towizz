@@ -128,3 +128,72 @@ wavecontrol_block_begun::
     pop hl
     ret
 ;
+
+
+
+; Increases tower speed until a certain speed is reached.
+;
+; Input:
+; - `bc`: Target speed
+; - `de`: Change
+;
+; Saves: `hl`
+wavecontrol_block_vspeed_add::
+    push hl
+    ld hl, w_tower_yspeed
+    ld a, [hl]
+    add a, e
+    ld [hl+], a
+    ld a, [hl]
+    adc a, d
+    ld [hl+], a
+
+    ;Also do background speed
+    ld hl, w_background_yspeed
+    sra d
+    rr e
+    sra d
+    rr e
+    sra d
+    rr e
+    ld a, [hl]
+    add a, e
+    ld [hl+], a
+    ld a, [hl]
+    adc a, d
+    ld [hl+], a
+
+    ;Did we go over the Speed Limit?
+    ld hl, w_tower_yspeed+1
+    ld a, [hl-]
+    cp a, b
+    jr c, .exit
+    ld a, [hl]
+    cp a, c
+    jr c, .exit
+
+        ;Yes we did, limit speeds
+        ld a, c
+        ld [hl+], a
+        ld [hl], b
+        ld hl, w_background_yspeed
+        sra b
+        rr c
+        sra b
+        rr c
+        sra b
+        rr c
+        ld a, c
+        ld [hl+], a
+        ld [hl], b
+    ;
+
+    ;Return
+    pop hl
+    ret
+
+    .exit
+        pop hl
+        jp wavecontrol_block_return
+    ;
+;
