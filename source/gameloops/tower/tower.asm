@@ -243,12 +243,14 @@ tower_buffer_prepare:
     ;LYC
     ld a, [w_tower_ypos+1]
     ld c, a
-    ld a, TOWER_HUD_HEIGHT-1
-    sub a, c
+    ld a, [w_tower_height]
+    cpl
+    inc a
+    add a, TOWER_HUD_HEIGHT
+    add a, c
     ld [hl+], a
 
     ;Tower variables
-    ld a, c
     ld [hl+], a
     ld a, [w_camera_xpos+1]
     ld d, a
