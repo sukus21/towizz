@@ -1,5 +1,12 @@
 INCLUDE "hardware.inc"
 
+
+SECTION "NOTICE", ROM0[$0000]
+rom_message:
+    db "sukus 2023, built 45 minutes before GBcompo23 deadline", 0
+;
+
+
 SECTION "ENTRY POINT", ROM0[$0100]
 
 ; Entrypoint of the program.

@@ -45,7 +45,7 @@ setup::
     ldh [h_setup], a
 
     ;Do my intro with the logo
-    ;farcall intro
+    farcall intro
 
     ; Skip GBC detection and RNG reset.
     ; Lives in ROM0.
