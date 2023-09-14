@@ -84,7 +84,7 @@ entity_pajamaman_create::
 
     ;Set state and flags
     relpointer_move ENTVAR_PAJAMAMAN_STATE
-    ld [hl], PAJAMAMAN_STATE_SIT
+    ld [hl], PAJAMAMAN_STATE_OFFSCREEN
     relpointer_move ENTVAR_PAJAMAMAN_FLAGS
     ld [hl], PAJAMAMAN_FLAGF_FACING
 
