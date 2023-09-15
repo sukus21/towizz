@@ -25,6 +25,11 @@ wavecontrol_wave1::
     wavecontrol_set16 w_tower_ypos, 0
     wavecontrol_set16 w_background_ypos, 0
     wavecontrol_set16 w_camera_xpos, $4000
+    ld a, 3
+    ld [w_background_section], a
+    xor a
+    ld [w_background_writeback], a
+    ld [w_background_writeback_target], a
 
     ;Set tower flags
     ld a, [w_tower_flags]

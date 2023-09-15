@@ -3,7 +3,7 @@ INCLUDE "hardware.inc"
 
 SECTION "NOTICE", ROM0[$0000]
 rom_message:
-    db "sukus 2023, built 45 minutes before GBcompo23 deadline", 0
+    db "sukus 2023, version 0.1.1", 0
 ;
 
 
