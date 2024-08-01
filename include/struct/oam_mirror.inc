@@ -5,7 +5,7 @@ RSRESET
 
 ; The OAM mirror itself.
 DEF OAMMIR_OAM RB $A0
-_RS += $50 ;filler, in case too many sprites are allocated per frame
+RSSET _RS + $50 ;filler, in case too many sprites are allocated per frame
 
 ; Low-pointer to first free sprite in this mirror.
 DEF OAMMIR_COUNT RB $01

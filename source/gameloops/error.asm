@@ -373,6 +373,7 @@ error_wait:
     xor a
     ldh [rIF], a
     halt
+    nop
     ;Falls into `int_stat`
 
 ;Stat
@@ -421,7 +422,8 @@ int_stat:
     ;This is the final scanline, just wait for VBlank
     ld a, IEF_VBLANK
     ldh [rIE], a
-    halt 
+    halt
+    nop
 
 
 

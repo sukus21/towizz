@@ -115,7 +115,8 @@ gameloop_tower::
     ld h, a
     call sprite_finish
     .halting
-        halt 
+        halt
+        nop
 
         ;Ignore if this wasn't V-blank
         ldh a, [rSTAT]

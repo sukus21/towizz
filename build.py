@@ -16,7 +16,7 @@ def assembleFile(srcPath):
 
     # Assemble file
     os.makedirs(os.path.dirname(objPath), exist_ok=True)
-    command = cmd.list2cmdline(["rgbasm", "-H", "-p", "255", "-i", "include", "-o", objPath, srcPath])
+    command = cmd.list2cmdline(["rgbasm", "-p", "255", "-i", "include", "-o", objPath, srcPath])
     print(command)
     result = cmd.run(
         command,

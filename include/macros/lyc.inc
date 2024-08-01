@@ -23,6 +23,7 @@ MACRO LYC_wait_hblank
     ld a, STATF_MODE00
     ldh [rSTAT], a
     halt
+    nop
     ld a, STATF_LYC
     ldh [rSTAT], a
     ldh [rIF], a

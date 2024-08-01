@@ -124,6 +124,7 @@ gameloop_shop_setup:
     xor a
     ldh [rIF], a
     halt
+    nop
 
     ;Set palette
     ld a, PALETTE_DEFAULT
@@ -195,7 +196,8 @@ gameloop_shop::
 
     ;Wait for Vblank
     .halting
-        halt 
+        halt
+        nop
 
         ;Ignore if this wasn't V-blank
         ldh a, [rSTAT]

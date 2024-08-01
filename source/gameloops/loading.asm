@@ -19,6 +19,7 @@ gameloop_loading::
         xor a
         ldh [rIF], a
         halt
+        nop
 
         ;Now in V-blank
         call vqueue_execute

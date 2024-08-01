@@ -130,7 +130,8 @@ intro::
     ldh [rIF], a
     ld a, IEF_VBLANK
     ldh [rIE], a
-    halt 
+    halt
+    nop
 
     ;There is Vblank!
     ;Disable LCD
@@ -206,7 +207,8 @@ intro::
         ldh [rIF], a
         ld a, IEF_VBLANK
         ldh [rIE], a
-        halt 
+        halt
+        nop
 
         ;Set default palette
         ld a, %11100100
@@ -231,6 +233,7 @@ intro::
     ld a, IEF_VBLANK
     ldh [rIE], a
     halt
+    nop
 
     ;Disable LCD in preparation for GBcompo logo
     xor a
@@ -296,7 +299,8 @@ intro::
         ldh [rIF], a
         ld a, IEF_VBLANK
         ldh [rIE], a
-        halt 
+        halt
+        nop
 
         ;Set default palette
         ld a, %11100100
@@ -351,7 +355,8 @@ intro_fadein:
         ldh [rIF], a
         ld a, IEF_VBLANK
         ldh [rIE], a
-        halt 
+        halt
+        nop
 
         ;Do the fading
         ld hl, w_intro_timer
@@ -398,7 +403,8 @@ intro_fadeout:
         ldh [rIF], a
         ld a, IEF_VBLANK
         ldh [rIE], a
-        halt 
+        halt
+        nop
 
         ;Fade out
         ld hl, w_intro_timer
